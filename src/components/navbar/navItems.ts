@@ -1,12 +1,16 @@
-import { FaUserAlt } from "react-icons/fa";
-import { MdPayments, MdSpaceDashboard, MdAccessTimeFilled, MdAssignment } from "react-icons/md";
+import { FaUser, FaUserAlt } from "react-icons/fa";
+import { FaMoneyCheckDollar } from "react-icons/fa6";
+import { IoMdSettings } from "react-icons/io";
+import { MdSpaceDashboard} from "react-icons/md";
+import { RiFileWarningFill } from "react-icons/ri";
 
 const navItems = [
     { href: "/dashboard", icon: MdSpaceDashboard, label: "Dashboard" },
-    { href: "/employee", icon: FaUserAlt, label: "Clearance" },
-    { href: "/attendance", icon: MdAssignment, label: "Settings" },
-    { href: "/payroll", icon: MdPayments, label: "Account" },
-    { href: "/history", icon: MdAccessTimeFilled, label: "History" },
+    { href: "/account", icon: FaUserAlt, label: "Account" },
+    { href: "/billings", icon: FaMoneyCheckDollar, label: "Billings" },
+    { href: "/tech-issue", icon: RiFileWarningFill, label: "Technical Issues" },
+    { href: "/user", icon: FaUser, label: "User List" },
+    { href: "/settings", icon: IoMdSettings, label: "Settings" },
 ];
 
 export default navItems;
