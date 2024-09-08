@@ -3,6 +3,9 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // Initialize Google Generative AI
 const apiKey = process.env.API_KEY;
+if (!apiKey) {
+  throw new Error('API_KEY is not defined');
+}
 const genAI = new GoogleGenerativeAI(apiKey);
 const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
@@ -15,7 +18,7 @@ export async function POST(req: Request) {
     }
 
     // Prepare image data for Google Generative AI
-    const prompt = 'what is the current reading give me 5 digits in cubic meter';
+    const prompt = 'What is the current reading? Provide 5 digits in cubic meters.';
     const imagePart = {
       inlineData: {
         data: image.split(',')[1], // Base64 part of the image
