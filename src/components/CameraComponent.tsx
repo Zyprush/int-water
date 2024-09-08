@@ -142,7 +142,7 @@ const CameraComponent: React.FC<CameraComponentProps> = ({ isCameraOpen, closeCa
           )}
           <button
             onClick={closeCamera}
-            className="absolute top-4 right-4 text-white"
+            className="absolute top-4 right-4 text-white mt-14"
           >
             <IconX size={24} />
           </button>
