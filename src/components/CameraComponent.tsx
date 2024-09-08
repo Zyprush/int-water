@@ -18,9 +18,8 @@ const CameraComponent: React.FC<CameraComponentProps> = ({ isCameraOpen, closeCa
   useEffect(() => {
     const openCamera = async () => {
       try {
-        const mediaStream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { exact: 'environment' } }, // Rear camera
-        });
+        const mediaStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { exact: 'environment' } }, }); //front cam
+        //const mediaStream = await navigator.mediaDevices.getUserMedia({ video: true }); //back
         streamRef.current = mediaStream;
         if (videoRef.current) {
           videoRef.current.srcObject = mediaStream;
@@ -105,7 +104,7 @@ const CameraComponent: React.FC<CameraComponentProps> = ({ isCameraOpen, closeCa
                 className="w-full h-full object-cover"
               />
               <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-80 h-80 border-2 border-white rounded-full"></div>
+                <div className="w-96 h-96 border-2 border-white rounded-full p-2"></div>
               </div>
               <button
                 onClick={captureImage}
