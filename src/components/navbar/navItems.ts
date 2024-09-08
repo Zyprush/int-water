@@ -5,7 +5,7 @@ import { MdSpaceDashboard} from "react-icons/md";
 import { RiFileWarningFill } from "react-icons/ri";
 
 const navItems = [
-    { href: "/dashboard", icon: MdSpaceDashboard, label: "Dashboard" },
+    { href: "/admin/dashboard", icon: MdSpaceDashboard, label: "Dashboard" },
     { href: "/account", icon: FaUserAlt, label: "Account" },
     { href: "/billings", icon: FaMoneyCheckDollar, label: "Billings" },
     { href: "/tech-issue", icon: RiFileWarningFill, label: "Technical Issues" },
