@@ -1,7 +1,6 @@
 'use client';
 import React, { useEffect, useRef, useState } from 'react';
 import { IconX, IconCamera } from '@tabler/icons-react';
-import axios from 'axios';
 
 interface CameraComponentProps {
   isCameraOpen: boolean;
@@ -64,17 +63,22 @@ const CameraComponent: React.FC<CameraComponentProps> = ({ isCameraOpen, closeCa
   const processImage = async (imageDataUrl: string) => {
     setIsProcessing(true);
     try {
-      const response = await axios.post('https://gemini-api-xwta.onrender.com/process-image', {
-        image: imageDataUrl,
-      }, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      const blob = await (await fetch(imageDataUrl)).blob();
+      const formData = new FormData();
+      formData.append('image', blob, 'image.jpg');
+
+      const response = await fetch('/api/process-image', {
+        method: 'POST',
+        body: formData,
       });
 
-      const text = response.data.text;
-      setRecognizedText(text);
-      console.log('Recognized Text:', text);
+      if (!response.ok) {
+        throw new Error('Failed to process image');
+      }
+
+      const data = await response.json();
+      setRecognizedText(data.text);
+      console.log('Recognized Text:', data.text);
     } catch (error) {
       console.error('Error processing image:', error);
       setRecognizedText('Error processing image');
