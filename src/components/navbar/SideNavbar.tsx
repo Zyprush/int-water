@@ -16,8 +16,8 @@ const SideNavbar: React.FC = () => {
             <img src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp" />
           </div>
         </div>
-        <p className="text-white text-sm font-semibold mt-2">Juan Dela Cruz</p>
-        <p className="text-white text-xs">Admin</p>
+        <p className="text-white text-base font-bold mt-2">Juan Dela Cruz</p>
+        <p className="text-zinc-300 text-xs">Admin</p>
       </span>
       <div className="w-full overflow-y-auto h-full flex">
         <nav className="flex w-56 bg-neutral custom-shadow border-r dark:border-zinc-700 relative h-auto flex-col items-start justify-start pt-5 px-0 gap-2">
