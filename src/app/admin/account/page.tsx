@@ -7,6 +7,7 @@ import ReactPaginate from "react-paginate";
 import AddNewConsumerModal from "@/components/AccountModal";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../../../../firebase";
+import Loading from "@/components/Loading";
 
 interface Consumer {
   id: string;
@@ -67,7 +68,7 @@ const Account = () => {
   };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <Loading />;
   }
 
   return (
