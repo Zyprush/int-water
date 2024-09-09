@@ -1,7 +1,7 @@
 'use client';
 import React, { useEffect, useRef, useState } from 'react';
 import { IconX, IconCamera } from '@tabler/icons-react';
-import ResultComponent from './Result';
+import WaterConsumptionResult from './Result';
 
 interface CameraComponentProps {
   isCameraOpen: boolean;
@@ -126,9 +126,9 @@ const CameraComponent: React.FC<CameraComponentProps> = ({ isCameraOpen, closeCa
                 </div>
               ) : (
                 <>
-                  {recognizedText && (
-                    <div className="absolute bottom-20 left-4 right-4 bg-black bg-opacity-70 p-4 rounded">
-                      <p className="text-white">Current Reading: {recognizedText}</p>
+                  {!isProcessing && recognizedText !== null && (
+                    <div className="absolute inset-0 bg-white">
+                      <WaterConsumptionResult recognizedText={recognizedText} />
                     </div>
                   )}
                   <button
@@ -150,8 +150,6 @@ const CameraComponent: React.FC<CameraComponentProps> = ({ isCameraOpen, closeCa
           <canvas ref={canvasRef} className="hidden" />
         </div>
       )}
-      {/* If we have recognized text, display the ResultComponent */}
-      {recognizedText && <ResultComponent recognizedText={recognizedText} />}
     </>
   );
 };
