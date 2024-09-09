@@ -62,7 +62,6 @@ const AddNewConsumerModal: React.FC<AddNewConsumerModalProps> = ({ isOpen, onClo
     });
 
     const [isLoading, setIsLoading] = useState(false);
-    const [, setError] = useState<string | null>(null);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -75,7 +74,6 @@ const AddNewConsumerModal: React.FC<AddNewConsumerModalProps> = ({ isOpen, onClo
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setIsLoading(true);
-        setError(null);
 
         const currentUser = auth.currentUser;
 
@@ -98,7 +96,6 @@ const AddNewConsumerModal: React.FC<AddNewConsumerModalProps> = ({ isOpen, onClo
             onClose();
         } catch (e) {
             console.error("Error adding document or creating user: ", e);
-            setError("An error occurred while saving the data. Please try again.");
         } finally {
             if (currentUser) {
                 await auth.updateCurrentUser(currentUser);
