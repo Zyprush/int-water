@@ -1,6 +1,7 @@
 'use client';
 import React, { useEffect, useRef, useState } from 'react';
 import { IconX, IconCamera } from '@tabler/icons-react';
+import ResultComponent from './Result';
 
 interface CameraComponentProps {
   isCameraOpen: boolean;
@@ -149,6 +150,8 @@ const CameraComponent: React.FC<CameraComponentProps> = ({ isCameraOpen, closeCa
           <canvas ref={canvasRef} className="hidden" />
         </div>
       )}
+      {/* If we have recognized text, display the ResultComponent */}
+      {recognizedText && <ResultComponent recognizedText={recognizedText} />}
     </>
   );
 };
