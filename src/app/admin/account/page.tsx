@@ -1,25 +1,53 @@
 "use client";
 
 import NavLayout from "@/components/NavLayout";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { IconEdit, IconEye, IconTrash } from "@tabler/icons-react";
 import ReactPaginate from "react-paginate";
-import "tailwindcss/tailwind.css";
+import AddNewConsumerModal from "@/components/AccountModal";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "../../../../firebase";
 
-const dummyData = [
-  { dateCreated: "2024-09-01", meterSerialNumber: "SN12345", name: "John Doe", status: "Active" },
-  { dateCreated: "2024-09-02", meterSerialNumber: "SN12346", name: "Jane Smith", status: "Inactive" },
-  // Add more dummy rows as needed
-];
+interface Consumer {
+  id: string;
+  applicantName: string;
+  waterMeterSerialNo: string;
+  serviceConnectionNo: string;
+  createdAt: string;
+  // Add other fields as needed
+}
 
 const Account = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(0);
+  const [isAddNewModalOpen, setIsAddNewModalOpen] = useState(false);
+  const [consumers, setConsumers] = useState<Consumer[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchConsumers = async () => {
+      try {
+        const consumersCollection = collection(db, 'consumers');
+        const consumersSnapshot = await getDocs(consumersCollection);
+        const consumersList = consumersSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        })) as Consumer[];
+        setConsumers(consumersList);
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching consumers:", error);
+        setLoading(false);
+      }
+    };
+
+    fetchConsumers();
+  }, []);
 
   const itemsPerPage = 10;
-  const filteredData = dummyData.filter(item => 
-    item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.meterSerialNumber.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredData = consumers.filter(item => 
+    item.applicantName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.waterMeterSerialNo.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const pageCount = Math.ceil(filteredData.length / itemsPerPage);
@@ -35,9 +63,12 @@ const Account = () => {
   };
 
   const handleAddNew = () => {
-    // Logic to add new account goes here
-    console.log("Add New Account");
+    setIsAddNewModalOpen(true);
   };
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <NavLayout>
@@ -71,7 +102,7 @@ const Account = () => {
         <table className="min-w-full bg-white shadow-md rounded-lg">
           <thead>
             <tr>
-              <th className="px-4 py-2 text-left">Date Created</th>
+              <th className="px-4 py-2 text-left">Created At</th>
               <th className="px-4 py-2 text-left">Meter Serial Number</th>
               <th className="px-4 py-2 text-left">Name</th>
               <th className="px-4 py-2 text-left">Status</th>
@@ -79,12 +110,12 @@ const Account = () => {
             </tr>
           </thead>
           <tbody>
-            {displayedData.map((item, index) => (
-              <tr key={index} className="border-t">
-                <td className="px-4 py-2">{item.dateCreated}</td>
-                <td className="px-4 py-2">{item.meterSerialNumber}</td>
-                <td className="px-4 py-2">{item.name}</td>
-                <td className="px-4 py-2">{item.status}</td>
+            {displayedData.map((item) => (
+              <tr key={item.id} className="border-t">
+                <td className="px-4 py-2">{item.createdAt}</td>
+                <td className="px-4 py-2">{item.waterMeterSerialNo}</td>
+                <td className="px-4 py-2">{item.applicantName}</td>
+                <td className="px-4 py-2">{item.serviceConnectionNo}</td>
                 <td className="px-4 py-2">
                   <div className="flex space-x-2">
                     <button className="text-blue-500 hover:text-blue-700">
@@ -117,10 +148,14 @@ const Account = () => {
             pageClassName="inline-block px-4 py-2 border rounded-md hover:bg-gray-200"
             previousClassName="inline-block px-4 py-2 border rounded-md hover:bg-gray-200"
             nextClassName="inline-block px-4 py-2 border rounded-md hover:bg-gray-200"
-            activeLinkClassName="bg-blue-500 text-white"
+            activeLinkClassName="text-black font-bold"
           />
         </div>
       </div>
+      <AddNewConsumerModal 
+        isOpen={isAddNewModalOpen} 
+        onClose={() => setIsAddNewModalOpen(false)}
+      />
     </NavLayout>
   );
 };
