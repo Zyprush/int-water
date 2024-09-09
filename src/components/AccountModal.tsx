@@ -62,7 +62,7 @@ const AddNewConsumerModal: React.FC<AddNewConsumerModalProps> = ({ isOpen, onClo
     });
 
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const [, setError] = useState<string | null>(null);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
