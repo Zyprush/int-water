@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unsupported content type' }, { status: 400 });
     }
 
-    const prompt = 'what is the current reading give me 5 digit and in qubic meter';
+    const prompt = 'what is the current reading give me 5 digit and in qubic meter. Just give me the numbers and nothing else.';
     const imagePart = {
       inlineData: {
         data: base64Image,
