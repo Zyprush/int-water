@@ -7,7 +7,6 @@ import StaffNav from "@/components/StaffNav";
 const Settings = () => {
   const [darkMode, setDarkMode] = useState(false);
   const [accountSettingsOpen, setAccountSettingsOpen] = useState(false);
-  const [activityLogsOpen, setActivityLogsOpen] = useState(false);
   const [systemInfoOpen, setSystemInfoOpen] = useState(false);
 
   return (

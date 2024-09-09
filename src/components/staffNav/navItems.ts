@@ -1,4 +1,4 @@
-import { FaUser, FaUserAlt } from "react-icons/fa";
+import { FaUserAlt } from "react-icons/fa";
 import { FaMoneyCheckDollar } from "react-icons/fa6";
 import { IoMdSettings } from "react-icons/io";
 import { MdSpaceDashboard} from "react-icons/md";
