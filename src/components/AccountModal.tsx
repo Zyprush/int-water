@@ -24,9 +24,10 @@ interface FormData {
     waterMeterSerialNo: string;
     waterMeterBrand: string;
     waterMeterSize: string;
-    initialReading: string;
+    initialReading: number;
     email: string;
     createdAt: string;
+    role: string;
 }
 
 interface AddNewConsumerModalProps {
@@ -56,9 +57,10 @@ const AddNewConsumerModal: React.FC<AddNewConsumerModalProps> = ({ isOpen, onClo
         waterMeterSerialNo: '',
         waterMeterBrand: '',
         waterMeterSize: '',
-        initialReading: '',
+        initialReading: 0, 
         email: '',
         createdAt: '',
+        role: 'consumer'
     });
 
     const [isLoading, setIsLoading] = useState(false);
