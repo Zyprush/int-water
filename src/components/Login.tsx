@@ -22,7 +22,7 @@ const Login = () => {
     e.preventDefault();
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      router.push("/dashboard"); // Redirect to the dashboard or desired page after login
+      router.push("/admin/dashboard"); // Redirect to the dashboard or desired page after login
     } catch (error) {
       const firebaseError = error as FirebaseError; // Cast error to FirebaseError
       if (firebaseError.code === "auth/wrong-password") {

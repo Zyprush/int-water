@@ -6,11 +6,11 @@ import { RiFileWarningFill } from "react-icons/ri";
 
 const navItems = [
     { href: "/admin/dashboard", icon: MdSpaceDashboard, label: "Dashboard" },
-    { href: "/account", icon: FaUserAlt, label: "Account" },
-    { href: "/billings", icon: FaMoneyCheckDollar, label: "Billings" },
-    { href: "/tech-issue", icon: RiFileWarningFill, label: "Technical Issues" },
-    { href: "/user", icon: FaUser, label: "User List" },
-    { href: "/settings", icon: IoMdSettings, label: "Settings" },
+    { href: "/admin/account", icon: FaUserAlt, label: "Account" },
+    { href: "/admin/billings", icon: FaMoneyCheckDollar, label: "Billings" },
+    { href: "/admin/technical", icon: RiFileWarningFill, label: "Technical Issues" },
+    { href: "/admin/userlist", icon: FaUser, label: "User List" },
+    { href: "/admin/settings", icon: IoMdSettings, label: "Settings" },
 ];
 
 export default navItems;
