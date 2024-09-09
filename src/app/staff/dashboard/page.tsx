@@ -1,6 +1,5 @@
 "use client";
 
-import NavLayout from "@/components/NavLayout";
 import { Bar } from "react-chartjs-2";
 import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale } from "chart.js";
 import { IconUser, IconUsers, IconCash, IconCalendarCheck, IconCalendarX, IconCalendar } from "@tabler/icons-react";

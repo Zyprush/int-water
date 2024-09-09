@@ -1,6 +1,5 @@
 "use client";
 
-import NavLayout from "@/components/NavLayout";
 import React, { useState } from "react";
 import { Switch } from "@headlessui/react";
 import StaffNav from "@/components/StaffNav";

@@ -6,8 +6,6 @@ import Header from "./staffNav/Header";
 import MobileHeader from "./staffNav/MobileHeader";
 
 
-
-
 interface NavbarProps {
   children: ReactNode;
 }

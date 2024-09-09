@@ -1,6 +1,5 @@
 "use client";
 
-import NavLayout from "@/components/NavLayout";
 import React, { useState } from "react";
 import { IconEye, IconCurrencyDollar } from "@tabler/icons-react";
 import ReactPaginate from "react-paginate";
