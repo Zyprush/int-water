@@ -5,10 +5,10 @@ export default function Home() {
     <div className="flex">
       <div className="flex h-screen mx-auto justify-center gap-10 flex-col-reverse md:flex-row items-center p-10">
         <div className="flex flex-col text-justify max-w-80 text-primary text-sm my-auto">
-          <p className="text-neutral text-lg font-bold text-left">
+          <p className="text-primary text-xl drop-shadow-sm font-bold text-left">
             Barangay Balao
           </p>
-          <p className="text-neutral font-bold text-left mb-5">
+          <p className="text-neutral text-left mb-5">
             Waterworks Management and Billing System
           </p>
           <p className="text-xs">
