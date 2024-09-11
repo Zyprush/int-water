@@ -9,7 +9,7 @@ const navItems = [
     { href: "/admin/account", icon: FaUserAlt, label: "Account" },
     { href: "/admin/billings", icon: FaMoneyCheckDollar, label: "Billings" },
     { href: "/admin/technical", icon: RiFileWarningFill, label: "Technical Issues" },
-    { href: "/admin/userlist", icon: FaUser, label: "User List" },
+    { href: "/admin/staff-list", icon: FaUser, label: "Staff List" },
     { href: "/admin/settings", icon: IoMdSettings, label: "Settings" },
 ];
 

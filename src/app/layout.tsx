@@ -5,10 +5,9 @@ import { ThemeProvider } from "next-themes";
 
 const poppins = Poppins({
   subsets: ["latin"],
-  preload: true, // If you want to preload the font, set this to true or false
-  fallback: ["sans-serif"], // Added fallback font
   weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
   display: "swap",
+  fallback: ["Arial", "sans-serif"], // Provide fallback fonts here
 });
 
 export const metadata: Metadata = {

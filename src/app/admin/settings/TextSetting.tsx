@@ -8,7 +8,10 @@ interface TextSettingProps {
   title: string;
 }
 
-const TextSetting: React.FC<TextSettingProps> = ({ name, title }): JSX.Element => {
+const TextSetting: React.FC<TextSettingProps> = ({
+  name,
+  title,
+}): JSX.Element => {
   const [isEditing, setIsEditing] = useState(false);
   const [value, setValue] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -66,45 +69,52 @@ const TextSetting: React.FC<TextSettingProps> = ({ name, title }): JSX.Element =
   };
 
   return (
-    <div className="flex flex-col items-center justify-center border border-zinc-300 border-opacity-45 dark:border-zinc-700 rounded-lg p-3 w-auto shadow-md group cursor-help">
+    <div className="flex flex-col items-center justify-apart border-t w-full border-zinc-400 border-opacity-45 dark:border-zinc-700 p-5 group">
       {loading ? (
         <p>Loading...</p>
       ) : (
         <>
           {isEditing ? (
-            <>
+            <div className="flex w-full justify-between items-center">
+              <p className="font-semibold text-primary text-sm dark:text-zinc-200">
+                {title}
+              </p>
               <input
                 type="text"
                 value={newValue}
                 placeholder={title}
                 onChange={handleChange}
-                className="sn-input"
+                className="sn-input mx-auto"
                 disabled={isSaving} // Disable input when saving
               />
-              <div className="flex gap-2 mt-2">
-                <button 
-                  onClick={handleCancel} 
-                  className="btn btn-sm btn-outline text-secondary mt-3 rounded-sm" 
+              <div className="flex gap-2">
+                <button
+                  onClick={handleCancel}
+                  className="btn btn-sm btn-outline text-secondary rounded-sm ml-auto"
                   disabled={isSaving} // Disable cancel button when saving
                 >
                   Cancel
                 </button>
-                <button 
-                  onClick={handleSave} 
-                  className="btn btn-primary btn-sm rounded-sm mt-3 text-white" 
+                <button
+                  onClick={handleSave}
+                  className="btn btn-primary btn-sm rounded-sm text-white"
                   disabled={isSaving} // Disable save button when saving
                 >
                   {isSaving ? "Saving..." : "Save"}
                 </button>
               </div>
-            </>
+            </div>
           ) : (
-            <div className="flex flex-col gap-2 justify-start max-w-80">
-            <p className="font-bold text-primary text-xs border p-1 border-primary rounded mr-auto">{title}</p>
-              <p className="text-sm ml-1">{value ? value : `No data for ${title}`}</p>
-              <button 
-                onClick={toggleEdit} 
-                className="btn btn-primary btn-sm rounded-sm mt-3 text-white hidden group-hover:flex mx-auto"
+            <div className="flex w-full justify-between items-center">
+              <p className="font-semibold text-primary text-sm mr-auto dark:text-zinc-200">
+                {title}
+              </p>
+              <p className="text-sm ml-1 max-w-80 text-center">
+                {value ? value : `No data for ${title}`}
+              </p>
+              <button
+                onClick={toggleEdit}
+                className="btn btn-outline btn-sm rounded-sm text-primary mx-auto hover:text-secondary ml-auto mr-0 dark:text-zinc-300"
               >
                 Edit
               </button>

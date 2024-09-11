@@ -2,9 +2,10 @@
 import React, { useState } from "react";
 import { FaEyeSlash, FaEye } from "react-icons/fa";
 import Link from "next/link";
-import { signInWithEmailAndPassword } from "firebase/auth"; // Import the required auth method
-import { useRouter } from "next/navigation"; // For navigation after login
-import { auth } from "../../firebase";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { useRouter } from "next/navigation";
+import { auth, db } from "../../firebase"; // Import db for Firestore
+import { collection, getDocs, query, where } from "firebase/firestore"; // For querying Firestore
 import { FirebaseError } from "firebase/app"; // Import FirebaseError
 
 const Login = () => {
@@ -20,10 +21,32 @@ const Login = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      router.push("/admin/dashboard"); // Redirect to the dashboard or desired page after login
+      // Sign in the user
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // Get user data from Firestore
+      const q = query(collection(db, 'consumers'), where('uid', '==', user.uid));
+      const querySnapshot = await getDocs(q);
+      const docSnap = querySnapshot.docs[0];
+
+      if (docSnap.exists()) {
+        const userData = docSnap.data();
+        console.log('role', userData.role)
+        // Check role and redirect accordingly
+        if (userData.role === "consumer") {
+          router.push("/consumer/dashboard");
+        } else if (userData.role === "staff") {
+          router.push("/staff/dashboard");
+        } else {
+          router.push("/admin/dashboard");
+        }
+      } else {
+        // No document found, redirect to admin
+        router.push("/admin/dashboard");
+      }
     } catch (error) {
-      const firebaseError = error as FirebaseError; // Cast error to FirebaseError
+      const firebaseError = error as FirebaseError;
       if (firebaseError.code === "auth/wrong-password") {
         alert("Incorrect password. Please try again.");
       } else if (firebaseError.code === "auth/user-not-found") {
@@ -70,7 +93,7 @@ const Login = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   value={password}
                   placeholder="Password"
-                  className="bg-gray-700 bg-opacity-50 text-gray-200 border-0 rounded-md p-2 w-full focus:bg-gray-600 focus:bg-opacity-70 focus:outline-none focus:ring-1 focus:ring-secondary transition ease-in-out duration-150 text-xs"
+                  className="dark-input "
                   required
                 />
                 <button

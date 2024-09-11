@@ -11,12 +11,12 @@ interface NavbarProps {
 
 const NavLayout: React.FC<NavbarProps> = ({ children }) => {
   return (
-    <div className="flex gap-0">
+    <div className="flex gap-0 h-screen">
       <SideNavbar />
       <div className="flex flex-col w-full">
         <Header />
         <MobileHeader/>
-        <main className="md:pt-10 pt-20 p-5 bg-[rgb(243,245,248)] dark:bg-gray-900 md:h-full h-screen">{children}</main>
+        <main className="md:pt-10 pt-20 p-5 overflow-x-auto bg-[rgb(243,245,248)] dark:bg-gray-900 md:h-full h-screen">{children}</main>
       </div>
     </div>
   );

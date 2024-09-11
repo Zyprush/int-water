@@ -27,15 +27,15 @@ const Dashboard: React.FC = () => {
         <Layout>
             <div className="mt-16 p-4">
                 {/* Two cards for Balance Amount and Next Payment Due */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8 text-white ">
                     {/* Balance Amount Card */}
-                    <div className="bg-white p-6 rounded-lg shadow-md flex items-center justify-between">
+                    <div className="bg-primary p-6 rounded-lg flex items-center justify-between">
                         <div className="flex items-center">
-                            <IconCurrencyPeso className="text-gray-800 mr-4" size={40} />
+                            <IconCurrencyPeso className="text-zinc-100 mr-4 bg-secondary rounded-full p-3 border" size={60} />
                             <div>
-                                <h2 className="text-lg font-semibold text-gray-600">Balance Amount</h2>
-                                <p className="text-2xl text-gray-800 font-bold">Php 450.00</p>
-                                <p className="text-sm text-gray-500">Due on Sep 15, 2024</p>
+                                <h2 className="text-lg font-semibold text-zinc-100">Balance Amount</h2>
+                                <p className="text-2xl font-bold">Php 450.00</p>
+                                <p className="text-sm text-zinc-300">Due on Sep 15, 2024</p>
                             </div>
                         </div>
                     </div>
@@ -46,14 +46,14 @@ const Dashboard: React.FC = () => {
                     <WaterMeter
                         value={123.56}
                         unit="m3"
-                        title="My Meter"
+                        title={"My Meter"}
                         maxValue={1000} // optional
                     />
                 </div>
 
                 {/* Bar chart for last 5 months water consumption */}
-                <div className="bg-white p-6 rounded-lg shadow-md">
-                    <h2 className="text-xl font-semibold mb-4">Last 5 Months Water Consumption</h2>
+                <div className="bg-white p-6 rounded-xl shadow-md">
+                    <h2 className="text-lg text-primary font-semibold mb-4">Last 5 Months Water Consumption</h2>
                     <Bar data={lastFiveMonths} options={{ responsive: true, plugins: { legend: { display: false } } }} />
                 </div>
             </div>

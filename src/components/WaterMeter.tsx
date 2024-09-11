@@ -13,7 +13,7 @@ const WaterMeter: React.FC<WaterMeterProps> = ({ value, unit, title, maxValue = 
 
   return (
     <div className="flex flex-col items-center">
-      <h2 className="text-xl font-semibold mb-4">{title}</h2>
+      <h2 className="text-xl font-bold text-primary mb-4">{title}</h2>
       <div className="relative w-64 h-64">
         {/* Background circle */}
         <svg className="w-full h-full" viewBox="0 0 100 100">
@@ -31,7 +31,7 @@ const WaterMeter: React.FC<WaterMeterProps> = ({ value, unit, title, maxValue = 
             cy="50"
             r="45"
             fill="none"
-            stroke="#4A90E2"
+            stroke="#948979"
             strokeWidth="10"
             strokeLinecap="round"
             strokeDasharray={`${percentage * 2.83} 283`}
@@ -40,8 +40,8 @@ const WaterMeter: React.FC<WaterMeterProps> = ({ value, unit, title, maxValue = 
         </svg>
         {/* Central text */}
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-4xl font-bold">{value.toLocaleString()}</span>
-          <span className="text-xl">{unit}</span>
+          <span className="text-4xl font-bold text-primary">{value.toLocaleString()}</span>
+          <span className="text-xl text-primary">{unit}</span>
         </div>
       </div>
     </div>

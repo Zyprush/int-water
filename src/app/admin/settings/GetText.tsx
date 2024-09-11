@@ -38,9 +38,9 @@ const GetText: React.FC<GetTextProps> = ({ name,title }): JSX.Element => {
   return (
     <span className="">
       {loading ? (
-        <p>Loading...</p>
+        <>Loading...</>
       ) : (
-        <>{value ? <p>{value}</p> : <p>{title}</p>}</>
+        <>{value ? <>{value}</> : <>{title}</>}</>
       )}
     </span>
   );

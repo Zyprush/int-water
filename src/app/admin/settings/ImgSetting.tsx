@@ -15,7 +15,6 @@ const ImgSetting: React.FC<{ fileName: string; name: string }> = ({
   const [loading, setLoading] = useState<boolean>(false); // Loading state for fetch
   const [uploading, setUploading] = useState<boolean>(false); // Loading state for upload
 
-  // Fetch image URL when not editing
   useEffect(() => {
     if (!isEditing) {
       const fetchImageURL = async () => {

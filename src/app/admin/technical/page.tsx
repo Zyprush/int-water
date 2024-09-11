@@ -38,8 +38,8 @@ const Technical = () => {
       <div key={issue.id} className="relative p-4 bg-white shadow rounded-lg mb-4">
         <div className="flex justify-between items-center">
           <div>
-            <h2 className="text-lg font-bold">{issue.title}</h2>
-            <p className="text-gray-600">{issue.description}</p>
+            <h2 className=" font-bold text-primary">{issue.title}</h2>
+            <p className="text-gray-600 text-sm mt-1">{issue.description}</p>
           </div>
           <button onClick={() => handleDropdownToggle(issue.id)}>
             <IconDotsVertical className="w-6 h-6 text-gray-600" />
@@ -65,13 +65,13 @@ const Technical = () => {
 
   return (
     <NavLayout>
-      <div className="p-4">
-        <h1 className="text-2xl font-bold mb-6">Technical Issues</h1>
+      <div className="p-4 pt-0">
+        {/* <h1 className="text-xl font-bold mb-6 text-primary">Technical Issues</h1> */}
         <div className="flex space-x-4 mb-6">
           <button
             onClick={() => handleTabClick("unresolved")}
             className={`px-4 py-2 rounded ${
-              activeTab === "unresolved" ? "bg-blue-500 text-white" : "bg-gray-100"
+              activeTab === "unresolved" ? "bg-primary text-white" : "bg-gray-100"
             }`}
           >
             Unresolved
@@ -79,7 +79,7 @@ const Technical = () => {
           <button
             onClick={() => handleTabClick("inProgress")}
             className={`px-4 py-2 rounded ${
-              activeTab === "inProgress" ? "bg-blue-500 text-white" : "bg-gray-100"
+              activeTab === "inProgress" ? "bg-primary text-white" : "bg-gray-100"
             }`}
           >
             In Progress
@@ -87,7 +87,7 @@ const Technical = () => {
           <button
             onClick={() => handleTabClick("resolved")}
             className={`px-4 py-2 rounded ${
-              activeTab === "resolved" ? "bg-blue-500 text-white" : "bg-gray-100"
+              activeTab === "resolved" ? "bg-primary text-white" : "bg-gray-100"
             }`}
           >
             Resolved
