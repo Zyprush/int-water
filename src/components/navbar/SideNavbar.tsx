@@ -9,7 +9,7 @@ const SideNavbar: React.FC = () => {
   const pathname = usePathname();
 
   return (
-    <div className="h-screen w-56 hidden md:flex md:flex-col z-50">
+    <div className="h-screen w-56 hidden md:flex md:flex-col z-50 ">
       <span className="h-60 bg-neutral px-5 border-r da border-zinc-600 dark:border-zinc-700 border-b  hidden transition-width duration-300 md:flex flex-col justify-center items-center">
         <div className="avatar mx-auto">
           <div className="w-24 rounded-full">

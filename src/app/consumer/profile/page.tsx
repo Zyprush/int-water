@@ -3,12 +3,26 @@
 import Layout from '@/components/MobConLay';
 import React, { useState } from 'react';
 import { IconCamera, IconSettings, IconLogout, IconChevronDown, IconChevronUp } from '@tabler/icons-react';
+import { useRouter } from 'next/navigation'; // To redirect the user after logout
+import { signOut } from "firebase/auth"; // Import signOut method
+import { auth } from '../../../../firebase';
 
 const Profile: React.FC = () => {
   const [isAccountOpen, setIsAccountOpen] = useState(false);
+  const router = useRouter();
 
   const userName = "John Doe"; // Example name
   const userImage = "/img/avatar.svg"; // Replace with actual image path
+
+  // Handle logout functionality
+  const handleLogout = async () => {
+    try {
+      await signOut(auth); // Sign the user out
+      router.push("/"); // Redirect to login page after sign out
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
+  };
 
   return (
     <Layout>
@@ -31,7 +45,7 @@ const Profile: React.FC = () => {
           </div>
         </div>
 
-        {/* Account Settings (Expandable) */}
+
         <div
           className="bg-white p-4 rounded-lg shadow-md flex items-center justify-between mb-4 cursor-pointer"
           onClick={() => setIsAccountOpen(!isAccountOpen)}
@@ -63,7 +77,10 @@ const Profile: React.FC = () => {
         )}
 
         {/* Logout */}
-        <div className="bg-white p-4 rounded-lg shadow-md flex items-center justify-between">
+        <div 
+          className="bg-white p-4 rounded-lg shadow-md flex items-center justify-between cursor-pointer"
+          onClick={handleLogout} // Trigger logout on click
+        >
           <div className="flex items-center">
             <IconLogout className="text-red-500 mr-4" size={24} />
             <h2 className="text-lg font-medium text-red-500">Logout</h2>
