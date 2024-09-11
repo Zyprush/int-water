@@ -22,6 +22,12 @@ body {
   .dark-input {
     @apply bg-gray-700 bg-opacity-50 text-gray-200 border-0 rounded-md p-2 w-full focus:bg-gray-600 focus:bg-opacity-70 focus:outline-none focus:ring-1 focus:ring-secondary transition ease-in-out duration-150 text-xs
   }
+  .sn-select {
+    @apply border p-2 border-neutral-200 border-2 dark:border-neutral-700 text-zinc-600 dark:text-zinc-300 bg-white dark:bg-zinc-800 rounded-sm text-sm
+  }
+  .sn-input {
+    @apply input input-bordered border border-primary border-opacity-40 bg-opacity-40 bg-gray-200 dark:border-gray-600 dark:bg-gray-700 text-zinc-700 dark:text-white focus:outline-none rounded-md
+  }
 }
 
 /* Chrome, Safari, Edge, Opera */

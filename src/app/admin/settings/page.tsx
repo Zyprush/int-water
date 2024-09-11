@@ -4,6 +4,7 @@ import NavLayout from "@/components/NavLayout";
 import React, { useState } from "react";
 import { Switch } from "@headlessui/react";
 import { useTheme } from "next-themes";
+import SystemInfo from "./SystemInfo";
 
 const Settings = () => {
   const { theme, setTheme } = useTheme(); // Access theme and setTheme from next-themes
@@ -13,12 +14,12 @@ const Settings = () => {
 
   return (
     <NavLayout>
-      <div className="p-6">
+      <div className="p-6 pt-0 text-primary dark:text-zinc-300">
         <h1 className="text-2xl font-bold mb-6">Settings</h1>
 
         {/* Display */}
         <div className="mb-6">
-          <div className="flex justify-between items-center bg-gray-100 dark:bg-gray-700 p-4 rounded-lg">
+          <div className="flex justify-between items-center bg-gray-200 bg-opacity-80 dark:bg-gray-800 p-4 rounded-lg">
             <h2 className="font-semibold">Display</h2>
             <div className="flex items-center">
               <span className="mr-3 text-sm">Dark Mode</span>
@@ -42,7 +43,7 @@ const Settings = () => {
         {/* Account Settings */}
         <div className="mb-6">
           <div
-            className="cursor-pointer flex justify-between items-center bg-gray-100 dark:bg-gray-700 p-4 rounded-lg"
+            className="cursor-pointer flex justify-between items-center bg-gray-200 bg-opacity-80 dark:bg-gray-800 p-4 rounded-lg"
             onClick={() => setAccountSettingsOpen(!accountSettingsOpen)}
           >
             <h2 className="font-semibold">Account Settings</h2>
@@ -58,7 +59,7 @@ const Settings = () => {
         {/* Activity Logs */}
         <div className="mb-6">
           <div
-            className="cursor-pointer flex justify-between items-center bg-gray-100 dark:bg-gray-700 p-4 rounded-lg"
+            className="cursor-pointer flex justify-between items-center bg-gray-200 bg-opacity-80 dark:bg-gray-800 p-4 rounded-lg"
             onClick={() => setActivityLogsOpen(!activityLogsOpen)}
           >
             <h2 className="font-semibold">Activity Logs</h2>
@@ -74,17 +75,13 @@ const Settings = () => {
         {/* System Info */}
         <div className="mb-6">
           <div
-            className="cursor-pointer flex justify-between items-center bg-gray-100 dark:bg-gray-700 p-4 rounded-lg"
+            className="cursor-pointer flex justify-between items-center bg-gray-200 bg-opacity-80 dark:bg-gray-800 p-4 rounded-lg"
             onClick={() => setSystemInfoOpen(!systemInfoOpen)}
           >
             <h2 className="font-semibold">System Info</h2>
             <span>{systemInfoOpen ? "-" : "+"}</span>
           </div>
-          {systemInfoOpen && (
-            <div className="mt-4 space-y-4 p-4 border-t border-gray-200 dark:border-gray-600">
-              {/* System Info content */}
-            </div>
-          )}
+          {systemInfoOpen && <SystemInfo />}
         </div>
       </div>
     </NavLayout>
