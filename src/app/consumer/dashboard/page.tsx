@@ -29,7 +29,7 @@ const Dashboard: React.FC = () => {
                 {/* Two cards for Balance Amount and Next Payment Due */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8 text-white ">
                     {/* Balance Amount Card */}
-                    <div className="bg-primary p-6 rounded-lg flex items-center justify-between">
+                    <div className="bg-primary p-6 rounded-2xl flex items-center justify-between">
                         <div className="flex items-center">
                             <IconCurrencyPeso className="text-zinc-100 mr-4 bg-secondary rounded-full p-3 border" size={60} />
                             <div>
@@ -52,8 +52,8 @@ const Dashboard: React.FC = () => {
                 </div>
 
                 {/* Bar chart for last 5 months water consumption */}
-                <div className="bg-white p-6 rounded-xl shadow-md">
-                    <h2 className="text-lg text-primary font-semibold mb-4">Last 5 Months Water Consumption</h2>
+                <div className="flex flex-col bg-white p-6 rounded-xl shadow-md">
+                    <h2 className="text-primary font-bold mb-4 mx-auto">Last 5 Months Water Consumption</h2>
                     <Bar data={lastFiveMonths} options={{ responsive: true, plugins: { legend: { display: false } } }} />
                 </div>
             </div>

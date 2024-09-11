@@ -12,6 +12,7 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false); // Loading state
   const router = useRouter();
 
   const togglePasswordVisibility = () => {
@@ -20,6 +21,8 @@ const Login = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true); // Start loading
+
     try {
       // Sign in the user
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
@@ -32,7 +35,7 @@ const Login = () => {
 
       if (docSnap.exists()) {
         const userData = docSnap.data();
-        console.log('role', userData.role)
+        console.log('role', userData.role);
         // Check role and redirect accordingly
         if (userData.role === "consumer") {
           router.push("/consumer/dashboard");
@@ -54,6 +57,8 @@ const Login = () => {
       } else {
         alert("Login failed. Please try again.");
       }
+    } finally {
+      setLoading(false); // Stop loading
     }
   };
 
@@ -68,7 +73,7 @@ const Login = () => {
             Please sign in to access your account.
           </p>
         </div>
-        <div className="card bg-slate-800 w-[20rem] shrink-0 shadow-2xl">
+        <div className="card bg-slate-800 w-[22rem] shrink-0 shadow-2xl">
           <form className="card-body" onSubmit={handleLogin}>
             <div className="form-control">
               <label className="label">
@@ -93,7 +98,7 @@ const Login = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   value={password}
                   placeholder="Password"
-                  className="dark-input "
+                  className="dark-input"
                   required
                 />
                 <button
@@ -114,8 +119,12 @@ const Login = () => {
               </label>
             </div>
             <div className="form-control mt-6">
-              <button className="btn btn-primary" type="submit">
-                Login
+              <button
+                className={`btn btn-primary text-white`}
+                type="submit"
+                disabled={loading} // Disable button while loading
+              >
+                {loading ? "Logging in..." : "Login"} {/* Show loading text */}
               </button>
             </div>
           </form>
