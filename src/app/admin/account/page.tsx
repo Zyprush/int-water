@@ -2,21 +2,17 @@
 
 import NavLayout from "@/components/NavLayout";
 import React, { useEffect, useState } from "react";
-import { IconEdit, IconEye, IconTrash } from "@tabler/icons-react";
+import { IconEdit, IconEye, IconPlus, IconPrinter, IconTrash } from "@tabler/icons-react";
 import ReactPaginate from "react-paginate";
-import AddNewConsumerModal from "@/components/AccountModal";
-import { collection, getDocs } from "firebase/firestore";
+
+import { collection, deleteDoc, doc, getDocs } from "firebase/firestore";
 import { db } from "../../../../firebase";
 import Loading from "@/components/Loading";
+import AlertDialog from "@/components/DeleteDialog";
+import AddNewConsumerModal from "@/components/adminAccount/AccountModal";
+import EditConsumerModal from "@/components/adminAccount/EditAccountModal";
+import { Consumer } from "@/components/adminAccount/types";
 
-interface Consumer {
-  id: string;
-  applicantName: string;
-  waterMeterSerialNo: string;
-  serviceConnectionNo: string;
-  createdAt: string;
-  // Add other fields as needed
-}
 
 const Account = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -24,26 +20,27 @@ const Account = () => {
   const [isAddNewModalOpen, setIsAddNewModalOpen] = useState(false);
   const [consumers, setConsumers] = useState<Consumer[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isAlertOpen, setIsAlertOpen] = useState(false);
+  const [consumerToDelete, setConsumerToDelete] = useState<string | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedConsumer, setSelectedConsumer] = useState<Consumer | null>(null);
 
 
-    const fetchConsumers = async () => {
-      try {
-        const consumersCollection = collection(db, 'consumers');
-        const consumersSnapshot = await getDocs(consumersCollection);
-        const consumersList = consumersSnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        })) as Consumer[];
-        setConsumers(consumersList);
-        setLoading(false);
-      } catch (error) {
-        console.error("Error fetching consumers:", error);
-        setLoading(false);
-      }
-    };
-
-
-
+  const fetchConsumers = async () => {
+    try {
+      const consumersCollection = collection(db, 'consumers');
+      const consumersSnapshot = await getDocs(consumersCollection);
+      const consumersList = consumersSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as Consumer[];
+      setConsumers(consumersList);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching consumers:", error);
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetchConsumers();
@@ -62,9 +59,37 @@ const Account = () => {
     setCurrentPage(selectedItem.selected);
   };
 
+  const convertToCSV = (data: Consumer[]) => {
+    const headers = ["ID", "Name", "Meter Serial Number", "Status", "Created At"];
+    const rows = data.map(consumer => [
+      consumer.id,
+      consumer.applicantName,
+      consumer.waterMeterSerialNo,
+      consumer.status,
+      consumer.createdAt
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.join(','))
+    ].join('\n');
+
+    return csvContent;
+  };
+
   const handleExportCSV = () => {
-    // Logic to export table data to CSV goes here
-    console.log("Export CSV");
+    const csvData = convertToCSV(consumers);
+    const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    if (link.download !== undefined) {
+      const url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute("download", "consumers_export.csv");
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
   };
 
   const handleAddNew = () => {
@@ -73,7 +98,51 @@ const Account = () => {
 
   const handleModalClose = () => {
     setIsAddNewModalOpen(false);
-    fetchConsumers(); 
+    fetchConsumers();
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteDoc(doc(db, 'consumers', id));
+      setConsumers(consumers.filter(consumer => consumer.id !== id));
+    } catch (error) {
+      console.error("Error deleting consumer:", error);
+    }
+  };
+
+  const openDeleteAlert = (id: string) => {
+    setConsumerToDelete(id);
+    setIsAlertOpen(true);
+  };
+
+  const closeDeleteAlert = () => {
+    setIsAlertOpen(false);
+    setConsumerToDelete(null);
+  };
+
+  const confirmDelete = () => {
+    if (consumerToDelete) {
+      handleDelete(consumerToDelete);
+    }
+  };
+
+  const handleEdit = (consumer: Consumer) => {
+    setSelectedConsumer(consumer);
+    setIsEditModalOpen(true);
+  };
+
+  const handleEditModalClose = () => {
+    setIsEditModalOpen(false);
+    setSelectedConsumer(null);
+  };
+
+  const handleConsumerUpdate = () => {
+    fetchConsumers(); // Refetch the consumers to update the list
+  };
+
+  const handleView = (id: string) => {
+    //TODO: Allen make the form like view. also the can print it
+    console.log("View button clicked for id:", id);
   };
 
   if (loading) {
@@ -91,12 +160,14 @@ const Account = () => {
               className="bg-blue-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-600"
             >
               Export CSV
+              <IconPrinter className="inline-block ml-2" />
             </button>
             <button
               onClick={handleAddNew}
               className="bg-green-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-green-600"
             >
               Add New
+              <IconPlus className="inline-block ml-2" />
             </button>
           </div>
         </div>
@@ -110,8 +181,8 @@ const Account = () => {
               className="w-1/3 p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring focus:border-blue-500"
             />
           </div>
-          <table className="min-w-full bg-white rounded-lg">
-            <thead>
+          <table className="min-w-full bg-white rounded-lg border-t mt-2">
+            <thead className="bg-gray-100">
               <tr>
                 <th className="px-4 py-2 text-left">Created At</th>
                 <th className="px-4 py-2 text-left">Meter Serial Number</th>
@@ -122,20 +193,26 @@ const Account = () => {
             </thead>
             <tbody>
               {displayedData.map((item) => (
-                <tr key={item.id} className="border-t">
+                <tr key={item.id} className="border-t border-b">
                   <td className="px-4 py-2">{item.createdAt}</td>
                   <td className="px-4 py-2">{item.waterMeterSerialNo}</td>
                   <td className="px-4 py-2">{item.applicantName}</td>
-                  <td className="px-4 py-2">{item.serviceConnectionNo}</td>
+                  <td className="px-4 py-2">{item.status}</td>
                   <td className="px-4 py-2">
                     <div className="flex space-x-2">
-                      <button className="text-blue-500 hover:text-blue-700">
+                      <button className="text-blue-500 hover:text-blue-700"
+                        onClick={() => handleView(item.id)}
+                      >
                         <IconEye size={18} />
                       </button>
-                      <button className="text-green-500 hover:text-green-700">
+                      <button className="text-green-500 hover:text-green-700"
+                        onClick={() => handleEdit(item)}
+                      >
                         <IconEdit size={18} />
                       </button>
-                      <button className="text-red-500 hover:text-red-700">
+                      <button className="text-red-500 hover:text-red-700"
+                        onClick={() => openDeleteAlert(item.id)}
+                      >
                         <IconTrash size={18} />
                       </button>
                     </div>
@@ -167,6 +244,19 @@ const Account = () => {
       <AddNewConsumerModal
         isOpen={isAddNewModalOpen}
         onClose={handleModalClose}
+      />
+      <EditConsumerModal
+        isOpen={isEditModalOpen}
+        onClose={handleEditModalClose}
+        consumer={selectedConsumer}
+        onUpdate={handleConsumerUpdate}
+      />
+      <AlertDialog
+        isOpen={isAlertOpen}
+        onClose={closeDeleteAlert}
+        onConfirm={confirmDelete}
+        title="Confirm Deletion"
+        message="Are you sure you want to delete this consumer? This action cannot be undone."
       />
     </NavLayout>
   );

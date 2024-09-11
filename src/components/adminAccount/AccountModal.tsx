@@ -1,34 +1,8 @@
 import React, { useState } from 'react';
-import { auth, db } from '../../firebase';
+import { auth, db } from '../../../firebase';
 import { addDoc, collection } from 'firebase/firestore';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-
-interface FormData {
-    applicantName: string;
-    cellphoneNo: string;
-    currentAddress: string;
-    barangay: string;
-    installationAddress: string;
-    serviceConnectionType: string;
-    serviceConnectionSize: string;
-    buildingOwnerName: string;
-    buildingOwnerAddress: string;
-    buildingOwnerCellphone: string;
-    installationFee: string;
-    meterDeposit: string;
-    guarantyDeposit: string;
-    totalAmountDue: string;
-    paidUnderOR: string;
-    serviceConnectionNo: string;
-    customerAccountNo: string;
-    waterMeterSerialNo: string;
-    waterMeterBrand: string;
-    waterMeterSize: string;
-    initialReading: number;
-    email: string;
-    createdAt: string;
-    role: string;
-}
+import { FormData } from './types';
 
 interface AddNewConsumerModalProps {
     isOpen: boolean;
@@ -47,25 +21,26 @@ const AddNewConsumerModal: React.FC<AddNewConsumerModalProps> = ({ isOpen, onClo
         buildingOwnerName: '',
         buildingOwnerAddress: '',
         buildingOwnerCellphone: '',
-        installationFee: '',
-        meterDeposit: '',
-        guarantyDeposit: '',
-        totalAmountDue: '',
-        paidUnderOR: '',
-        serviceConnectionNo: '',
-        customerAccountNo: '',
+        installationFee: 0,
+        meterDeposit: 0,
+        guarantyDeposit: 0,
+        totalAmountDue: 0,
+        paidUnderOR: 0,
+        serviceConnectionNo: 0,
+        customerAccountNo: 0,
         waterMeterSerialNo: '',
         waterMeterBrand: '',
         waterMeterSize: '',
         initialReading: 0, 
         email: '',
         createdAt: '',
-        role: 'consumer'
+        role: 'consumer',
+        status: '',
     });
 
     const [isLoading, setIsLoading] = useState(false);
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setFormData(prevState => ({
             ...prevState,
@@ -293,6 +268,21 @@ const AddNewConsumerModal: React.FC<AddNewConsumerModalProps> = ({ isOpen, onClo
                                     className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
 
                                 />
+                            </div>
+                            <div>
+                                <label htmlFor="status" className="block text-sm font-medium text-gray-700">Status</label>
+                                <select
+                                    id="status"
+                                    name="status"
+                                    value={formData.status}
+                                    onChange={handleInputChange}
+                                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                                >
+                                    <option value="">Select Status</option>
+                                    <option value="active">Active</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="inactive">Inactive</option>
+                                </select>
                             </div>
                         </div>
                     </div>
