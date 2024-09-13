@@ -19,6 +19,7 @@ interface UserForm {
     role: string;
     updatedAt: string;
     profilePic: File | null;
+    scanner: boolean;
 }
 
 const AddNewConsumerModal: React.FC<AddNewUserModal> = ({ isOpen, onClose }) => {
@@ -31,7 +32,8 @@ const AddNewConsumerModal: React.FC<AddNewUserModal> = ({ isOpen, onClose }) => 
         password: '',
         role: 'user',
         updatedAt: new Date().toISOString().split('T')[0],
-        profilePic: null
+        profilePic: null,
+        scanner: false
     });
 
     const [repeatPassword, setRepeatPassword] = useState('');

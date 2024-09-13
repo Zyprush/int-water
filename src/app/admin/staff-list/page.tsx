@@ -2,10 +2,10 @@
 
 import NavLayout from "@/components/NavLayout";
 import React, { useEffect, useState } from "react";
-import { IconEdit, IconEye, IconPlus, IconPrinter, IconTrash } from "@tabler/icons-react";
+import { IconBarcode, IconBarcodeOff, IconEye, IconPlus, IconPrinter, IconTrash } from "@tabler/icons-react";
 import ReactPaginate from "react-paginate";
 
-import { collection, deleteDoc, doc, getDocs } from "firebase/firestore";
+import { collection, deleteDoc, doc, getDocs, updateDoc } from "firebase/firestore";
 import { db, storage } from "../../../../firebase";
 import Loading from "@/components/Loading";
 import AlertDialog from "@/components/DeleteDialog";
@@ -13,6 +13,7 @@ import AddNewConsumerModal from "@/components/adminUserlist/AccountModal";
 import EditUserModal from "@/components/adminUserlist/EditAccountModal";
 import { deleteObject, ref } from "firebase/storage";
 import { Users } from "@/components/adminUserlist/types";
+import CAlertDialog from "@/components/ConfirmDialog";
 
 const UserList = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -27,6 +28,10 @@ const UserList = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<Users | null>(null);
   const [isExportCSVAlertOpen, setIsExportCSVAlertOpen] = useState(false);
+
+  const [isScanAlertOpen, setIsScanAlertOpen] = useState(false);
+  const [userToScan, setUserToScan] = useState<Users | null>(null);
+
 
   const fetchUsers = async () => {
     try {
@@ -160,10 +165,27 @@ const UserList = () => {
     fetchUsers();
   };
 
-  const handleView = (id: string) => {
-    //TODO: still doing it
-    console.log("View button clicked for id:", id);
+  const confirmScan = async () => {
+    if (userToScan) {
+      try {
+        const userRef = doc(db, 'users', userToScan.id);
+        await updateDoc(userRef, {
+          scanner: true
+        });
+        console.log(`User ${userToScan.name} has been assigned to the scanner.`);
+        setIsScanAlertOpen(false);
+        setUserToScan(null);
+      } catch (error) {
+        console.error("Error updating scanner field:", error);
+      }
+    }
   };
+
+  const handleScan = (user: Users) => {
+    setUserToScan(user);
+    setIsScanAlertOpen(true);
+  };
+
 
   if (loading) {
     return <Loading />;
@@ -229,15 +251,17 @@ const UserList = () => {
                   <td className="px-4 py-2">{item.position}</td>
                   <td className="px-4 py-2">
                     <div className="flex space-x-2">
-                      <button className="text-blue-500 hover:text-blue-700"
-                        onClick={() => handleView(item.id)}
+                      <button
+                        className="text-blue-500 hover:text-blue-700"
+                        onClick={() => handleScan(item)}
                       >
-                        <IconEye size={18} />
+                        {item.scanner ? <IconBarcode size={18} /> : <IconBarcodeOff size={18} />}
                       </button>
+
                       <button className="text-green-500 hover:text-green-700"
                         onClick={() => handleEdit(item)}
                       >
-                        <IconEdit size={18} />
+                        <IconEye size={18} />
                       </button>
                       <button className="text-red-500 hover:text-red-700"
                         onClick={() => openDeleteAlert(item)}
@@ -294,6 +318,14 @@ const UserList = () => {
         title="Confirm Deletion"
         message="Are you sure you want to delete this consumer? This action cannot be undone."
       />
+      <CAlertDialog
+        isOpen={isScanAlertOpen}
+        onClose={() => setIsScanAlertOpen(false)}
+        onConfirm={confirmScan}
+        title="Assign Scanner"
+        message={`Are you sure you want to assign a scanner to ${userToScan?.name}?`}
+      />
+
     </NavLayout>
   );
 };

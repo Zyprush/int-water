@@ -3,13 +3,12 @@ import { doc, updateDoc } from 'firebase/firestore';
 import { db, storage } from '../../../firebase';
 import { deleteObject, getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { PencilIcon } from 'lucide-react';
-import { EditUserModalProps, Users } from './types';
-
-
+import { EditUserModalProps, UsersEdit } from './types';
 
 const EditUserModal: React.FC<EditUserModalProps> = ({ isOpen, onClose, user, onUpdate }) => {
-  const [formData, setFormData] = useState<Users | null>(null);
+  const [formData, setFormData] = useState<UsersEdit | null>(null);
   const [profilePicFile, setProfilePicFile] = useState<File | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
   const [isEditingPassword, setIsEditingPassword] = useState(false);
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -37,18 +36,17 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ isOpen, onClose, user, on
 
     if (formData && user) {
       try {
-        const updatedFields: Partial<Users> = {};
+        const updatedFields: Partial<UsersEdit> = {};
 
         // Only add changed fields to updatedFields
         Object.keys(formData).forEach((key) => {
-          if (formData[key as keyof Users] !== user[key as keyof Users]) {
-            updatedFields[key as keyof Users] = formData[key as keyof Users];
+          if (formData[key as keyof UsersEdit] !== user[key as keyof UsersEdit]) {
+            updatedFields[key as keyof UsersEdit] = formData[key as keyof UsersEdit];
           }
         });
 
         // Handle profile picture update
         if (profilePicFile) {
-          // Delete old profile picture if it exists
           if (user.profilePicUrl) {
             const oldProfilePicRef = ref(storage, user.profilePicUrl);
             await deleteObject(oldProfilePicRef);
@@ -62,18 +60,14 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ isOpen, onClose, user, on
         // Handle password update
         if (isEditingPassword && oldPassword && newPassword && confirmPassword) {
           if (newPassword === confirmPassword) {
-            // Here you should add logic to verify the old password
-            // For now, we'll just update the password
             updatedFields.password = newPassword;
           } else {
             throw new Error('New password and confirm password do not match');
           }
         } else {
-          // Remove password from updatedFields if not changing
           delete updatedFields.password;
         }
 
-        // Only update if there are changed fields
         if (Object.keys(updatedFields).length > 0) {
           const userRef = doc(db, 'users', user.id);
           await updateDoc(userRef, updatedFields);
@@ -83,7 +77,6 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ isOpen, onClose, user, on
         onClose();
       } catch (error) {
         console.error('Error updating user:', error);
-        // Here you might want to show an error message to the user
       }
     }
   };
@@ -93,7 +86,9 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ isOpen, onClose, user, on
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white p-8 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-xl">
-        <h2 className="text-3xl font-semibold mb-6 text-gray-900">Edit User</h2>
+        <h2 className="text-3xl font-semibold mb-6 text-gray-900">
+          {isEditing ? 'Edit Staff Details' : 'View Staff Details'}
+        </h2>
         <form onSubmit={handleSubmit} className="flex flex-col md:flex-row gap-8">
           <div className="md:w-1/3 flex flex-col items-center">
             <div className="relative">
@@ -102,17 +97,20 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ isOpen, onClose, user, on
                 alt="Profile"
                 className="w-64 h-64 rounded-full object-cover shadow-lg"
               />
-              <label htmlFor="profilePic" className="absolute bottom-2 right-2 bg-white rounded-full p-2 cursor-pointer shadow-md hover:bg-gray-100">
-                <PencilIcon className="w-6 h-6 text-gray-600" />
-              </label>
-              <input
-                type="file"
-                id="profilePic"
-                onChange={handleFileChange}
-                className="hidden"
-              />
+              {isEditing && (
+                <>
+                  <label htmlFor="profilePic" className="absolute bottom-2 right-2 bg-white rounded-full p-2 cursor-pointer shadow-md hover:bg-gray-100">
+                    <PencilIcon className="w-6 h-6 text-gray-600" />
+                  </label>
+                  <input
+                    type="file"
+                    id="profilePic"
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+                </>
+              )}
             </div>
-            <p className="mt-2 text-sm text-gray-500">Click the pencil icon to change profile picture</p>
           </div>
 
           <div className="md:w-2/3 space-y-6">
@@ -126,6 +124,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ isOpen, onClose, user, on
                   value={formData.name}
                   onChange={handleChange}
                   className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  readOnly={!isEditing}
                 />
               </div>
               <div>
@@ -137,6 +136,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ isOpen, onClose, user, on
                   value={formData.address}
                   onChange={handleChange}
                   className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  readOnly={!isEditing}
                 />
               </div>
               <div>
@@ -148,6 +148,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ isOpen, onClose, user, on
                   value={formData.cellphoneNo}
                   onChange={handleChange}
                   className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  readOnly={!isEditing}
                 />
               </div>
               <div>
@@ -159,6 +160,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ isOpen, onClose, user, on
                   value={formData.position}
                   onChange={handleChange}
                   className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  readOnly={!isEditing}
                 />
               </div>
               <div>
@@ -170,6 +172,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ isOpen, onClose, user, on
                   value={formData.email}
                   onChange={handleChange}
                   className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  readOnly={!isEditing}
                 />
               </div>
               <div>
@@ -180,6 +183,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ isOpen, onClose, user, on
                   value={formData.role}
                   onChange={handleChange}
                   className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  disabled={!isEditing}
                 >
                   <option value="user">User</option>
                   <option value="admin">Admin</option>
@@ -187,68 +191,94 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ isOpen, onClose, user, on
               </div>
             </div>
 
-            <div>
-              <button
-                type="button"
-                onClick={() => setIsEditingPassword(!isEditingPassword)}
-                className="text-blue-600 hover:text-blue-800 font-medium"
-              >
-                {isEditingPassword ? 'Cancel Password Change' : 'Change Password'}
-              </button>
-            </div>
+            {isEditing && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setIsEditingPassword(!isEditingPassword)}
+                  className="text-blue-600 hover:text-blue-800 font-medium"
+                >
+                  {isEditingPassword ? 'Cancel Password Change' : 'Change Password'}
+                </button>
 
-            {isEditingPassword && (
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700" htmlFor="oldPassword">Old Password</label>
-                  <input
-                    type="password"
-                    id="oldPassword"
-                    value={oldPassword}
-                    onChange={(e) => setOldPassword(e.target.value)}
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700" htmlFor="newPassword">New Password</label>
-                  <input
-                    type="password"
-                    id="newPassword"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700" htmlFor="confirmPassword">Confirm Password</label>
-                  <input
-                    type="password"
-                    id="confirmPassword"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  />
-                </div>
-              </div>
+                {isEditingPassword && (
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700" htmlFor="oldPassword">Old Password</label>
+                      <input
+                        type="password"
+                        id="oldPassword"
+                        value={oldPassword}
+                        onChange={(e) => setOldPassword(e.target.value)}
+                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700" htmlFor="newPassword">New Password</label>
+                      <input
+                        type="password"
+                        id="newPassword"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700" htmlFor="confirmPassword">Confirm Password</label>
+                      <input
+                        type="password"
+                        id="confirmPassword"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                      />
+                    </div>
+                  </div>
+                )}
+              </>
             )}
+          </div>
+        </form>
 
-            <div className="flex justify-end space-x-4 mt-6">
+        <div className="mt-6 flex justify-end gap-4">
+          {isEditing ? (
+            <>
               <button
                 type="button"
-                onClick={onClose}
-                className="py-2 px-4 bg-gray-300 text-gray-700 rounded-lg shadow-sm hover:bg-gray-400 transition ease-in-out duration-150"
+                onClick={() => {
+                  setIsEditing(false);
+                  setFormData(user); // Reset form data
+                  setIsEditingPassword(false);
+                }}
+                className="py-2 px-4 bg-gray-500 text-white rounded-md hover:bg-gray-600"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="py-2 px-4 bg-blue-600 text-white rounded-lg shadow-sm hover:bg-blue-700 transition ease-in-out duration-150"
+                onClick={handleSubmit}
+                className="py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700"
               >
                 Save Changes
               </button>
-            </div>
-          </div>
-        </form>
+            </>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setIsEditing(true)}
+              className="py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            >
+              Edit
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={onClose}
+            className="py-2 px-4 bg-gray-500 text-white rounded-md hover:bg-gray-600"
+          >
+            Close
+          </button>
+        </div>
       </div>
     </div>
   );
