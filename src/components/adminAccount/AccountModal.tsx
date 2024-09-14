@@ -33,9 +33,10 @@ const AddNewConsumerModal: React.FC<AddNewConsumerModalProps> = ({ isOpen, onClo
         waterMeterSize: '',
         initialReading: 0, 
         email: '',
-        createdAt: '',
+        createdAt: new Date().toISOString().split('T')[0],
         role: 'consumer',
         status: '',
+        rate: 0
     });
 
     const [isLoading, setIsLoading] = useState(false);
@@ -291,7 +292,7 @@ const AddNewConsumerModal: React.FC<AddNewConsumerModalProps> = ({ isOpen, onClo
                         <div>
                             <h3 className="text-lg font-medium text-gray-900 mb-2">Amount of Charges Due</h3>
                             <div className="space-y-2">
-                                <div className='flex justify-between items-center'>
+                                {/* <div className='flex justify-between items-center'>
                                     <label htmlFor="date" className="text-sm font-medium text-gray-700">Created Date</label>
                                     <input
                                         type="date"
@@ -302,8 +303,9 @@ const AddNewConsumerModal: React.FC<AddNewConsumerModalProps> = ({ isOpen, onClo
                                         className="w-40 border border-gray-300 rounded-md shadow-sm p-2"
                                         required
                                     />
-                                </div>
+                                </div>*/}
                                 {[
+                                    { label: 'Rate per Cubic Meter', name: 'rate' },
                                     { label: 'Installation Fee', name: 'installationFee' },
                                     { label: 'Meter Deposit', name: 'meterDeposit' },
                                     { label: 'Guaranty Deposit', name: 'guarantyDeposit' },

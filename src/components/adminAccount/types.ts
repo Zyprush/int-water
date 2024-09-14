@@ -53,4 +53,5 @@ export interface FormData {
   createdAt: string;
   role: string;
   status: string;
+  rate: number;
 }
