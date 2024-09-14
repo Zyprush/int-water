@@ -4,12 +4,10 @@ import NavLayout from "@/components/NavLayout";
 import React, { useEffect, useState } from "react";
 import { IconEye, IconCurrencyDollar } from "@tabler/icons-react";
 import ReactPaginate from "react-paginate";
-
-import { collection, getDocs, doc, setDoc } from "firebase/firestore";
+import { collection, getDocs, doc, setDoc, query, where } from "firebase/firestore";
 import dayjs from "dayjs";
 import { db } from "../../../../firebase";
 
-// Component Types
 interface BillingItem {
   id: string;
   readingDate: string;
@@ -23,43 +21,40 @@ const Billings: React.FC = () => {
   const [billings, setBillings] = useState<BillingItem[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(0);
+  const [selectedMonth, setSelectedMonth] = useState(dayjs().format("MM"));
+  const [selectedYear, setSelectedYear] = useState(dayjs().format("YYYY"));
 
   const itemsPerPage = 10;
-  const currentDate = dayjs().format("YYYY-MM-DD");
-  const readingDate = dayjs().date(15).format("YYYY-MM-DD");
-  const dueDate = dayjs().endOf("month").format("YYYY-MM-DD");
 
   useEffect(() => {
     const fetchBillings = async () => {
-      const usersSnapshot = await getDocs(collection(db, "users"));
-      const users = usersSnapshot.docs.map((doc) => ({
-        id: doc.id,
-        consumer: doc.data().name || "Unnamed",
-      }));
+      const billingsRef = collection(db, "billings");
+      const monthYear = `${selectedYear}-${selectedMonth}`;
+      const q = query(billingsRef, where("month", "==", monthYear));
+      const billingsSnapshot = await getDocs(q);
 
-      // Create default billing data for each user
-      //TODO: Make it accurate based on paper
-      const defaultBillings = users.map((user) => ({
-        id: user.id,
-        readingDate,
-        consumer: user.consumer,
-        amount: "₱150.00",
-        dueDate,
-        status: dayjs().isAfter(dayjs(dueDate)) ? "Overdue" : "Unpaid",
-      }));
+      const fetchedBillings = billingsSnapshot.docs.map((doc) => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          readingDate: data.readingDate,
+          consumer: data.consumerName,
+          amount: `₱${data.amount.toFixed(2)}`,
+          dueDate: data.dueDate,
+          status: data.status,
+        };
+      });
 
-      setBillings(defaultBillings);
+      setBillings(fetchedBillings);
     };
 
     fetchBillings();
-  }, []);
+  }, [selectedMonth, selectedYear]);
 
-  // Filter data based on search term (by consumer name)
   const filteredBillings = billings.filter((item) =>
     item.consumer.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Pagination logic
   const pageCount = Math.ceil(filteredBillings.length / itemsPerPage);
   const displayedBillings = filteredBillings.slice(
     currentPage * itemsPerPage,
@@ -76,14 +71,35 @@ const Billings: React.FC = () => {
     );
     setBillings(updatedBillings);
 
-    // Save to Firestore under 'billings/YYYY-MM-DD'
-    const billingDoc = doc(db, `billings/${currentDate}`, id);
+    const billingDoc = doc(db, `billings`, id);
     await setDoc(billingDoc, { status: updatedBillings.find((b) => b.id === id)?.status }, { merge: true });
   };
 
   const handleView = (id: string) => {
-    // Handle view logic here
     console.log("View button clicked for id:", id);
+  };
+
+  const generateMonthOptions = () => {
+    return Array.from({ length: 12 }, (_, i) => {
+      const month = dayjs().month(i);
+      return (
+        <option key={i} value={month.format("MM")}>
+          {month.format("MMMM")}
+        </option>
+      );
+    });
+  };
+
+  const generateYearOptions = () => {
+    const currentYear = dayjs().year();
+    return Array.from({ length: 5 }, (_, i) => {
+      const year = currentYear - i;
+      return (
+        <option key={i} value={year.toString()}>
+          {year}
+        </option>
+      );
+    });
   };
 
   return (
@@ -91,6 +107,22 @@ const Billings: React.FC = () => {
       <div className="p-4 space-y-6">
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-2xl font-bold">Billings</h1>
+          <div className="flex space-x-2">
+            <select
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(e.target.value)}
+              className="p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring focus:border-blue-500"
+            >
+              {generateMonthOptions()}
+            </select>
+            <select
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(e.target.value)}
+              className="p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring focus:border-blue-500"
+            >
+              {generateYearOptions()}
+            </select>
+          </div>
         </div>
         <div className="card shadow-md p-4 bg-white">
           <div className="mb-2 flex justify-end">
@@ -137,7 +169,6 @@ const Billings: React.FC = () => {
                         className="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 flex items-center space-x-1"
                       >
                         <IconEye size={16} />
-                        {/* TODO: add functions */}
                         <span>View</span>
                       </button>
                     </div>
@@ -147,7 +178,6 @@ const Billings: React.FC = () => {
             </tbody>
           </table>
 
-          {/* Pagination */}
           <div className="mt-8 flex justify-end">
             <ReactPaginate
               previousLabel={"Previous"}
