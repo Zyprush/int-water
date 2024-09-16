@@ -24,32 +24,33 @@ const Dashboard: React.FC = () => {
   const monthKey = `${currentYear}-${String(currentMonth).padStart(2, '0')}`;
 
   useEffect(() => {
-    const fetchReadings = async () => {
-      const consumersRef = collection(db, 'consumers');
-      const billingsRef = collection(db, 'billings');
-
-      const [consumersSnapshot, billingsSnapshot] = await Promise.all([
-        getDocs(consumersRef),
-        getDocs(query(billingsRef, where('month', '==', monthKey)))
-      ]);
-
-      const allConsumers = consumersSnapshot.docs.map(doc => ({
-        consumerSerialNo: doc.data().waterMeterSerialNo,
-        consumerName: doc.data().applicantName,
-        barangay: doc.data().barangay
-      }));
-
-      const billedConsumerSerials = new Set(billingsSnapshot.docs.map(doc => doc.data().consumerSerialNo));
-
-      const completed = allConsumers.filter(consumer => billedConsumerSerials.has(consumer.consumerSerialNo));
-      const remaining = allConsumers.filter(consumer => !billedConsumerSerials.has(consumer.consumerSerialNo));
-
-      setCompletedReadings(completed);
-      setRemainingReadings(remaining);
-    };
-
     fetchReadings();
-  }, [monthKey]);
+  }, [monthKey])
+
+  const fetchReadings = async () => {
+    const consumersRef = collection(db, 'consumers');
+    const billingsRef = collection(db, 'billings');
+
+    const [consumersSnapshot, billingsSnapshot] = await Promise.all([
+      getDocs(consumersRef),
+      getDocs(query(billingsRef, where('month', '==', monthKey)))
+    ]);
+
+    const allConsumers = consumersSnapshot.docs.map(doc => ({
+      consumerSerialNo: doc.data().waterMeterSerialNo,
+      consumerName: doc.data().applicantName,
+      barangay: doc.data().barangay
+    }));
+
+    const billedConsumerSerials = new Set(billingsSnapshot.docs.map(doc => doc.data().consumerSerialNo));
+
+    const completed = allConsumers.filter(consumer => billedConsumerSerials.has(consumer.consumerSerialNo));
+    const remaining = allConsumers.filter(consumer => !billedConsumerSerials.has(consumer.consumerSerialNo));
+
+    setCompletedReadings(completed);
+    setRemainingReadings(remaining);
+  };
+
 
   // Function to filter readings based on search term
   const filteredReadings = (readings: Reading[]) =>
