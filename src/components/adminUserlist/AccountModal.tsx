@@ -30,7 +30,7 @@ const AddNewConsumerModal: React.FC<AddNewUserModal> = ({ isOpen, onClose }) => 
         position: '',
         email: '',
         password: '',
-        role: 'user',
+        role: '',
         updatedAt: new Date().toISOString().split('T')[0],
         profilePic: null,
         scanner: false
@@ -195,7 +195,7 @@ const AddNewConsumerModal: React.FC<AddNewUserModal> = ({ isOpen, onClose }) => 
                                 className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
                                 required
                             >
-                                <option value="user">User</option>
+                                <option value="staff">Staff</option>
                                 <option value="admin">Admin</option>
                             </select>
                         </div>
