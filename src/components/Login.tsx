@@ -27,13 +27,14 @@ const Login = () => {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
-
-      const q = query(collection(db, 'users'), where('uid', '==', user.uid));
-      const querySnapshot = await getDocs(q);
-      const docSnap = querySnapshot.docs[0];
-
-      if (docSnap.exists()) {
-        const userData = docSnap.data();
+  
+      // Check for user in 'users' collection first
+      const userQuery = query(collection(db, 'users'), where('uid', '==', user.uid));
+      const userQuerySnapshot = await getDocs(userQuery);
+      const userDocSnap = userQuerySnapshot.docs[0];
+  
+      if (userDocSnap?.exists()) {
+        const userData = userDocSnap.data();
         console.log('role', userData.role);
   
         // Check user role and route accordingly
@@ -41,18 +42,31 @@ const Login = () => {
           router.push("/admin/dashboard");
         } else if (userData.role === "staff") {
           if (userData.scanner === true) {
-            // If staff and scanner is true, go to scanner dashboard
             router.push("/scanner/dashboard");
           } else {
-            // Otherwise, go to staff dashboard
-            router.push("/admin/dashboard");
+            router.push("/staff/dashboard");
           }
         } else {
-          router.push("/consumer/dashboard");
+          router.push("/admin/dashboard");
         }
       } else {
-        router.push("/");
+        // If user not found in 'users', check 'consumers' collection
+        const consumerQuery = query(collection(db, 'consumers'), where('uid', '==', user.uid));
+        const consumerQuerySnapshot = await getDocs(consumerQuery);
+      
+        if (!consumerQuerySnapshot.empty) {
+          const consumerDocSnap = consumerQuerySnapshot.docs[0];
+          console.log("Consumer document found:", consumerDocSnap.data());
+      
+          // If user found in 'consumers', route to consumer dashboard
+          router.push("/consumer/dashboard");
+        } else {
+          // If user is not found in either 'users' or 'consumers'
+          console.log("User not found in 'users' or 'consumers' collections");
+          router.push("/");
+        }
       }
+      
     } catch (error) {
       const firebaseError = error as FirebaseError;
       if (firebaseError.code === "auth/wrong-password") {

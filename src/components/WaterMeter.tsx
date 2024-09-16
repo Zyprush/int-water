@@ -31,7 +31,7 @@ const WaterMeter: React.FC<WaterMeterProps> = ({ value, unit, title, maxValue = 
             cy="50"
             r="45"
             fill="none"
-            stroke="#948979"
+            stroke="#21C55D" //green
             strokeWidth="10"
             strokeLinecap="round"
             strokeDasharray={`${percentage * 2.83} 283`}

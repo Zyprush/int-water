@@ -6,10 +6,14 @@ import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Toolti
 import Layout from '@/components/MobConLay';
 import { IconCurrencyPeso } from '@tabler/icons-react';
 import WaterMeter from '@/components/WaterMeter';
+import useConsumerData from '@/hooks/useConsumerData';
+import useBillingData from '@/hooks/useBillingData';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 const Dashboard: React.FC = () => {
+    const { consumerData } = useConsumerData();
+    const billingData = useBillingData(consumerData?.uid || '');
 
     // Data for the last 5 months (water consumption)
     const lastFiveMonths = {
@@ -31,11 +35,15 @@ const Dashboard: React.FC = () => {
                     {/* Balance Amount Card */}
                     <div className="bg-primary p-6 rounded-2xl flex items-center justify-between">
                         <div className="flex items-center">
-                            <IconCurrencyPeso className="text-zinc-100 mr-4 bg-secondary rounded-full p-3 border" size={60} />
+                            <IconCurrencyPeso className="text-zinc-100 mr-4 bg-green-600 rounded-full p-3 border" size={60} />
                             <div>
-                                <h2 className="text-lg font-semibold text-zinc-100">Balance Amount</h2>
-                                <p className="text-2xl font-bold">Php 450.00</p>
-                                <p className="text-sm text-zinc-300">Due on Sep 15, 2024</p>
+                                <h2 className="text-lg font-semibold text-zinc-100">Due Balance</h2>
+                                <p className="text-2xl font-bold">
+                                    Php {billingData ? billingData.amount.toFixed(2) : '0.00'}
+                                </p>
+                                <p className="text-sm text-zinc-300">
+                                    Due on {billingData ? new Date(billingData.dueDate).toLocaleDateString() : 'N/A'}
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -44,7 +52,7 @@ const Dashboard: React.FC = () => {
                 {/* Circle progress (Water Meter) */}
                 <div className="flex justify-center mb-8">
                     <WaterMeter
-                        value={123.56}
+                        value={consumerData?.initialReading || 0}
                         unit="m3"
                         title={"My Meter"}
                         maxValue={1000} // optional

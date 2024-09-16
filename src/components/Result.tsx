@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { collection, addDoc, getDocs, query, where, Timestamp } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, where, Timestamp, doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
 
 interface Consumer {
@@ -8,6 +8,7 @@ interface Consumer {
     barangay: string;
     initialReading: number;
     rate: number;
+    uid: string;
 }
 
 interface WaterConsumptionResultProps {
@@ -46,13 +47,18 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
         setConsumers(unbilledConsumers);
     };
 
+    const parseWaterConsumption = (value: string): number => {
+        return parseInt(value.replace(/^0+/, ''), 10);
+    };
+
     const handleConsumerSelect = (consumer: Consumer) => {
         setSelectedConsumer(consumer);
         calculateBill(consumer);
     };
 
     const calculateBill = (consumer: Consumer) => {
-        const consumption = parseInt(waterConsumption) - consumer.initialReading;
+        const currentReading = parseWaterConsumption(waterConsumption);
+        const consumption = currentReading - consumer.initialReading;
         const bill = consumption * consumer.rate;
         setCurrentBill(bill);
     };
@@ -68,29 +74,44 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
     const handleUpload = async () => {
         if (!selectedConsumer) return;
 
+        const currentReading = parseWaterConsumption(waterConsumption);
+        const consumption = currentReading - selectedConsumer.initialReading;
+        const bill = consumption * selectedConsumer.rate;
+
         const currentDate = new Date();
         const currentYear = currentDate.getFullYear();
         const currentMonth = currentDate.getMonth() + 1;
         const monthKey = `${currentYear}-${String(currentMonth).padStart(2, '0')}`;
         const readingDate = currentDate.toISOString().split('T')[0];
-        const dueDate = new Date(currentYear, currentMonth, 0); // Last day of the current month
-        dueDate.setDate(dueDate.getDate() - 5); // 5 days before end of month
+        const dueDate = new Date(currentYear, currentMonth, 0);
+        dueDate.setDate(dueDate.getDate() - 5);
 
         const billingData = {
             month: monthKey,
             readingDate,
+            consumerId: selectedConsumer.uid,
             consumerSerialNo: selectedConsumer.waterMeterSerialNo,
             consumerName: selectedConsumer.applicantName,
-            amount: currentBill,
+            amount: bill,
             dueDate: dueDate.toISOString().split('T')[0],
             status: 'Unpaid',
-            createdAt: Timestamp.now()
+            createdAt: Timestamp.now(),
+            previousReading: selectedConsumer.initialReading,
+            currentReading: currentReading,
+            consumption: consumption
         };
 
         try {
             const billingsRef = collection(db, 'billings');
             await addDoc(billingsRef, billingData);
-            alert('Billing data uploaded successfully!');
+
+            // Update the consumer's initialReading
+            const consumerRef = doc(db, 'consumers', selectedConsumer.uid);
+            await updateDoc(consumerRef, {
+                initialReading: currentReading
+            });
+
+            alert('Billing data uploaded and consumer initial reading updated successfully!');
 
             // Refresh the list of consumers
             await fetchConsumers();
@@ -100,8 +121,8 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
             setWaterConsumption('');
             setCurrentBill(0);
         } catch (error) {
-            console.error("Error adding document: ", error);
-            alert('Failed to upload billing data.');
+            console.error("Error updating data: ", error);
+            alert('Failed to upload billing data and update consumer.');
         }
     };
 

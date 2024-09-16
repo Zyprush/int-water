@@ -15,22 +15,22 @@ interface ConsumerData {
   currentAddress?: string;
   customerAccountNo?: string;
   email?: string;
-  guarantyDeposit?: string;
+  guarantyDeposit?: number;
   id?: string;
-  initialReading?: string;
+  initialReading?: number;
   installationAddress?: string;
-  installationFee?: string;
-  meterDeposit?: string;
-  paidUnderOR?: string;
+  installationFee?: number;
+  meterDeposit?: number;
+  paidUnderOR?: number;
   role?: string;
-  serviceConnectionNo?: string;
+  serviceConnectionNo?: number;
   serviceConnectionSize?: string;
   serviceConnectionType?: string;
   status?: string;
-  totalAmountDue?: string;
+  totalAmountDue?: number;
   uid?: string;
   waterMeterBrand?: string;
-  waterMeterSerialNo?: string;
+  waterMeterSerialNo?: number;
   waterMeterSize?: string;
 }
 
