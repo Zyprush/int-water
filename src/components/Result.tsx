@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { collection, addDoc, getDocs, query, where, Timestamp, doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
 
+
 interface Consumer {
     waterMeterSerialNo: string;
     applicantName: string;
@@ -14,9 +15,10 @@ interface Consumer {
 
 interface WaterConsumptionResultProps {
     recognizedText: string | null;
+    closeCamera: () => void;
 }
 
-const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recognizedText }) => {
+const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recognizedText, closeCamera }) => {
     const [waterConsumption, setWaterConsumption] = useState<string>(recognizedText || '');
     const [selectedConsumer, setSelectedConsumer] = useState<Consumer | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
@@ -123,6 +125,9 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
             setSelectedConsumer(null);
             setWaterConsumption('');
             setCurrentBill(0);
+
+            //get back to dashboard
+            closeCamera();  
         } catch (error) {
             console.error("Error updating documents: ", error);
             alert('Failed to upload billing data and update consumer.');

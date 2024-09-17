@@ -130,7 +130,7 @@ const CameraComponent: React.FC<CameraComponentProps> = ({ isCameraOpen, closeCa
                 <>
                   {!isProcessing && recognizedText !== null && (
                     <div className="absolute inset-0 bg-white">
-                      <WaterConsumptionResult recognizedText={recognizedText} />
+                      <WaterConsumptionResult recognizedText={recognizedText} closeCamera={closeCamera} />
                     </div>
                   )}
                   <button
