@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { collection, addDoc, getDocs, query, where, Timestamp } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, where, Timestamp, doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
 
 interface Consumer {
@@ -26,6 +26,12 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
         fetchConsumers();
     }, []);
 
+    useEffect(() => {
+        if (selectedConsumer) {
+            calculateBill();
+        }
+    }, [waterConsumption, selectedConsumer]);
+
     const fetchConsumers = async () => {
         const currentDate = new Date();
         const currentYear = currentDate.getFullYear();
@@ -40,7 +46,10 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
             getDocs(query(billingsRef, where('month', '==', monthKey)))
         ]);
 
-        const consumersData = consumersSnapshot.docs.map(doc => doc.data() as Consumer);
+        const consumersData = consumersSnapshot.docs.map(doc => ({
+            ...doc.data() as Consumer,
+            docId: doc.id  // Store the document ID
+        }));
         const billedConsumers = new Set(billingsSnapshot.docs.map(doc => doc.data().consumerSerialNo));
 
         const unbilledConsumers = consumersData.filter(consumer => !billedConsumers.has(consumer.waterMeterSerialNo));
@@ -49,12 +58,12 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
 
     const handleConsumerSelect = (consumer: Consumer) => {
         setSelectedConsumer(consumer);
-        calculateBill(consumer);
     };
 
-    const calculateBill = (consumer: Consumer) => {
-        const consumption = parseInt(waterConsumption) - consumer.initialReading;
-        const bill = consumption * consumer.rate;
+    const calculateBill = () => {
+        if (!selectedConsumer) return;
+        const consumption = Math.max(0, parseInt(waterConsumption) - selectedConsumer.initialReading);
+        const bill = consumption * selectedConsumer.rate;
         setCurrentBill(bill);
     };
 
@@ -74,8 +83,10 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
         const currentMonth = currentDate.getMonth() + 1;
         const monthKey = `${currentYear}-${String(currentMonth).padStart(2, '0')}`;
         const readingDate = currentDate.toISOString().split('T')[0];
-        const dueDate = new Date(currentYear, currentMonth, 0); // Last day of the current month
-        dueDate.setDate(dueDate.getDate() - 5); // 5 days before end of month
+        const dueDate = new Date(currentYear, currentMonth, 0);
+        dueDate.setDate(dueDate.getDate() - 5);
+
+        const newReading = parseInt(waterConsumption.replace(/^0+/, ''));
 
         const billingData = {
             month: monthKey,
@@ -86,13 +97,23 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
             amount: currentBill,
             dueDate: dueDate.toISOString().split('T')[0],
             status: 'Unpaid',
-            createdAt: Timestamp.now()
+            createdAt: Timestamp.now(),
+            previousReading: selectedConsumer.initialReading,
+            currentReading: newReading
         };
 
         try {
             const billingsRef = collection(db, 'billings');
             await addDoc(billingsRef, billingData);
-            alert('Billing data uploaded successfully!');
+
+            // Update the consumer's initialReading
+            // We use the docId we stored when fetching consumers
+            const consumerRef = doc(db, 'consumers', (selectedConsumer as any).docId);
+            await updateDoc(consumerRef, {
+                initialReading: newReading
+            });
+
+            alert('Billing data uploaded and consumer data updated successfully!');
 
             // Refresh the list of consumers
             await fetchConsumers();
@@ -102,26 +123,126 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
             setWaterConsumption('');
             setCurrentBill(0);
         } catch (error) {
-            console.error("Error adding document: ", error);
-            alert('Failed to upload billing data.');
+            console.error("Error updating documents: ", error);
+            alert('Failed to upload billing data and update consumer.');
+        }
+    };
+
+    const handleCancel = () => {
+        console.log('Cancelled');
+    }
+
+    const handleWaterConsumptionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setWaterConsumption(value);
+    };
+
+    //printing
+    const uploadBillingData = async () => {
+        if (!selectedConsumer) return null;
+
+        const currentDate = new Date();
+        const currentYear = currentDate.getFullYear();
+        const currentMonth = currentDate.getMonth() + 1;
+        const monthKey = `${currentYear}-${String(currentMonth).padStart(2, '0')}`;
+        const readingDate = currentDate.toISOString().split('T')[0];
+        const dueDate = new Date(currentYear, currentMonth, 0);
+        dueDate.setDate(dueDate.getDate() - 5);
+
+        const newReading = parseInt(waterConsumption.replace(/^0+/, ''));
+
+        const billingData = {
+            month: monthKey,
+            readingDate,
+            consumerId: selectedConsumer.uid,
+            consumerSerialNo: selectedConsumer.waterMeterSerialNo,
+            consumerName: selectedConsumer.applicantName,
+            amount: currentBill,
+            dueDate: dueDate.toISOString().split('T')[0],
+            status: 'Unpaid',
+            createdAt: Timestamp.now(),
+            previousReading: selectedConsumer.initialReading,
+            currentReading: newReading
+        };
+
+        try {
+            const billingsRef = collection(db, 'billings');
+            await addDoc(billingsRef, billingData);
+
+            const consumerRef = doc(db, 'consumers', (selectedConsumer as any).docId);
+            await updateDoc(consumerRef, {
+                initialReading: newReading
+            });
+
+            await fetchConsumers();
+
+            return billingData;
+        } catch (error) {
+            console.error("Error updating documents: ", error);
+            alert('Failed to upload billing data and update consumer.');
+            return null;
+        }
+    };
+
+    const printReceipt = async (billingData: any) => {
+        //TODO: implement this
+        // This is a placeholder function. You'll need to implement the actual
+        // Bluetooth printing logic based on the printer's API and your setup.
+        console.log('Printing receipt:', billingData);
+        
+        // Example of what the printing logic might look like:
+        try {
+            // Connect to the Bluetooth printer
+            // await connectToPrinter();
+
+            // Format the receipt
+            const receiptContent = `
+                Water Billing Receipt
+                ---------------------
+                Date: ${billingData.readingDate}
+                Consumer: ${billingData.consumerName}
+                Serial No: ${billingData.consumerSerialNo}
+                Previous Reading: ${billingData.previousReading}
+                Current Reading: ${billingData.currentReading}
+                Consumption: ${billingData.currentReading - billingData.previousReading}
+                Amount Due: ₱${billingData.amount.toFixed(2)}
+                Due Date: ${billingData.dueDate}
+                Status: ${billingData.status}
+            `;
+
+            // Send the formatted receipt to the printer
+            // await sendToPrinter(receiptContent);
+
+            console.log('Receipt printed successfully');
+        } catch (error) {
+            console.error('Error printing receipt:', error);
+            alert('Failed to print receipt. Please check your printer connection.');
+        }
+    };
+
+    const handleUploadAndPrint = async () => {
+        const billingData = await uploadBillingData();
+        if (billingData) {
+            await printReceipt(billingData);
+            setSelectedConsumer(null);
+            setWaterConsumption('');
+            setCurrentBill(0);
+            alert('Billing data uploaded and receipt printed successfully!');
         }
     };
 
     return (
-        <div className="p-4 max-w-md mx-auto bg-white rounded-lg shadow-md">
-            <h2 className="text-xl font-bold mb-4">Reading Result</h2>
+        <div className="p-4 max-w-md mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-y-auto h-screen">
+            <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-gray-100">Reading Result</h2>
 
             <div className="mb-4">
-                <label htmlFor="waterConsumption" className="block text-sm font-medium text-gray-700">Water Consumption</label>
+                <label htmlFor="waterConsumption" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Water Consumption</label>
                 <input
                     id="waterConsumption"
                     type="text"
                     value={waterConsumption}
-                    onChange={(e) => {
-                        setWaterConsumption(e.target.value);
-                        if (selectedConsumer) calculateBill(selectedConsumer);
-                    }}
-                    className="mt-1 block w-full rounded-md border shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2 bg-white"
+                    onChange={handleWaterConsumptionChange}
+                    className="mt-1 block w-full rounded-md border shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2 bg-white dark:bg-gray-700 dark:text-gray-100"
                 />
             </div>
 
@@ -133,27 +254,27 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
                             placeholder="Search by serial, name, or barangay..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full p-2 border rounded-lg shadow-md"
+                            className="w-full p-2 border rounded-lg shadow-md bg-white dark:bg-gray-700 dark:text-gray-100"
                         />
                     </div>
-                    <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
+                    <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-600">
+                        <thead className="bg-gray-50 dark:bg-gray-700">
                             <tr>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Serial Number</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Barangay</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Serial Number</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Name</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Barangay</th>
                             </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
+                        <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-600">
                             {filteredConsumers.map((consumer) => (
                                 <tr
                                     key={consumer.waterMeterSerialNo}
                                     onClick={() => handleConsumerSelect(consumer)}
-                                    className={`cursor-pointer hover:bg-gray-100 ${selectedConsumer?.waterMeterSerialNo === consumer.waterMeterSerialNo ? 'bg-blue-100' : ''}`}
+                                    className={`cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 ${selectedConsumer?.waterMeterSerialNo === consumer.waterMeterSerialNo ? 'bg-blue-100 dark:bg-blue-800' : ''}`}
                                 >
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{consumer.waterMeterSerialNo}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{consumer.applicantName}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{consumer.barangay}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">{consumer.waterMeterSerialNo}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{consumer.applicantName}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{consumer.barangay}</td>
                                 </tr>
                             ))}
                         </tbody>
@@ -162,31 +283,34 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
             </div>
 
             <div className="mb-4 mt-4">
-                <label htmlFor="serialNumber" className="block text-sm font-medium text-gray-700">Water Meter Serial Number</label>
+                <label htmlFor="serialNumber" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Water Meter Serial Number</label>
                 <input
                     id="serialNumber"
                     type="text"
                     value={selectedConsumer?.waterMeterSerialNo || ''}
                     readOnly
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm bg-gray-100 p-2"
+                    className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm bg-gray-100 dark:bg-gray-700 p-2 dark:text-gray-100"
                 />
             </div>
 
             <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700">Current Bill</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Current Bill</label>
                 <input
                     type="text"
                     value={`₱${currentBill.toFixed(2)}`}
                     readOnly
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm bg-gray-100 p-2"
+                    className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm bg-gray-100 dark:bg-gray-700 p-2 dark:text-gray-100"
                 />
             </div>
 
             <div className="flex justify-between flex-col-1">
-                <button className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded w-full mr-1">CANCEL</button>
-                <button onClick={handleUpload} className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded w-full ml-1">UPLOAD</button>
+                {/**
+                 * 
+                <button onClick={handleCancel} className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded w-full mr-1">CANCEL</button>
+                 */}
+                <button onClick={handleUpload} className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded w-full">UPLOAD</button>
             </div>
-            <button className="w-full mt-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">UPLOAD and PRINT Receipt</button>
+            <button onClick={handleUploadAndPrint} className="w-full mt-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">UPLOAD and PRINT Receipt</button>
         </div>
     );
 };

@@ -64,26 +64,26 @@ const Dashboard: React.FC = () => {
   return (
     <Layout>
       <div className="px-4 py-6 mt-12">
-        <h1 className="text-xl font-semibold mb-4">Ongoing Reading for {thisMonth}</h1>
+        <h1 className="text-xl font-semibold mb-4 dark:text-white">Ongoing Reading for {thisMonth}</h1>
         {/* Cards container */}
         <div className="grid grid-cols-2 gap-4 mb-6">
           {/* Done Card */}
           <button
-            className={`bg-white p-4 rounded-lg shadow-md flex flex-col items-center ${filter === 'completed' ? 'border-2 border-green-500' : ''}`}
+            className={`bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md flex flex-col items-center ${filter === 'completed' ? 'border-2 border-green-500' : ''}`}
             onClick={() => setFilter('completed')}
           >
             <IconCheck className="text-green-500 mb-2" size={32} />
-            <h2 className="text-lg font-medium text-gray-800">Done</h2>
-            <p className="text-2xl font-semibold text-gray-900">{completedReadings.length}</p>
+            <h2 className="text-lg font-medium text-gray-800 dark:text-gray-200">Done</h2>
+            <p className="text-2xl font-semibold text-gray-900 dark:text-gray-100">{completedReadings.length}</p>
           </button>
           {/* Remaining Card */}
           <button
-            className={`bg-white p-4 rounded-lg shadow-md flex flex-col items-center ${filter === 'remaining' ? 'border-2 border-yellow-500' : ''}`}
+            className={`bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md flex flex-col items-center ${filter === 'remaining' ? 'border-2 border-yellow-500' : ''}`}
             onClick={() => setFilter('remaining')}
           >
             <IconClock className="text-yellow-500 mb-2" size={32} />
-            <h2 className="text-lg font-medium text-gray-800">Remaining</h2>
-            <p className="text-2xl font-semibold text-gray-900">{remainingReadings.length}</p>
+            <h2 className="text-lg font-medium text-gray-800 dark:text-gray-200">Remaining</h2>
+            <p className="text-2xl font-semibold text-gray-900 dark:text-gray-100">{remainingReadings.length}</p>
           </button>
         </div>
         {/* Search Bar */}
@@ -93,31 +93,38 @@ const Dashboard: React.FC = () => {
             placeholder="Search by serial, name, or barangay..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full p-2 border rounded-lg shadow-md bg-white"
+            className="w-full p-2 border rounded-lg shadow-md bg-white dark:bg-gray-800 dark:text-gray-100 dark:border-gray-700"
           />
         </div>
         {/* Table */}
-        <div className="overflow-x-auto bg-white rounded-lg shadow-md">
-          <table className="min-w-full bg-white">
+        <div className="overflow-x-auto bg-white dark:bg-gray-800 rounded-lg shadow-md">
+          <table className="min-w-full bg-white dark:bg-gray-800">
             <thead>
-              <tr className="w-full bg-gray-100 text-left text-sm uppercase text-gray-600 font-semibold">
+              <tr className="w-full bg-gray-100 dark:bg-gray-700 text-left text-sm uppercase text-gray-600 dark:text-gray-200 font-semibold">
                 <th className="py-3 px-4">Meter Serial</th>
                 <th className="py-3 px-4">Name</th>
                 <th className="py-3 px-4">Barangay</th>
               </tr>
             </thead>
             <tbody>
-              {filteredReadings(filter === 'completed' ? completedReadings : remainingReadings).map((reading, index) => (
-                <tr key={index} className="border-b">
-                  <td className="py-3 px-4">{reading.consumerSerialNo}</td>
-                  <td className="py-3 px-4">{reading.consumerName}</td>
-                  <td className="py-3 px-4">{reading.barangay}</td>
+              {filteredReadings(filter === 'completed' ? completedReadings : remainingReadings).length === 0 ? (
+                <tr>
+                  <td colSpan={3} className="text-center py-3 px-4 text-gray-600 dark:text-gray-300">No Data Available</td>
                 </tr>
-              ))}
+              ) : (
+                filteredReadings(filter === 'completed' ? completedReadings : remainingReadings).map((reading, index) => (
+                  <tr key={index} className="border-b dark:border-gray-600">
+                    <td className="py-3 px-4 dark:text-gray-200">{reading.consumerSerialNo}</td>
+                    <td className="py-3 px-4 dark:text-gray-200">{reading.consumerName}</td>
+                    <td className="py-3 px-4 dark:text-gray-200">{reading.barangay}</td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
       </div>
+
     </Layout>
   );
 };

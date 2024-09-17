@@ -135,9 +135,9 @@ const CameraComponent: React.FC<CameraComponentProps> = ({ isCameraOpen, closeCa
                   )}
                   <button
                     onClick={retakePicture}
-                    className="absolute top-2 right-1 px-4  py-2  bg-red-500 text-black rounded"
+                    className="absolute top-2 right-1 px-4  py-2  bg-red-500 text-white rounded"
                   >
-                    Retake
+                    Cancel
                   </button>
                 </>
               )}
