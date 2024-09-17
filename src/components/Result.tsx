@@ -9,6 +9,7 @@ interface Consumer {
     initialReading: number;
     rate: number;
     uid: string;
+    docId: string;
 }
 
 interface WaterConsumptionResultProps {
@@ -108,7 +109,7 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
 
             // Update the consumer's initialReading
             // We use the docId we stored when fetching consumers
-            const consumerRef = doc(db, 'consumers', (selectedConsumer as any).docId);
+            const consumerRef = doc(db, 'consumers', selectedConsumer.docId);
             await updateDoc(consumerRef, {
                 initialReading: newReading
             });
@@ -128,107 +129,9 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
         }
     };
 
-    const handleCancel = () => {
-        console.log('Cancelled');
-    }
-
     const handleWaterConsumptionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         setWaterConsumption(value);
-    };
-
-    //printing
-    const uploadBillingData = async () => {
-        if (!selectedConsumer) return null;
-
-        const currentDate = new Date();
-        const currentYear = currentDate.getFullYear();
-        const currentMonth = currentDate.getMonth() + 1;
-        const monthKey = `${currentYear}-${String(currentMonth).padStart(2, '0')}`;
-        const readingDate = currentDate.toISOString().split('T')[0];
-        const dueDate = new Date(currentYear, currentMonth, 0);
-        dueDate.setDate(dueDate.getDate() - 5);
-
-        const newReading = parseInt(waterConsumption.replace(/^0+/, ''));
-
-        const billingData = {
-            month: monthKey,
-            readingDate,
-            consumerId: selectedConsumer.uid,
-            consumerSerialNo: selectedConsumer.waterMeterSerialNo,
-            consumerName: selectedConsumer.applicantName,
-            amount: currentBill,
-            dueDate: dueDate.toISOString().split('T')[0],
-            status: 'Unpaid',
-            createdAt: Timestamp.now(),
-            previousReading: selectedConsumer.initialReading,
-            currentReading: newReading
-        };
-
-        try {
-            const billingsRef = collection(db, 'billings');
-            await addDoc(billingsRef, billingData);
-
-            const consumerRef = doc(db, 'consumers', (selectedConsumer as any).docId);
-            await updateDoc(consumerRef, {
-                initialReading: newReading
-            });
-
-            await fetchConsumers();
-
-            return billingData;
-        } catch (error) {
-            console.error("Error updating documents: ", error);
-            alert('Failed to upload billing data and update consumer.');
-            return null;
-        }
-    };
-
-    const printReceipt = async (billingData: any) => {
-        //TODO: implement this
-        // This is a placeholder function. You'll need to implement the actual
-        // Bluetooth printing logic based on the printer's API and your setup.
-        console.log('Printing receipt:', billingData);
-        
-        // Example of what the printing logic might look like:
-        try {
-            // Connect to the Bluetooth printer
-            // await connectToPrinter();
-
-            // Format the receipt
-            const receiptContent = `
-                Water Billing Receipt
-                ---------------------
-                Date: ${billingData.readingDate}
-                Consumer: ${billingData.consumerName}
-                Serial No: ${billingData.consumerSerialNo}
-                Previous Reading: ${billingData.previousReading}
-                Current Reading: ${billingData.currentReading}
-                Consumption: ${billingData.currentReading - billingData.previousReading}
-                Amount Due: ₱${billingData.amount.toFixed(2)}
-                Due Date: ${billingData.dueDate}
-                Status: ${billingData.status}
-            `;
-
-            // Send the formatted receipt to the printer
-            // await sendToPrinter(receiptContent);
-
-            console.log('Receipt printed successfully');
-        } catch (error) {
-            console.error('Error printing receipt:', error);
-            alert('Failed to print receipt. Please check your printer connection.');
-        }
-    };
-
-    const handleUploadAndPrint = async () => {
-        const billingData = await uploadBillingData();
-        if (billingData) {
-            await printReceipt(billingData);
-            setSelectedConsumer(null);
-            setWaterConsumption('');
-            setCurrentBill(0);
-            alert('Billing data uploaded and receipt printed successfully!');
-        }
     };
 
     return (
@@ -310,7 +213,7 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
                  */}
                 <button onClick={handleUpload} className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded w-full">UPLOAD</button>
             </div>
-            <button onClick={handleUploadAndPrint} className="w-full mt-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">UPLOAD and PRINT Receipt</button>
+            <button onClick={handleUpload} className="w-full mt-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">UPLOAD and PRINT Receipt</button>
         </div>
     );
 };
