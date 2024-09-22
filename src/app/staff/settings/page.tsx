@@ -2,34 +2,53 @@
 
 import React, { useState } from "react";
 import { Switch } from "@headlessui/react";
+import { useTheme } from "next-themes";
+
+import { IconArrowBigRightLines } from "@tabler/icons-react";
+import { signOut } from "firebase/auth"; // Import signOut function from Firebase
+import { useRouter } from "next/navigation"; // To handle redirection
+import { auth } from "../../../../firebase";
 import StaffNav from "@/components/StaffNav";
+import SystemInfo from "@/app/admin/settings/SystemInfo";
 
 const Settings = () => {
-  const [darkMode, setDarkMode] = useState(false);
+  const { theme, setTheme } = useTheme(); // Access theme and setTheme from next-themes
   const [accountSettingsOpen, setAccountSettingsOpen] = useState(false);
   const [systemInfoOpen, setSystemInfoOpen] = useState(false);
+  const router = useRouter(); // Initialize useRouter for navigation
+
+  // Handle logout functionality
+  const handleLogout = async () => {
+    try {
+      await signOut(auth); // Sign out the user from Firebase Authentication
+      router.push('/'); // Redirect to homepage or login page after logout
+    } catch (error) {
+      console.error("Error during sign out:", error);
+      alert("Failed to log out. Please try again.");
+    }
+  };
 
   return (
     <StaffNav>
-      <div className="p-6">
+      <div className="p-6 pt-0 text-primary dark:text-zinc-300">
         <h1 className="text-2xl font-bold mb-6">Settings</h1>
 
         {/* Display */}
         <div className="mb-6">
-          <div className="flex justify-between items-center bg-gray-100 p-4 rounded-lg">
+          <div className="flex justify-between items-center bg-gray-200 bg-opacity-80 dark:bg-gray-800 p-4 rounded-lg">
             <h2 className="font-semibold">Display</h2>
             <div className="flex items-center">
               <span className="mr-3 text-sm">Dark Mode</span>
               <Switch
-                checked={darkMode}
-                onChange={setDarkMode}
+                checked={theme === "dark"}
+                onChange={() => setTheme(theme === "dark" ? "light" : "dark")}
                 className={`${
-                  darkMode ? "bg-blue-600" : "bg-gray-200"
+                  theme === "dark" ? "bg-blue-600" : "bg-gray-200"
                 } relative inline-flex items-center h-6 rounded-full w-11 transition-colors`}
               >
                 <span
                   className={`${
-                    darkMode ? "translate-x-6" : "translate-x-1"
+                    theme === "dark" ? "translate-x-6" : "translate-x-1"
                   } inline-block w-4 h-4 transform bg-white rounded-full transition-transform`}
                 />
               </Switch>
@@ -37,60 +56,29 @@ const Settings = () => {
           </div>
         </div>
 
+        {/* Logout */}
+        <div className="mb-6">
+          <div className="flex justify-between items-center bg-gray-200 bg-opacity-80 dark:bg-gray-800 p-4 rounded-lg">
+            <h2 className="font-semibold">Logout</h2>
+            <button className="flex items-center" onClick={handleLogout}>
+              <span className="mr-3 text-sm">Sign out</span>
+              <IconArrowBigRightLines/>
+            </button>
+          </div>
+        </div>
+
         {/* Account Settings */}
         <div className="mb-6">
           <div
-            className="cursor-pointer flex justify-between items-center bg-gray-100 p-4 rounded-lg"
+            className="cursor-pointer flex justify-between items-center bg-gray-200 bg-opacity-80 dark:bg-gray-800 p-4 rounded-lg"
             onClick={() => setAccountSettingsOpen(!accountSettingsOpen)}
           >
             <h2 className="font-semibold">Account Settings</h2>
             <span>{accountSettingsOpen ? "-" : "+"}</span>
           </div>
           {accountSettingsOpen && (
-            <div className="mt-4 space-y-4 p-4 border-t border-gray-200">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Name
-                </label>
-                <input
-                  type="text"
-                  className="w-full p-2 border border-gray-300 rounded"
-                  placeholder="Enter your name"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Old Password
-                </label>
-                <input
-                  type="password"
-                  className="w-full p-2 border border-gray-300 rounded"
-                  placeholder="Enter old password"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  New Password
-                </label>
-                <input
-                  type="password"
-                  className="w-full p-2 border border-gray-300 rounded"
-                  placeholder="Enter new password"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Confirm New Password
-                </label>
-                <input
-                  type="password"
-                  className="w-full p-2 border border-gray-300 rounded"
-                  placeholder="Confirm new password"
-                />
-              </div>
+            <div className="mt-4 space-y-4 p-4 border-t border-gray-200 dark:border-gray-600">
+              {/* Account settings form */}
             </div>
           )}
         </div>
@@ -98,48 +86,15 @@ const Settings = () => {
         {/* System Info */}
         <div className="mb-6">
           <div
-            className="cursor-pointer flex justify-between items-center bg-gray-100 p-4 rounded-lg"
+            className="cursor-pointer flex justify-between items-center bg-gray-200 bg-opacity-80 dark:bg-gray-800 p-4 rounded-lg"
             onClick={() => setSystemInfoOpen(!systemInfoOpen)}
           >
             <h2 className="font-semibold">System Info</h2>
-            <span>{systemInfoOpen ? "-" : "+"}</span>
+            {systemInfoOpen ? "-" : "+"}
           </div>
-          {systemInfoOpen && (
-            <div className="mt-4 space-y-4 p-4 border-t border-gray-200">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  System Logo
-                </label>
-                <div className="w-24 h-24 bg-gray-200 rounded">
-                  {/* Add your logo upload/input logic here */}
-                  <span className="block text-center pt-8 text-sm">Logo</span>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  System Name
-                </label>
-                <input
-                  type="text"
-                  className="w-full p-2 border border-gray-300 rounded"
-                  defaultValue="Water Meter"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Officials
-                </label>
-                <input
-                  type="text"
-                  className="w-full p-2 border border-gray-300 rounded"
-                  defaultValue="John Doe, Jane Smith"
-                />
-              </div>
-            </div>
-          )}
+          {systemInfoOpen && <SystemInfo />}
         </div>
+
       </div>
     </StaffNav>
   );

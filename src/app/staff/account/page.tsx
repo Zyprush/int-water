@@ -1,25 +1,55 @@
 "use client";
 
-import React, { useState } from "react";
-import { IconEdit, IconEye, IconTrash } from "@tabler/icons-react";
+import React, { useEffect, useState } from "react";
+import { IconEdit, IconEye, IconPlus, IconPrinter, IconTrash } from "@tabler/icons-react";
 import ReactPaginate from "react-paginate";
-import "tailwindcss/tailwind.css";
+
+import { collection, deleteDoc, doc, getDocs } from "firebase/firestore";
+import { db } from "../../../../firebase";
+import Loading from "@/components/Loading";
+import AlertDialog from "@/components/DeleteDialog";
+import AddNewConsumerModal from "@/components/adminAccount/AccountModal";
+import EditConsumerModal from "@/components/adminAccount/EditAccountModal";
+import { Consumer } from "@/components/adminAccount/types";
 import StaffNav from "@/components/StaffNav";
 
-const dummyData = [
-  { dateCreated: "2024-09-01", meterSerialNumber: "SN12345", name: "John Doe", status: "Active" },
-  { dateCreated: "2024-09-02", meterSerialNumber: "SN12346", name: "Jane Smith", status: "Inactive" },
-  // Add more dummy rows as needed
-];
 
 const Account = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(0);
+  const [isAddNewModalOpen, setIsAddNewModalOpen] = useState(false);
+  const [consumers, setConsumers] = useState<Consumer[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isAlertOpen, setIsAlertOpen] = useState(false);
+  const [consumerToDelete, setConsumerToDelete] = useState<string | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedConsumer, setSelectedConsumer] = useState<Consumer | null>(null);
 
-  const itemsPerPage = 10;
-  const filteredData = dummyData.filter(item => 
-    item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.meterSerialNumber.toLowerCase().includes(searchTerm.toLowerCase())
+
+  const fetchConsumers = async () => {
+    try {
+      const consumersCollection = collection(db, 'consumers');
+      const consumersSnapshot = await getDocs(consumersCollection);
+      const consumersList = consumersSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as Consumer[];
+      setConsumers(consumersList);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching consumers:", error);
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchConsumers();
+  }, []);
+
+  const itemsPerPage = 8;
+  const filteredData = consumers.filter(item =>
+    item.applicantName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.waterMeterSerialNo.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const pageCount = Math.ceil(filteredData.length / itemsPerPage);
@@ -29,15 +59,95 @@ const Account = () => {
     setCurrentPage(selectedItem.selected);
   };
 
+  const convertToCSV = (data: Consumer[]) => {
+    const headers = ["ID", "Name", "Meter Serial Number", "Status", "Created At"];
+    const rows = data.map(consumer => [
+      consumer.id,
+      consumer.applicantName,
+      consumer.waterMeterSerialNo,
+      consumer.status,
+      consumer.createdAt
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.join(','))
+    ].join('\n');
+
+    return csvContent;
+  };
+
   const handleExportCSV = () => {
-    // Logic to export table data to CSV goes here
-    console.log("Export CSV");
+    const csvData = convertToCSV(consumers);
+    const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    if (link.download !== undefined) {
+      const url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute("download", "consumers_export.csv");
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
   };
 
   const handleAddNew = () => {
-    // Logic to add new account goes here
-    console.log("Add New Account");
+    setIsAddNewModalOpen(true);
   };
+
+  const handleModalClose = () => {
+    setIsAddNewModalOpen(false);
+    fetchConsumers();
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteDoc(doc(db, 'consumers', id));
+      setConsumers(consumers.filter(consumer => consumer.id !== id));
+    } catch (error) {
+      console.error("Error deleting consumer:", error);
+    }
+  };
+
+  const openDeleteAlert = (id: string) => {
+    setConsumerToDelete(id);
+    setIsAlertOpen(true);
+  };
+
+  const closeDeleteAlert = () => {
+    setIsAlertOpen(false);
+    setConsumerToDelete(null);
+  };
+
+  const confirmDelete = () => {
+    if (consumerToDelete) {
+      handleDelete(consumerToDelete);
+    }
+  };
+
+  const handleEdit = (consumer: Consumer) => {
+    setSelectedConsumer(consumer);
+    setIsEditModalOpen(true);
+  };
+
+  const handleEditModalClose = () => {
+    setIsEditModalOpen(false);
+    setSelectedConsumer(null);
+  };
+
+  const handleConsumerUpdate = () => {
+    fetchConsumers(); // Refetch the consumers to update the list
+  };
+
+  const handleView = (id: string) => {
+    //TODO: Allen make the form like view. also the can print it
+    console.log("View button clicked for id:", id);
+  };
+
+  if (loading) {
+    return <Loading />;
+  }
 
   return (
     <StaffNav>
@@ -50,77 +160,104 @@ const Account = () => {
               className="bg-blue-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-600"
             >
               Export CSV
+              <IconPrinter className="inline-block ml-2" />
             </button>
             <button
               onClick={handleAddNew}
               className="bg-green-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-green-600"
             >
               Add New
+              <IconPlus className="inline-block ml-2" />
             </button>
           </div>
         </div>
-        <div className="mb-4">
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search..."
-            className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring focus:border-blue-500"
-          />
-        </div>
-        <table className="min-w-full bg-white shadow-md rounded-lg">
-          <thead>
-            <tr>
-              <th className="px-4 py-2 text-left">Date Created</th>
-              <th className="px-4 py-2 text-left">Meter Serial Number</th>
-              <th className="px-4 py-2 text-left">Name</th>
-              <th className="px-4 py-2 text-left">Status</th>
-              <th className="px-4 py-2 text-left">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {displayedData.map((item, index) => (
-              <tr key={index} className="border-t">
-                <td className="px-4 py-2">{item.dateCreated}</td>
-                <td className="px-4 py-2">{item.meterSerialNumber}</td>
-                <td className="px-4 py-2">{item.name}</td>
-                <td className="px-4 py-2">{item.status}</td>
-                <td className="px-4 py-2">
-                  <div className="flex space-x-2">
-                    <button className="text-blue-500 hover:text-blue-700">
-                      <IconEye size={18} />
-                    </button>
-                    <button className="text-green-500 hover:text-green-700">
-                      <IconEdit size={18} />
-                    </button>
-                    <button className="text-red-500 hover:text-red-700">
-                      <IconTrash size={18} />
-                    </button>
-                  </div>
-                </td>
+        <div className="card shadow-sm p-4 bg-white">
+          <div className="mb-2 flex justify-end">
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search..."
+              className="w-1/3 p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring focus:border-blue-500"
+            />
+          </div>
+          <table className="min-w-full bg-white rounded-lg border-t mt-2">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="px-4 py-2 text-left">Created At</th>
+                <th className="px-4 py-2 text-left">Meter Serial Number</th>
+                <th className="px-4 py-2 text-left">Name</th>
+                <th className="px-4 py-2 text-left">Status</th>
+                <th className="px-4 py-2 text-left">Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-        <div className="mt-4">
-          <ReactPaginate
-            previousLabel={"Previous"}
-            nextLabel={"Next"}
-            breakLabel={"..."}
-            breakClassName={"break-me"}
-            pageCount={pageCount}
-            marginPagesDisplayed={2}
-            pageRangeDisplayed={5}
-            onPageChange={handlePageChange}
-            containerClassName={"pagination"}
-            activeClassName={"active"}
-            pageClassName="inline-block px-4 py-2 border rounded-md hover:bg-gray-200"
-            previousClassName="inline-block px-4 py-2 border rounded-md hover:bg-gray-200"
-            nextClassName="inline-block px-4 py-2 border rounded-md hover:bg-gray-200"
-            activeLinkClassName="bg-blue-500 text-white"
-          />
+            </thead>
+            <tbody>
+              {displayedData.map((item) => (
+                <tr key={item.id} className="border-t border-b">
+                  <td className="px-4 py-2">{item.createdAt}</td>
+                  <td className="px-4 py-2">{item.waterMeterSerialNo}</td>
+                  <td className="px-4 py-2">{item.applicantName}</td>
+                  <td className="px-4 py-2">{item.status}</td>
+                  <td className="px-4 py-2">
+                    <div className="flex space-x-2">
+                      <button className="text-blue-500 hover:text-blue-700"
+                        onClick={() => handleView(item.id)}
+                      >
+                        <IconEye size={18} />
+                      </button>
+                      <button className="text-green-500 hover:text-green-700"
+                        onClick={() => handleEdit(item)}
+                      >
+                        <IconEdit size={18} />
+                      </button>
+                      <button className="text-red-500 hover:text-red-700"
+                        onClick={() => openDeleteAlert(item.id)}
+                      >
+                        <IconTrash size={18} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div className="mt-8 flex justify-end">
+            <ReactPaginate
+              previousLabel={"Previous"}
+              nextLabel={"Next"}
+              breakLabel={"..."}
+              breakClassName={"break-me"}
+              pageCount={pageCount}
+              marginPagesDisplayed={2}
+              pageRangeDisplayed={5}
+              onPageChange={handlePageChange}
+              containerClassName={"pagination"}
+              activeClassName={"active"}
+              pageClassName="inline-block px-4 py-2 border rounded-md hover:bg-gray-200"
+              previousClassName="inline-block px-4 py-2 border rounded-md hover:bg-gray-200 mr-1"
+              nextClassName="inline-block px-4 py-2 border rounded-md hover:bg-gray-200 ml-1"
+              activeLinkClassName="text-black font-bold"
+            />
+          </div>
         </div>
       </div>
+      <AddNewConsumerModal
+        isOpen={isAddNewModalOpen}
+        onClose={handleModalClose}
+      />
+      <EditConsumerModal
+        isOpen={isEditModalOpen}
+        onClose={handleEditModalClose}
+        consumer={selectedConsumer}
+        onUpdate={handleConsumerUpdate}
+      />
+      <AlertDialog
+        isOpen={isAlertOpen}
+        onClose={closeDeleteAlert}
+        onConfirm={confirmDelete}
+        title="Confirm Deletion"
+        message="Are you sure you want to delete this consumer? This action cannot be undone."
+      />
     </StaffNav>
   );
 };
