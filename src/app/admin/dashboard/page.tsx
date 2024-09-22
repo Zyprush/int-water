@@ -56,8 +56,8 @@ const Dashboard = () => {
       setUnpaidAmount(unpaid);
       setOverdueAmount(overdue);
 
-      // TODO: Implement actual revenue calculation
-      setTotalRevenue(paid + unpaid + overdue);
+      // I still think that the total revenue should be the sum of paid + unpaid + overdue -Jake
+      setTotalRevenue(paid);
     };
 
     fetchData();

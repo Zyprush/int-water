@@ -35,13 +35,14 @@ const Billings: React.FC = () => {
 
       const fetchedBillings = billingsSnapshot.docs.map((doc) => {
         const data = doc.data();
+        const dueDatePassed = dayjs().isAfter(data.dueDate);
         return {
           id: doc.id,
           readingDate: data.readingDate,
           consumer: data.consumerName,
           amount: `₱${data.amount.toFixed(2)}`,
           dueDate: data.dueDate,
-          status: data.status,
+          status: dueDatePassed && data.status !== "Paid" ? "Overdue" : data.status,
         };
       });
 
@@ -102,6 +103,19 @@ const Billings: React.FC = () => {
     });
   };
 
+  const getStatusClasses = (status: string) => {
+    switch (status) {
+      case "Paid":
+        return "bg-green-100 text-green-700 ";
+      case "Overdue":
+        return "bg-red-100 text-red-700";
+      case "Unpaid":
+        return "bg-yellow-100 text-yellow-700";
+      default:
+        return "";
+    }
+  };
+
   return (
     <NavLayout>
       <div className="p-4 space-y-6">
@@ -152,24 +166,20 @@ const Billings: React.FC = () => {
                   <td className="px-4 py-2">{item.consumer}</td>
                   <td className="px-4 py-2">{item.amount}</td>
                   <td className="px-4 py-2">{item.dueDate}</td>
-                  <td className="px-4 py-2">{item.status}</td>
+                  <td className={`px-4 py-2 ${getStatusClasses(item.status)}`}>{item.status}</td>
                   <td className="px-4 py-2">
                     <div className="flex space-x-2">
                       <button
                         onClick={() => handlePay(item.id)}
-                        className={`${
-                          item.status === "Paid" ? "bg-gray-500" : "bg-green-500"
-                        } text-white px-2 py-1 rounded hover:bg-green-600 flex items-center space-x-1`}
+                        className="text-gray-600 hover:text-gray-800"
                       >
                         <IconCurrencyDollar size={16} />
-                        <span>{item.status === "Paid" ? "Unpay" : "Pay"}</span>
                       </button>
                       <button
                         onClick={() => handleView(item.id)}
-                        className="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 flex items-center space-x-1"
+                        className="text-gray-600 hover:text-gray-800"
                       >
                         <IconEye size={16} />
-                        <span>View</span>
                       </button>
                     </div>
                   </td>

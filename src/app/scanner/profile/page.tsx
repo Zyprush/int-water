@@ -8,7 +8,6 @@ import { useRouter } from 'next/navigation';
 import Layout from '@/components/MobileLayout';
 import ProfilePicture from '@/components/scanner/account/ProfilePicture';
 import AccountSettings from '@/components/scanner/account/AccountSettings';
-import Preferences from '@/components/scanner/account/Preferences';
 import LogoutButton from '@/components/scanner/account/LogoutButton';
 
 const Profile: React.FC = () => {
@@ -63,7 +62,6 @@ const Profile: React.FC = () => {
           role={userData.role}
         />
         <AccountSettings />
-        <Preferences />
         <LogoutButton onLogout={handleLogout} />
       </div>
     </Layout>
