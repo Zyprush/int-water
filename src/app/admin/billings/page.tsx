@@ -7,14 +7,19 @@ import ReactPaginate from "react-paginate";
 import { collection, getDocs, doc, setDoc, query, where } from "firebase/firestore";
 import dayjs from "dayjs";
 import { db } from "../../../../firebase";
+import Modal from "@/components/BillingModal";
+import CAlertDialog from "@/components/ConfirmDialog";
 
 interface BillingItem {
   id: string;
   readingDate: string;
   consumer: string;
+  consumerSerialNo: string;
   amount: string;
   dueDate: string;
   status: string;
+  currentReading: number;
+  previousReading: number;
 }
 
 const Billings: React.FC = () => {
@@ -23,6 +28,10 @@ const Billings: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const [selectedMonth, setSelectedMonth] = useState(dayjs().format("MM"));
   const [selectedYear, setSelectedYear] = useState(dayjs().format("YYYY"));
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedBilling, setSelectedBilling] = useState<BillingItem | null>(null);
+  const [isAlertDialogOpen, setIsAlertDialogOpen] = useState(false);
+  const [selectedBillingId, setSelectedBillingId] = useState<string | null>(null);
 
   const itemsPerPage = 10;
 
@@ -40,9 +49,12 @@ const Billings: React.FC = () => {
           id: doc.id,
           readingDate: data.readingDate,
           consumer: data.consumerName,
+          consumerSerialNo: data.consumerSerialNo,
           amount: `₱${data.amount.toFixed(2)}`,
           dueDate: data.dueDate,
           status: dueDatePassed && data.status !== "Paid" ? "Overdue" : data.status,
+          currentReading: data.currentReading,
+          previousReading: data.previousReading,
         };
       });
 
@@ -66,18 +78,41 @@ const Billings: React.FC = () => {
     setCurrentPage(selectedItem.selected);
   };
 
-  const handlePay = async (id: string) => {
-    const updatedBillings = billings.map((billing) =>
-      billing.id === id ? { ...billing, status: billing.status === "Paid" ? "Unpaid" : "Paid" } : billing
-    );
+  const handlePayStatusChange = async (id: string) => {
+    const updatedBillings = billings.map((billing) => {
+      if (billing.id === id) {
+        const newStatus = billing.status === 'Paid' ? 'Unpaid' : 'Paid';
+        return { ...billing, status: newStatus };
+      }
+      return billing;
+    });
+
     setBillings(updatedBillings);
+    setSelectedBilling(updatedBillings.find(b => b.id === id) || null);
 
     const billingDoc = doc(db, `billings`, id);
     await setDoc(billingDoc, { status: updatedBillings.find((b) => b.id === id)?.status }, { merge: true });
   };
 
-  const handleView = (id: string) => {
-    console.log("View button clicked for id:", id);
+  const handlePayClick = (id: string) => {
+    setSelectedBillingId(id);
+    setIsAlertDialogOpen(true);
+  };
+
+  const handlePayConfirm = () => {
+    if (selectedBillingId) {
+      handlePayStatusChange(selectedBillingId);
+    }
+  };
+
+  const handleView = (billing: BillingItem) => {
+    setSelectedBilling(billing);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedBilling(null);
   };
 
   const generateMonthOptions = () => {
@@ -106,7 +141,7 @@ const Billings: React.FC = () => {
   const getStatusClasses = (status: string) => {
     switch (status) {
       case "Paid":
-        return "bg-green-100 text-green-700 ";
+        return "bg-green-100 text-green-700";
       case "Overdue":
         return "bg-red-100 text-red-700";
       case "Unpaid":
@@ -170,13 +205,13 @@ const Billings: React.FC = () => {
                   <td className="px-4 py-2">
                     <div className="flex space-x-2">
                       <button
-                        onClick={() => handlePay(item.id)}
+                        onClick={() => handlePayClick(item.id)}
                         className="text-gray-600 hover:text-gray-800"
                       >
                         <IconCurrencyDollar size={16} />
                       </button>
                       <button
-                        onClick={() => handleView(item.id)}
+                        onClick={() => handleView(item)}
                         className="text-gray-600 hover:text-gray-800"
                       >
                         <IconEye size={16} />
@@ -206,8 +241,24 @@ const Billings: React.FC = () => {
               activeLinkClassName="text-black font-bold"
             />
           </div>
+
         </div>
       </div>
+      {selectedBilling && (
+        <Modal
+          isOpen={isModalOpen}
+          onClose={closeModal}
+          billing={selectedBilling}
+          onPayStatusChange={handlePayStatusChange}
+        />
+      )}
+      <CAlertDialog
+        isOpen={isAlertDialogOpen}
+        onClose={() => setIsAlertDialogOpen(false)}
+        onConfirm={handlePayConfirm}
+        title="Confirm Payment Status Change"
+        message="Are you sure you want to change the payment status for this billing?"
+      />
     </NavLayout>
   );
 };
