@@ -1,93 +1,141 @@
 "use client";
 
-import NavLayout from "@/components/NavLayout";
-import { Bar } from "react-chartjs-2";
-import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale } from "chart.js";
-import { IconUser, IconUsers, IconCash, IconCalendarCheck, IconCalendarX, IconCalendar } from "@tabler/icons-react";
-import "tailwindcss/tailwind.css";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { collection, getDocs } from "firebase/firestore";
+import { Bar } from "react-chartjs-2";
+import { 
+  Chart as ChartJS, 
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+} from "chart.js";
+import { IconUser, IconUsers, IconCash, IconCalendarCheck, IconCalendarX, IconCalendar } from "@tabler/icons-react";
+import NavLayout from "@/components/NavLayout";
 import { db } from "../../../../firebase";
 
-ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale);
 
-const Dashboard = () => {
-  const [totalClients, setTotalClients] = useState(0);
-  const [totalStaff, setTotalStaff] = useState(0);
-  const [totalRevenue, setTotalRevenue] = useState(0);
-  const [paidAmount, setPaidAmount] = useState(0);
-  const [unpaidAmount, setUnpaidAmount] = useState(0);
-  const [overdueAmount, setOverdueAmount] = useState(0);
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
-  useEffect(() => {
+interface BillingData {
+  amount: string;
+  month: string;
+  currentReading: string;
+  status: 'Paid' | 'Unpaid' | 'Overdue';
+}
+
+interface ChartData {
+  labels: string[];
+  datasets: {
+    label: string;
+    data: number[];
+    backgroundColor: string;
+    borderColor: string;
+    borderWidth: number;
+  }[];
+}
+
+const Dashboard: React.FC = () => {
+  const [totalClients, setTotalClients] = useState<number>(0);
+  const [totalStaff, setTotalStaff] = useState<number>(0);
+  const [totalRevenue, setTotalRevenue] = useState<number>(0);
+  const [paidAmount, setPaidAmount] = useState<number>(0);
+  const [unpaidAmount, setUnpaidAmount] = useState<number>(0);
+  const [overdueAmount, setOverdueAmount] = useState<number>(0);
+  const [revenueData, setRevenueData] = useState<Record<string, number>>({});
+  const [waterConsumptionData, setWaterConsumptionData] = useState<Record<string, number>>({});
+
+  useEffect(() => { 
     const fetchData = async () => {
-      // Fetch total clients
-      const clientsSnapshot = await getDocs(collection(db, "consumers"));
-      setTotalClients(clientsSnapshot.size);
+      try {
+        // Fetch total clients
+        const clientsSnapshot = await getDocs(collection(db, "consumers"));
+        setTotalClients(clientsSnapshot.size);
 
-      // Fetch total staff
-      const staffSnapshot = await getDocs(collection(db, "users"));
-      setTotalStaff(staffSnapshot.size);
+        // Fetch total staff
+        const staffSnapshot = await getDocs(collection(db, "users"));
+        setTotalStaff(staffSnapshot.size);
 
-      // Fetch billing data
-      const billingsSnapshot = await getDocs(collection(db, "billings"));
-      let paid = 0;
-      let unpaid = 0;
-      let overdue = 0;
+        // Fetch billing data
+        const billingsSnapshot = await getDocs(collection(db, "billings"));
+        let paid = 0;
+        let unpaid = 0;
+        let overdue = 0;
+        const revenueByMonth: Record<string, number> = {};
+        const waterConsumptionByMonth: Record<string, number> = {};
 
-      billingsSnapshot.forEach((doc) => {
-        const data = doc.data();
-        const amount = parseFloat(data.amount) || 0;
+        billingsSnapshot.forEach((doc) => {
+          const data = doc.data() as BillingData;
+          const amount = parseFloat(data.amount) || 0;
+          const monthYear = data.month; // Format is '2024-09'
+          const currentReading = parseFloat(data.currentReading) || 0;
 
-        switch (data.status) {
-          case "Paid":
+          // Process revenue data (only for paid amounts)
+          if (data.status === 'Paid') {
+            revenueByMonth[monthYear] = (revenueByMonth[monthYear] || 0) + amount;
             paid += amount;
-            break;
-          case "Unpaid":
-            unpaid += amount;
-            break;
-          case "Overdue":
-            overdue += amount;
-            break;
-        }
-      });
+          }
 
-      setPaidAmount(paid);
-      setUnpaidAmount(unpaid);
-      setOverdueAmount(overdue);
+          // Process water consumption data
+          waterConsumptionByMonth[monthYear] = (waterConsumptionByMonth[monthYear] || 0) + currentReading;
 
-      // I still think that the total revenue should be the sum of paid + unpaid + overdue -Jake
-      setTotalRevenue(paid);
+          switch (data.status) {
+            case "Unpaid":
+              unpaid += amount;
+              break;
+            case "Overdue":
+              overdue += amount;
+              break;
+          }
+        });
+
+        setPaidAmount(paid);
+        setUnpaidAmount(unpaid);
+        setOverdueAmount(overdue);
+        setTotalRevenue(paid); // Total revenue is only the paid amount
+
+        setRevenueData(revenueByMonth);
+        setWaterConsumptionData(waterConsumptionByMonth);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
     };
 
     fetchData();
   }, []);
 
-  const dataRevenue = {
-    labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-    datasets: [
-      {
-        label: "Total Revenue",
-        data: [1200, 1500, 1300, 1700, 2000, 1600, 1900, 2100, 1800, 2000, 2100, 2300],
-        backgroundColor: "rgba(54, 162, 235, 0.2)",
-        borderColor: "rgba(54, 162, 235, 1)",
-        borderWidth: 1,
-      },
-    ],
+  const prepareChartData = (data: Record<string, number>, label: string): ChartData => {
+    const sortedMonths = Object.keys(data).sort();
+    const chartData = sortedMonths.map(month => data[month] || 0);
+
+    return {
+      labels: sortedMonths.map(month => {
+        const [year, monthNum] = month.split('-');
+        return `${['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][parseInt(monthNum) - 1]} ${year}`;
+      }),
+      datasets: [
+        {
+          label: label,
+          data: chartData,
+          backgroundColor: label === "Total Revenue" ? "rgba(54, 162, 235, 0.2)" : "rgba(255, 99, 132, 0.2)",
+          borderColor: label === "Total Revenue" ? "rgba(54, 162, 235, 1)" : "rgba(255, 99, 132, 1)",
+          borderWidth: 1,
+        },
+      ],
+    };
   };
 
-  const dataWaterConsumption = {
-    labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-    datasets: [
-      {
-        label: "Water Consumption",
-        data: [300, 320, 280, 350, 400, 320, 360, 370, 340, 380, 390, 420],
-        backgroundColor: "rgba(255, 99, 132, 0.2)",
-        borderColor: "rgba(255, 99, 132, 1)",
-        borderWidth: 1,
-      },
-    ],
-  };
+  const dataRevenue = prepareChartData(revenueData, "Total Revenue");
+  const dataWaterConsumption = prepareChartData(waterConsumptionData, "Water Consumption");
 
   return (
     <NavLayout>
