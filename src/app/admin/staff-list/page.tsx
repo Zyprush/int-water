@@ -169,10 +169,17 @@ const UserList = () => {
     if (userToScan) {
       try {
         const userRef = doc(db, 'users', userToScan.id);
+        const newScannerStatus = !userToScan.scanner; // Toggle the scanner status
         await updateDoc(userRef, {
-          scanner: true
+          scanner: newScannerStatus
         });
-        console.log(`User ${userToScan.name} has been assigned to the scanner.`);
+        console.log(`Scanner status for ${userToScan.name} has been set to ${newScannerStatus}.`);
+        
+        // Update the local state
+        setUsers(users.map(user => 
+          user.id === userToScan.id ? {...user, scanner: newScannerStatus} : user
+        ));
+        
         setIsScanAlertOpen(false);
         setUserToScan(null);
       } catch (error) {
@@ -322,8 +329,8 @@ const UserList = () => {
         isOpen={isScanAlertOpen}
         onClose={() => setIsScanAlertOpen(false)}
         onConfirm={confirmScan}
-        title="Assign Scanner"
-        message={`Are you sure you want to assign a scanner to ${userToScan?.name}?`}
+        title="Toggle Scanner Status"
+        message={`Are you sure you want to ${userToScan?.scanner ? 'remove' : 'assign'} scanner for ${userToScan?.name}?`}
       />
 
     </NavLayout>
