@@ -161,7 +161,7 @@ const Dashboard: React.FC = () => {
             <IconCash className="text-yellow-500" size={24} />
             <div>
               <h2 className="text-xl font-bold">Total Revenue</h2>
-              <p className="text-gray-600">${totalRevenue.toFixed(2)}</p>
+              <p className="text-gray-600">₱{totalRevenue.toFixed(2)}</p>
             </div>
           </div>
           <div className="bg-white shadow-md rounded-lg p-4 flex items-center space-x-4">

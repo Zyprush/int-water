@@ -1,40 +1,144 @@
 "use client";
 
+import React, { useEffect, useState } from "react";
+import { collection, getDocs } from "firebase/firestore";
 import { Bar } from "react-chartjs-2";
-import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale } from "chart.js";
+import { 
+  Chart as ChartJS, 
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+} from "chart.js";
 import { IconUser, IconUsers, IconCash, IconCalendarCheck, IconCalendarX, IconCalendar } from "@tabler/icons-react";
-import "tailwindcss/tailwind.css";
+import { db } from "../../../../firebase";
 import StaffNav from "@/components/StaffNav";
 
-ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale);
 
-const dataRevenue = {
-  labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-  datasets: [
-    {
-      label: "Total Revenue",
-      data: [1200, 1500, 1300, 1700, 2000, 1600, 1900, 2100, 1800, 2000, 2100, 2300],
-      backgroundColor: "rgba(54, 162, 235, 0.2)",
-      borderColor: "rgba(54, 162, 235, 1)",
-      borderWidth: 1,
-    },
-  ],
-};
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
-const dataWaterConsumption = {
-  labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-  datasets: [
-    {
-      label: "Water Consumption",
-      data: [300, 320, 280, 350, 400, 320, 360, 370, 340, 380, 390, 420],
-      backgroundColor: "rgba(255, 99, 132, 0.2)",
-      borderColor: "rgba(255, 99, 132, 1)",
-      borderWidth: 1,
-    },
-  ],
-};
+interface BillingData {
+  amount: string;
+  month: string;
+  currentReading: string;
+  status: 'Paid' | 'Unpaid' | 'Overdue';
+}
 
-const Dashboard = () => {
+interface ChartData {
+  labels: string[];
+  datasets: {
+    label: string;
+    data: number[];
+    backgroundColor: string;
+    borderColor: string;
+    borderWidth: number;
+  }[];
+}
+
+const Dashboard: React.FC = () => {
+  const [totalClients, setTotalClients] = useState<number>(0);
+  const [totalStaff, setTotalStaff] = useState<number>(0);
+  const [totalRevenue, setTotalRevenue] = useState<number>(0);
+  const [paidCount, setPaidCount] = useState<number>(0);
+  const [unpaidCount, setUnpaidCount] = useState<number>(0);
+  const [overdueCount, setOverdueCount] = useState<number>(0);
+  const [revenueData, setRevenueData] = useState<Record<string, number>>({});
+  const [waterConsumptionData, setWaterConsumptionData] = useState<Record<string, number>>({});
+
+  useEffect(() => { 
+    const fetchData = async () => {
+      try {
+        // Fetch total clients
+        const clientsSnapshot = await getDocs(collection(db, "consumers"));
+        setTotalClients(clientsSnapshot.size);
+
+        // Fetch total staff
+        const staffSnapshot = await getDocs(collection(db, "users"));
+        setTotalStaff(staffSnapshot.size);
+
+        // Fetch billing data
+        const billingsSnapshot = await getDocs(collection(db, "billings"));
+        let paid = 0;
+        let unpaid = 0;
+        let overdue = 0;
+        let totalPaidAmount = 0;
+        const revenueByMonth: Record<string, number> = {};
+        const waterConsumptionByMonth: Record<string, number> = {};
+
+        billingsSnapshot.forEach((doc) => {
+          const data = doc.data() as BillingData;
+          const amount = parseFloat(data.amount) || 0;
+          const monthYear = data.month; // Format is '2024-09'
+          const currentReading = parseFloat(data.currentReading) || 0;
+
+          // Process revenue data (only for paid amounts)
+          if (data.status === 'Paid') {
+            revenueByMonth[monthYear] = (revenueByMonth[monthYear] || 0) + amount;
+            totalPaidAmount += amount;
+            paid++;
+          }
+
+          // Process water consumption data
+          waterConsumptionByMonth[monthYear] = (waterConsumptionByMonth[monthYear] || 0) + currentReading;
+
+          switch (data.status) {
+            case "Unpaid":
+              unpaid++;
+              break;
+            case "Overdue":
+              overdue++;
+              break;
+          }
+        });
+
+        setPaidCount(paid);
+        setUnpaidCount(unpaid);
+        setOverdueCount(overdue);
+        setTotalRevenue(totalPaidAmount); // Total revenue is the sum of all paid amounts
+
+        setRevenueData(revenueByMonth);
+        setWaterConsumptionData(waterConsumptionByMonth);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const prepareChartData = (data: Record<string, number>, label: string): ChartData => {
+    const sortedMonths = Object.keys(data).sort();
+    const chartData = sortedMonths.map(month => data[month] || 0);
+
+    return {
+      labels: sortedMonths.map(month => {
+        const [year, monthNum] = month.split('-');
+        return `${['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][parseInt(monthNum) - 1]} ${year}`;
+      }),
+      datasets: [
+        {
+          label: label,
+          data: chartData,
+          backgroundColor: label === "Total Revenue" ? "rgba(54, 162, 235, 0.2)" : "rgba(255, 99, 132, 0.2)",
+          borderColor: label === "Total Revenue" ? "rgba(54, 162, 235, 1)" : "rgba(255, 99, 132, 1)",
+          borderWidth: 1,
+        },
+      ],
+    };
+  };
+
+  const dataRevenue = prepareChartData(revenueData, "Total Revenue");
+  const dataWaterConsumption = prepareChartData(waterConsumptionData, "Water Consumption");
+
   return (
     <StaffNav>
       <div className="p-4 space-y-6">
@@ -43,42 +147,42 @@ const Dashboard = () => {
             <IconUsers className="text-blue-500" size={24} />
             <div>
               <h2 className="text-xl font-bold">Total Clients</h2>
-              <p className="text-gray-600">1,234</p>
+              <p className="text-gray-600">{totalClients}</p>
             </div>
           </div>
           <div className="bg-white shadow-md rounded-lg p-4 flex items-center space-x-4">
             <IconUser className="text-green-500" size={24} />
             <div>
               <h2 className="text-xl font-bold">Total Staff</h2>
-              <p className="text-gray-600">567</p>
+              <p className="text-gray-600">{totalStaff}</p>
             </div>
           </div>
           <div className="bg-white shadow-md rounded-lg p-4 flex items-center space-x-4">
             <IconCash className="text-yellow-500" size={24} />
             <div>
               <h2 className="text-xl font-bold">Total Revenue</h2>
-              <p className="text-gray-600">$12,345</p>
+              <p className="text-gray-600">₱{totalRevenue.toFixed(2)}</p>
             </div>
           </div>
           <div className="bg-white shadow-md rounded-lg p-4 flex items-center space-x-4">
             <IconCalendarCheck className="text-green-500" size={24} />
             <div>
               <h2 className="text-xl font-bold">Paid</h2>
-              <p className="text-gray-600">$8,000</p>
+              <p className="text-gray-600">{paidCount}</p>
             </div>
           </div>
           <div className="bg-white shadow-md rounded-lg p-4 flex items-center space-x-4">
             <IconCalendarX className="text-red-500" size={24} />
             <div>
               <h2 className="text-xl font-bold">Unpaid</h2>
-              <p className="text-gray-600">$2,000</p>
+              <p className="text-gray-600">{unpaidCount}</p>
             </div>
           </div>
           <div className="bg-white shadow-md rounded-lg p-4 flex items-center space-x-4">
             <IconCalendar className="text-gray-500" size={24} />
             <div>
               <h2 className="text-xl font-bold">Overdue</h2>
-              <p className="text-gray-600">$1,000</p>
+              <p className="text-gray-600">{overdueCount}</p>
             </div>
           </div>
         </div>
