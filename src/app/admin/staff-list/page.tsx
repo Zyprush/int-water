@@ -311,7 +311,7 @@ const UserList = () => {
         user={selectedUser}
         onUpdate={handleUserUpdate}
       />
-      <AlertDialog
+      <CAlertDialog
         isOpen={isExportCSVAlertOpen}
         onClose={() => setIsExportCSVAlertOpen(false)}
         onConfirm={confirmExportCSV}
