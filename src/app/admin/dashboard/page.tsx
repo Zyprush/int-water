@@ -48,9 +48,9 @@ const Dashboard: React.FC = () => {
   const [totalClients, setTotalClients] = useState<number>(0);
   const [totalStaff, setTotalStaff] = useState<number>(0);
   const [totalRevenue, setTotalRevenue] = useState<number>(0);
-  const [paidAmount, setPaidAmount] = useState<number>(0);
-  const [unpaidAmount, setUnpaidAmount] = useState<number>(0);
-  const [overdueAmount, setOverdueAmount] = useState<number>(0);
+  const [paidCount, setPaidCount] = useState<number>(0);
+  const [unpaidCount, setUnpaidCount] = useState<number>(0);
+  const [overdueCount, setOverdueCount] = useState<number>(0);
   const [revenueData, setRevenueData] = useState<Record<string, number>>({});
   const [waterConsumptionData, setWaterConsumptionData] = useState<Record<string, number>>({});
 
@@ -70,6 +70,7 @@ const Dashboard: React.FC = () => {
         let paid = 0;
         let unpaid = 0;
         let overdue = 0;
+        let totalPaidAmount = 0;
         const revenueByMonth: Record<string, number> = {};
         const waterConsumptionByMonth: Record<string, number> = {};
 
@@ -82,7 +83,8 @@ const Dashboard: React.FC = () => {
           // Process revenue data (only for paid amounts)
           if (data.status === 'Paid') {
             revenueByMonth[monthYear] = (revenueByMonth[monthYear] || 0) + amount;
-            paid += amount;
+            totalPaidAmount += amount;
+            paid++;
           }
 
           // Process water consumption data
@@ -90,18 +92,18 @@ const Dashboard: React.FC = () => {
 
           switch (data.status) {
             case "Unpaid":
-              unpaid += amount;
+              unpaid++;
               break;
             case "Overdue":
-              overdue += amount;
+              overdue++;
               break;
           }
         });
 
-        setPaidAmount(paid);
-        setUnpaidAmount(unpaid);
-        setOverdueAmount(overdue);
-        setTotalRevenue(paid); // Total revenue is only the paid amount
+        setPaidCount(paid);
+        setUnpaidCount(unpaid);
+        setOverdueCount(overdue);
+        setTotalRevenue(totalPaidAmount); // Total revenue is the sum of all paid amounts
 
         setRevenueData(revenueByMonth);
         setWaterConsumptionData(waterConsumptionByMonth);
@@ -166,21 +168,21 @@ const Dashboard: React.FC = () => {
             <IconCalendarCheck className="text-green-500" size={24} />
             <div>
               <h2 className="text-xl font-bold">Paid</h2>
-              <p className="text-gray-600">${paidAmount.toFixed(2)}</p>
+              <p className="text-gray-600">{paidCount}</p>
             </div>
           </div>
           <div className="bg-white shadow-md rounded-lg p-4 flex items-center space-x-4">
             <IconCalendarX className="text-red-500" size={24} />
             <div>
               <h2 className="text-xl font-bold">Unpaid</h2>
-              <p className="text-gray-600">${unpaidAmount.toFixed(2)}</p>
+              <p className="text-gray-600">{unpaidCount}</p>
             </div>
           </div>
           <div className="bg-white shadow-md rounded-lg p-4 flex items-center space-x-4">
             <IconCalendar className="text-gray-500" size={24} />
             <div>
               <h2 className="text-xl font-bold">Overdue</h2>
-              <p className="text-gray-600">${overdueAmount.toFixed(2)}</p>
+              <p className="text-gray-600">{overdueCount}</p>
             </div>
           </div>
         </div>
