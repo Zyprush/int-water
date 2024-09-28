@@ -12,6 +12,7 @@ import AlertDialog from "@/components/DeleteDialog";
 import AddNewConsumerModal from "@/components/adminAccount/AccountModal";
 import EditConsumerModal from "@/components/adminAccount/EditAccountModal";
 import { Consumer } from "@/components/adminAccount/types";
+import CAlertDialog from "@/components/ConfirmDialog";
 
 
 const Account = () => {
@@ -24,6 +25,8 @@ const Account = () => {
   const [consumerToDelete, setConsumerToDelete] = useState<string | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedConsumer, setSelectedConsumer] = useState<Consumer | null>(null);
+
+  const [isExportCSVAlertOpen, setIsExportCSVAlertOpen] = useState(false);
 
 
   const fetchConsumers = async () => {
@@ -59,6 +62,10 @@ const Account = () => {
     setCurrentPage(selectedItem.selected);
   };
 
+  //convert data to CSV
+  const handleExportCSV = () => {
+    setIsExportCSVAlertOpen(true);
+  };
   const convertToCSV = (data: Consumer[]) => {
     const headers = ["ID", "Name", "Meter Serial Number", "Status", "Created At"];
     const rows = data.map(consumer => [
@@ -77,7 +84,7 @@ const Account = () => {
     return csvContent;
   };
 
-  const handleExportCSV = () => {
+  const confirmExportCSV = () => {
     const csvData = convertToCSV(consumers);
     const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
@@ -90,7 +97,9 @@ const Account = () => {
       link.click();
       document.body.removeChild(link);
     }
+    setIsExportCSVAlertOpen(false);
   };
+  
 
   const handleAddNew = () => {
     setIsAddNewModalOpen(true);
@@ -257,6 +266,13 @@ const Account = () => {
         onConfirm={confirmDelete}
         title="Confirm Deletion"
         message="Are you sure you want to delete this consumer? This action cannot be undone."
+      />
+      <CAlertDialog
+        isOpen={isExportCSVAlertOpen}
+        onClose={() => setIsExportCSVAlertOpen(false)}
+        onConfirm={confirmExportCSV}
+        title="Confirm CSV Export"
+        message="Are you sure you want to export the user data to CSV?"
       />
     </NavLayout>
   );
