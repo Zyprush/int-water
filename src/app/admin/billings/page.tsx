@@ -8,7 +8,6 @@ import { collection, getDocs, doc, setDoc, query, where } from "firebase/firesto
 import dayjs from "dayjs";
 import { db } from "../../../../firebase";
 import Modal from "@/components/BillingModal";
-import CAlertDialog from "@/components/ConfirmDialog";
 
 interface BillingItem {
   id: string;
@@ -30,8 +29,6 @@ const Billings: React.FC = () => {
   const [selectedYear, setSelectedYear] = useState(dayjs().format("YYYY"));
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedBilling, setSelectedBilling] = useState<BillingItem | null>(null);
-  const [isAlertDialogOpen, setIsAlertDialogOpen] = useState(false);
-  const [selectedBillingId, setSelectedBillingId] = useState<string | null>(null);
 
   const itemsPerPage = 10;
 
@@ -42,9 +39,17 @@ const Billings: React.FC = () => {
       const q = query(billingsRef, where("month", "==", monthYear));
       const billingsSnapshot = await getDocs(q);
 
-      const fetchedBillings = billingsSnapshot.docs.map((doc) => {
+      const fetchedBillings = await Promise.all(billingsSnapshot.docs.map(async (doc) => {
         const data = doc.data();
         const dueDatePassed = dayjs().isAfter(data.dueDate);
+        let status = data.status;
+        
+        if (dueDatePassed && status !== "Paid") {
+          status = "Overdue";
+          // Update the status in Firestore
+          await setDoc(doc.ref, { status: "Overdue" }, { merge: true });
+        }
+
         return {
           id: doc.id,
           readingDate: data.readingDate,
@@ -52,11 +57,11 @@ const Billings: React.FC = () => {
           consumerSerialNo: data.consumerSerialNo,
           amount: `₱${data.amount.toFixed(2)}`,
           dueDate: data.dueDate,
-          status: dueDatePassed && data.status !== "Paid" ? "Overdue" : data.status,
+          status: status,
           currentReading: data.currentReading,
           previousReading: data.previousReading,
         };
-      });
+      }));
 
       setBillings(fetchedBillings);
     };
@@ -92,17 +97,6 @@ const Billings: React.FC = () => {
 
     const billingDoc = doc(db, `billings`, id);
     await setDoc(billingDoc, { status: updatedBillings.find((b) => b.id === id)?.status }, { merge: true });
-  };
-
-  const handlePayClick = (id: string) => {
-    setSelectedBillingId(id);
-    setIsAlertDialogOpen(true);
-  };
-
-  const handlePayConfirm = () => {
-    if (selectedBillingId) {
-      handlePayStatusChange(selectedBillingId);
-    }
   };
 
   const handleView = (billing: BillingItem) => {
@@ -149,6 +143,11 @@ const Billings: React.FC = () => {
       default:
         return "";
     }
+  };
+
+  const handleViewHistory = (billing: BillingItem) => {
+    // TODO: Implement view history functionality
+    console.log("View history for billing:", billing);
   };
 
   return (
@@ -205,13 +204,13 @@ const Billings: React.FC = () => {
                   <td className="px-4 py-2">
                     <div className="flex space-x-2">
                       <button
-                        onClick={() => handlePayClick(item.id)}
+                        onClick={() => handleView(item)}
                         className="text-gray-600 hover:text-gray-800"
                       >
                         <IconCurrencyDollar size={16} />
                       </button>
                       <button
-                        onClick={() => handleView(item)}
+                        onClick={() => handleViewHistory(item)}
                         className="text-gray-600 hover:text-gray-800"
                       >
                         <IconEye size={16} />
@@ -252,13 +251,6 @@ const Billings: React.FC = () => {
           onPayStatusChange={handlePayStatusChange}
         />
       )}
-      <CAlertDialog
-        isOpen={isAlertDialogOpen}
-        onClose={() => setIsAlertDialogOpen(false)}
-        onConfirm={handlePayConfirm}
-        title="Confirm Payment Status Change"
-        message="Are you sure you want to change the payment status for this billing?"
-      />
     </NavLayout>
   );
 };

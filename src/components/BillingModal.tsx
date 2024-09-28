@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 interface BillingItem {
@@ -22,6 +22,9 @@ interface ModalProps {
 
 const Modal: React.FC<ModalProps> = ({ isOpen, onClose, billing, onPayStatusChange }) => {
   const modalRef = useRef<HTMLDivElement>(null);
+  const [amountGiven, setAmountGiven] = useState<string>('');
+  const [change, setChange] = useState<number>(0);
+  const [isPaymentValid, setIsPaymentValid] = useState<boolean>(false);
 
   useEffect(() => {
     const handleOutsideClick = (event: MouseEvent) => {
@@ -47,10 +50,28 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, billing, onPayStatusChan
     };
   }, [isOpen, onClose]);
 
+  useEffect(() => {
+    const billAmount = parseFloat(billing.amount.replace('₱', ''));
+    const givenAmount = parseFloat(amountGiven);
+
+    if (!isNaN(givenAmount) && givenAmount >= billAmount) {
+      setChange(givenAmount - billAmount);
+      setIsPaymentValid(true);
+    } else {
+      setChange(0);
+      setIsPaymentValid(false);
+    }
+  }, [amountGiven, billing.amount]);
+
   if (!isOpen) return null;
 
   const handlePayStatusChange = () => {
-    onPayStatusChange(billing.id);
+    if (isPaymentValid) {
+      onPayStatusChange(billing.id);
+      setAmountGiven('');
+      setChange(0);
+      setIsPaymentValid(false);
+    }
   };
 
   const getStatusClasses = (status: string) => {
@@ -67,52 +88,89 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, billing, onPayStatusChan
   };
 
   const consumption = billing.currentReading - billing.previousReading;
-  const freeCubicMeter = 3;
+  const freeCubicMeter = 3; //idk what the real data is so I am putting 3
   const unpaidBill = 0; // TODO: Implement previous unpaid bill calculation
   const totalDue = parseFloat(billing.amount.replace('₱', '')) + unpaidBill;
 
   return createPortal(
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-      <div ref={modalRef} className="bg-white p-6 rounded-lg shadow-xl max-w-xl w-full">
-        <div className="border-b pb-4 mb-4">
-          <h2 className="text-2xl font-bold mb-2">Billing Details</h2>
-          <div className="flex justify-between">
+    <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50">
+      <div ref={modalRef} className="bg-white p-6 rounded-2xl shadow-lg max-w-2xl w-full space-y-6 transform transition-transform duration-300 scale-100">
+        <div className="border-b pb-4">
+          <h2 className="text-3xl font-extrabold text-gray-800 mb-2">Billing Summary</h2>
+          <div className="flex justify-between items-center text-gray-600">
             <p><strong>Name:</strong> {billing.consumer}</p>
             <p><strong>Serial:</strong> {billing.consumerSerialNo}</p>
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-4 mb-4">
-          <div>
+
+        <div className="grid grid-cols-2 gap-6 text-lg">
+          <div className="space-y-2">
             <p><strong>Reading Date:</strong> {billing.readingDate}</p>
-            <p><strong>Reading this Month:</strong> {billing.currentReading}</p>
-            <p><strong>Reading Last Month:</strong> {billing.previousReading}</p>
-            <p><strong>Consumption this Month:</strong> {consumption}</p>
+            <p><strong>Current Reading:</strong> {billing.currentReading}</p>
+            <p><strong>Previous Reading:</strong> {billing.previousReading}</p>
+            <p><strong>Consumption:</strong> {consumption} m³</p>
           </div>
-          <div>
-            <p><strong>Free Cubic Meter:</strong> {freeCubicMeter}</p>
-            <p><strong>Amount this month:</strong> {billing.amount}</p>
+          <div className="space-y-2">
+            <p><strong>Free Cubic Meter:</strong> {freeCubicMeter} m³</p>
+            <p><strong>Amount this Month:</strong> {billing.amount}</p>
             <p><strong>Previous Unpaid Bill:</strong> ₱{unpaidBill.toFixed(2)}</p>
-            <p><strong>Total Water Bill Due:</strong> ₱{totalDue.toFixed(2)}</p>
+            <p><strong>Total Due:</strong> ₱{totalDue.toFixed(2)}</p>
           </div>
         </div>
-        <div className="flex items-center justify-between mb-4">
+
+        <div className="flex justify-between items-center text-lg">
           <p><strong>Due Date:</strong> {billing.dueDate}</p>
-          <p><strong>Status:</strong> <span className={`px-2 py-1 rounded ${getStatusClasses(billing.status)}`}>{billing.status}</span></p>
+          <p><strong>Status:</strong> <span className={`px-3 py-1 rounded-full ${getStatusClasses(billing.status)}`}>{billing.status}</span></p>
         </div>
-        <div className="flex justify-between">
-          <button
-            onClick={handlePayStatusChange}
-            className={`px-4 py-2 rounded ${
-              billing.status === 'Paid'
-                ? 'bg-yellow-500 hover:bg-yellow-600 text-white'
-                : 'bg-green-500 hover:bg-green-600 text-white'
-            }`}
-          >
-            {billing.status === 'Paid' ? 'Mark as Unpaid' : 'Mark as Paid'}
-          </button>
+
+        {billing.status !== 'Paid' && (
+          <div className="bg-gray-50 p-4 rounded-lg shadow-inner space-y-4">
+            <div className="flex justify-between items-center">
+              <label htmlFor="amountGiven" className="font-bold text-lg">Amount Given:</label>
+              <input
+                id="amountGiven"
+                type="number"
+                value={amountGiven}
+                onChange={(e) => setAmountGiven(e.target.value)}
+                className="border border-gray-300 rounded-lg px-4 py-2 w-40 text-right shadow-sm focus:ring-2 focus:ring-blue-400"
+                placeholder="₱0.00"
+              />
+            </div>
+            <div className="flex justify-between items-center text-lg">
+              <span className="font-bold">Total Due:</span>
+              <span>₱{totalDue.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between items-center text-lg">
+              <span className="font-bold">Change:</span>
+              <span>₱{change.toFixed(2)}</span>
+            </div>
+          </div>
+        )}
+
+        <div className="flex justify-between items-center space-x-4">
+          {billing.status !== 'Paid' ? (
+            <button
+              onClick={handlePayStatusChange}
+              className={`px-6 py-3 rounded-lg font-semibold text-white transition-transform duration-200 transform ${
+                isPaymentValid
+                  ? 'bg-green-500 hover:bg-green-600 active:scale-95'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              }`}
+              disabled={!isPaymentValid}
+            >
+              Mark as Paid
+            </button>
+          ) : (
+            <button
+              onClick={handlePayStatusChange}
+              className="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-3 rounded-lg font-semibold transition-transform duration-200 transform active:scale-95"
+            >
+              Mark as Unpaid
+            </button>
+          )}
           <button
             onClick={onClose}
-            className="bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400"
+            className="bg-red-400 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-500 transition-transform duration-200 transform active:scale-95"
           >
             Close
           </button>
