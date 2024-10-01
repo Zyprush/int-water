@@ -3,8 +3,8 @@
 import React, { useEffect, useState } from "react";
 import { collection, getDocs } from "firebase/firestore";
 import { Bar } from "react-chartjs-2";
-import { 
-  Chart as ChartJS, 
+import {
+  Chart as ChartJS,
   CategoryScale,
   LinearScale,
   BarElement,
@@ -54,7 +54,7 @@ const Dashboard: React.FC = () => {
   const [revenueData, setRevenueData] = useState<Record<string, number>>({});
   const [waterConsumptionData, setWaterConsumptionData] = useState<Record<string, number>>({});
 
-  useEffect(() => { 
+  useEffect(() => {
     const fetchData = async () => {
       try {
         // Fetch total clients
@@ -79,6 +79,7 @@ const Dashboard: React.FC = () => {
           const amount = parseFloat(data.amount) || 0;
           const monthYear = data.month; // Format is '2024-09'
           const currentReading = parseFloat(data.currentReading) || 0;
+          console.log(currentReading);
 
           // Process revenue data (only for paid amounts)
           if (data.status === 'Paid') {
@@ -141,62 +142,94 @@ const Dashboard: React.FC = () => {
 
   return (
     <StaffNav>
-      <div className="p-4 space-y-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div className="bg-white shadow-md rounded-lg p-4 flex items-center space-x-4">
-            <IconUsers className="text-blue-500" size={24} />
-            <div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-4">
+        {/* Left: Statistics Cards (2x3 grid) */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-white shadow-lg rounded-xl p-6 flex flex-col justify-between">
+            <div className="flex items-center space-x-4">
+              <IconUsers className="text-blue-500" size={32} />
               <h2 className="text-xl font-bold">Total Clients</h2>
-              <p className="text-gray-600">{totalClients}</p>
             </div>
+            <p className="text-4xl font-semibold text-gray-800">{totalClients}</p>
+            <a href="#" className="text-sm text-blue-500 mt-2">See more</a>
           </div>
-          <div className="bg-white shadow-md rounded-lg p-4 flex items-center space-x-4">
-            <IconUser className="text-green-500" size={24} />
-            <div>
-              <h2 className="text-xl font-bold">Total Staff</h2>
-              <p className="text-gray-600">{totalStaff}</p>
-            </div>
-          </div>
-          <div className="bg-white shadow-md rounded-lg p-4 flex items-center space-x-4">
-            <IconCash className="text-yellow-500" size={24} />
-            <div>
-              <h2 className="text-xl font-bold">Total Revenue</h2>
-              <p className="text-gray-600">₱{totalRevenue.toFixed(2)}</p>
-            </div>
-          </div>
-          <div className="bg-white shadow-md rounded-lg p-4 flex items-center space-x-4">
-            <IconCalendarCheck className="text-green-500" size={24} />
-            <div>
+
+          <div className="bg-white shadow-lg rounded-xl p-6 flex flex-col justify-between">
+            <div className="flex items-center space-x-4">
+              <IconCalendarCheck className="text-green-500" size={32} />
               <h2 className="text-xl font-bold">Paid</h2>
-              <p className="text-gray-600">{paidCount}</p>
             </div>
+            <p className="text-4xl font-semibold text-gray-800">{paidCount}</p>
+            <a href="#" className="text-sm text-blue-500 mt-2">See more</a>
           </div>
-          <div className="bg-white shadow-md rounded-lg p-4 flex items-center space-x-4">
-            <IconCalendarX className="text-red-500" size={24} />
-            <div>
+
+          <div className="bg-white shadow-lg rounded-xl p-6 flex flex-col justify-between">
+            <div className="flex items-center space-x-4">
+              <IconUser className="text-green-500" size={32} />
+              <h2 className="text-xl font-bold">Total Staff</h2>
+            </div>
+            <p className="text-4xl font-semibold text-gray-800">{totalStaff}</p>
+            <a href="#" className="text-sm text-blue-500 mt-2">See more</a>
+          </div>
+
+          <div className="bg-white shadow-lg rounded-xl p-6 flex flex-col justify-between">
+            <div className="flex items-center space-x-4">
+              <IconCalendarX className="text-red-500" size={32} />
               <h2 className="text-xl font-bold">Unpaid</h2>
-              <p className="text-gray-600">{unpaidCount}</p>
             </div>
+            <p className="text-4xl font-semibold text-gray-800">{unpaidCount}</p>
+            <a href="#" className="text-sm text-blue-500 mt-2">See more</a>
           </div>
-          <div className="bg-white shadow-md rounded-lg p-4 flex items-center space-x-4">
-            <IconCalendar className="text-gray-500" size={24} />
-            <div>
-              <h2 className="text-xl font-bold">Overdue</h2>
-              <p className="text-gray-600">{overdueCount}</p>
+
+          <div className="bg-white shadow-lg rounded-xl p-6 flex flex-col justify-between">
+            <div className="flex items-center space-x-4">
+              <IconCash className="text-yellow-500" size={32} />
+              <h2 className="text-xl font-bold">Total Revenue</h2>
             </div>
+            <p className="text-4xl font-semibold text-gray-800">₱{totalRevenue.toFixed(2)}</p>
+            <a href="#" className="text-sm text-blue-500 mt-2">See more</a>
+          </div>
+
+          
+
+          
+
+          <div className="bg-white shadow-lg rounded-xl p-6 flex flex-col justify-between">
+            <div className="flex items-center space-x-4">
+              <IconCalendar className="text-gray-500" size={32} />
+              <h2 className="text-xl font-bold">Overdue</h2>
+            </div>
+            <p className="text-4xl font-semibold text-gray-800">{overdueCount}</p>
+            <a href="#" className="text-sm text-blue-500 mt-2">See more</a>
           </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-white shadow-md rounded-lg p-4">
+
+        {/* Right: Graphs stacked on top of each other */}
+        <div className="flex flex-col space-y-6">
+          <div className="bg-white shadow-lg rounded-xl p-6">
             <h3 className="text-lg font-bold mb-4">Total Revenue Per Month</h3>
-            <Bar data={dataRevenue} options={{ responsive: true, plugins: { legend: { display: false } } }} />
+            <Bar
+              data={dataRevenue}
+              options={{
+                responsive: true,
+                plugins: { legend: { display: false } },
+              }}
+            />
           </div>
-          <div className="bg-white shadow-md rounded-lg p-4">
+
+          <div className="bg-white shadow-lg rounded-xl p-6">
             <h3 className="text-lg font-bold mb-4">Water Consumption Per Month</h3>
-            <Bar data={dataWaterConsumption} options={{ responsive: true, plugins: { legend: { display: false } } }} />
+            <Bar
+              data={dataWaterConsumption}
+              options={{
+                responsive: true,
+                plugins: { legend: { display: false } },
+              }}
+            />
           </div>
         </div>
       </div>
+
     </StaffNav>
   );
 };

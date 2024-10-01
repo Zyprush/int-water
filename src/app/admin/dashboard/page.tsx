@@ -79,6 +79,7 @@ const Dashboard: React.FC = () => {
           const amount = parseFloat(data.amount) || 0;
           const monthYear = data.month; // Format is '2024-09'
           const currentReading = parseFloat(data.currentReading) || 0;
+          console.log(currentReading);
 
           // Process revenue data (only for paid amounts)
           if (data.status === 'Paid') {
