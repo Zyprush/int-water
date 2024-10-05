@@ -9,12 +9,14 @@ import { IconArrowBigRightLines } from "@tabler/icons-react";
 import { signOut } from "firebase/auth"; // Import signOut function from Firebase
 import { useRouter } from "next/navigation"; // To handle redirection
 import { auth } from "../../../../firebase";
+import CAlertDialog from "@/components/ConfirmDialog";
 
 const Settings = () => {
   const { theme, setTheme } = useTheme(); // Access theme and setTheme from next-themes
   const [accountSettingsOpen, setAccountSettingsOpen] = useState(false);
   const [activityLogsOpen, setActivityLogsOpen] = useState(false);
   const [systemInfoOpen, setSystemInfoOpen] = useState(false);
+  const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
   const router = useRouter(); // Initialize useRouter for navigation
 
   // Handle logout functionality
@@ -60,7 +62,10 @@ const Settings = () => {
         <div className="mb-6">
           <div className="flex justify-between items-center bg-gray-200 bg-opacity-80 dark:bg-gray-800 p-4 rounded-lg">
             <h2 className="font-semibold">Logout</h2>
-            <button className="flex items-center" onClick={handleLogout}>
+            <button 
+              className="flex items-center" 
+              onClick={() => setIsLogoutDialogOpen(true)} // Open the dialog instead of logging out directly
+            >
               <span className="mr-3 text-sm">Sign out</span>
               <IconArrowBigRightLines/>
             </button>
@@ -110,6 +115,13 @@ const Settings = () => {
             </div>
           )}
         </div>
+        <CAlertDialog
+          isOpen={isLogoutDialogOpen}
+          onClose={() => setIsLogoutDialogOpen(false)}
+          onConfirm={handleLogout}
+          title="Confirm Logout"
+          message="Are you sure you want to log out?"
+        />
       </div>
     </NavLayout>
   );
