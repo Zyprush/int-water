@@ -21,22 +21,22 @@ const AddNewConsumerModal: React.FC<AddNewConsumerModalProps> = ({ isOpen, onClo
         buildingOwnerName: '',
         buildingOwnerAddress: '',
         buildingOwnerCellphone: '',
-        installationFee: 0,
-        meterDeposit: 0,
+        installationFee: 2000,
+        meterDeposit: 800,
         guarantyDeposit: 0,
-        totalAmountDue: 0,
+        totalAmountDue: 2000,
         paidUnderOR: 0,
         serviceConnectionNo: 0,
         customerAccountNo: 0,
         waterMeterSerialNo: '',
         waterMeterBrand: '',
-        waterMeterSize: '',
-        initialReading: 0, 
+        waterMeterSize: 'none',
+        initialReading: 0,
         email: '',
         createdAt: new Date().toISOString().split('T')[0],
         role: 'consumer',
-        status: '',
-        rate: 0
+        status: 'active',
+        rate: 6
     });
 
     const [isLoading, setIsLoading] = useState(false);
@@ -270,6 +270,8 @@ const AddNewConsumerModal: React.FC<AddNewConsumerModalProps> = ({ isOpen, onClo
 
                                 />
                             </div>
+                            {
+                                /**
                             <div>
                                 <label htmlFor="status" className="block text-sm font-medium text-gray-700">Status</label>
                                 <select
@@ -285,6 +287,8 @@ const AddNewConsumerModal: React.FC<AddNewConsumerModalProps> = ({ isOpen, onClo
                                     <option value="inactive">Inactive</option>
                                 </select>
                             </div>
+                                 */
+                            }
                         </div>
                     </div>
 
