@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { collection, addDoc, getDocs, query, where, Timestamp, doc, updateDoc } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, where, Timestamp, doc, updateDoc, orderBy, limit } from 'firebase/firestore';
 import { db } from '../../firebase';
 
 
@@ -11,6 +11,19 @@ interface Consumer {
     rate: number;
     uid: string;
     docId: string;
+}
+interface Billing {
+    month: string;
+    readingDate: string;
+    consumerId: string;
+    consumerSerialNo: string;
+    consumerName: string;
+    amount: number;
+    dueDate: string;
+    status: string;
+    createdAt: Timestamp;
+    previousReading: number;
+    currentReading: number;
 }
 
 interface WaterConsumptionResultProps {
@@ -24,6 +37,7 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
     const [searchTerm, setSearchTerm] = useState('');
     const [consumers, setConsumers] = useState<Consumer[]>([]);
     const [currentBill, setCurrentBill] = useState<number>(0);
+    const [lastBilling, setLastBilling] = useState<Billing | null>(null);
 
     useEffect(() => {
         fetchConsumers();
@@ -31,9 +45,11 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
 
     useEffect(() => {
         if (selectedConsumer) {
+            fetchLastBilling(selectedConsumer.waterMeterSerialNo);
             calculateBill();
         }
     }, [waterConsumption, selectedConsumer]);
+    
 
     const fetchConsumers = async () => {
         const currentDate = new Date();
@@ -59,13 +75,29 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
         setConsumers(unbilledConsumers);
     };
 
+    const fetchLastBilling = async (serialNo: string) => {
+        const billingsRef = collection(db, 'billings');
+        const q = query(
+            billingsRef,
+            where('consumerSerialNo', '==', serialNo),
+            orderBy('createdAt', 'desc'),
+            limit(1)
+        );
+        const snapshot = await getDocs(q);
+        if (!snapshot.empty) {
+            setLastBilling(snapshot.docs[0].data() as Billing);
+        } else {
+            setLastBilling(null);
+        }
+    };
+
     const handleConsumerSelect = (consumer: Consumer) => {
         setSelectedConsumer(consumer);
     };
 
     const calculateBill = () => {
         if (!selectedConsumer) return;
-        const consumption = Math.max(0, parseInt(waterConsumption) - selectedConsumer.initialReading);
+        const consumption = Math.max(0, parseInt(waterConsumption) - (lastBilling?.currentReading || selectedConsumer.initialReading));
         const bill = consumption * selectedConsumer.rate;
         setCurrentBill(bill);
     };
@@ -91,7 +123,7 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
 
         const newReading = parseInt(waterConsumption.replace(/^0+/, ''));
 
-        const billingData = {
+        const billingData: Billing = {
             month: monthKey,
             readingDate,
             consumerId: selectedConsumer.uid,
@@ -101,7 +133,7 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
             dueDate: dueDate.toISOString().split('T')[0],
             status: 'Unpaid',
             createdAt: Timestamp.now(),
-            previousReading: selectedConsumer.initialReading,
+            previousReading: lastBilling ? lastBilling.currentReading : selectedConsumer.initialReading,
             currentReading: newReading
         };
 
@@ -110,7 +142,6 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
             await addDoc(billingsRef, billingData);
 
             // Update the consumer's initialReading
-            // We use the docId we stored when fetching consumers
             const consumerRef = doc(db, 'consumers', selectedConsumer.docId);
             await updateDoc(consumerRef, {
                 initialReading: newReading
@@ -125,8 +156,9 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
             setSelectedConsumer(null);
             setWaterConsumption('');
             setCurrentBill(0);
+            setLastBilling(null);
 
-            //get back to dashboard
+            // Get back to dashboard
             closeCamera();  
         } catch (error) {
             console.error("Error updating documents: ", error);
