@@ -15,6 +15,11 @@ const Dashboard: React.FC = () => {
     const { consumerData } = useConsumerData();
     const billingData = useBillingData(consumerData?.uid || '');
 
+    // Calculate total due amount
+    const totalDueAmount = billingData
+        ? billingData.amount + (billingData.previousUnpaidBill || 0)
+        : 0;
+
     // Data for the last 5 months (water consumption)
     const lastFiveMonths = {
         labels: ['May', 'Jun', 'Jul', 'Aug', 'Sep'],
@@ -39,7 +44,7 @@ const Dashboard: React.FC = () => {
                             <div>
                                 <h2 className="text-lg font-semibold text-zinc-100">Due Balance</h2>
                                 <p className="text-2xl font-bold">
-                                    Php {billingData ? billingData.amount.toFixed(2) : '0.00'}
+                                    Php {billingData ? totalDueAmount.toFixed(2) : '0.00'}
                                 </p>
                                 <p className="text-sm text-zinc-300">
                                     Due on {billingData ? new Date(billingData.dueDate).toLocaleDateString() : 'N/A'}

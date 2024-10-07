@@ -11,6 +11,7 @@ interface BillingItem {
   status: string;
   currentReading: number;
   previousReading: number;
+  previousUnpaidBill: number;
 }
 
 interface ModalProps {
@@ -52,16 +53,17 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, billing, onPayStatusChan
 
   useEffect(() => {
     const billAmount = parseFloat(billing.amount.replace('₱', ''));
+    const totalDue = billAmount + billing.previousUnpaidBill;
     const givenAmount = parseFloat(amountGiven);
 
-    if (!isNaN(givenAmount) && givenAmount >= billAmount) {
-      setChange(givenAmount - billAmount);
+    if (!isNaN(givenAmount) && givenAmount >= totalDue) {
+      setChange(givenAmount - totalDue);
       setIsPaymentValid(true);
     } else {
       setChange(0);
       setIsPaymentValid(false);
     }
-  }, [amountGiven, billing.amount]);
+  }, [amountGiven, billing.amount, billing.previousUnpaidBill]);
 
   if (!isOpen) return null;
 
@@ -89,8 +91,8 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, billing, onPayStatusChan
 
   const consumption = billing.currentReading - billing.previousReading;
   const freeCubicMeter = 3; //idk what the real data is so I am putting 3
-  const unpaidBill = 0; // TODO: Implement previous unpaid bill calculation
-  const totalDue = parseFloat(billing.amount.replace('₱', '')) + unpaidBill;
+  const currentBillAmount = parseFloat(billing.amount.replace('₱', ''));
+  const totalDue = currentBillAmount + billing.previousUnpaidBill;
 
   return createPortal(
     <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50">
@@ -112,8 +114,8 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, billing, onPayStatusChan
           </div>
           <div className="space-y-2">
             <p><strong>Free Cubic Meter:</strong> {freeCubicMeter} m³</p>
-            <p><strong>Amount this Month:</strong> {billing.amount}</p>
-            <p><strong>Previous Unpaid Bill:</strong> ₱{unpaidBill.toFixed(2)}</p>
+            <p><strong>Amount this Month:</strong> ₱{currentBillAmount.toFixed(2)}</p>
+            <p><strong>Previous Unpaid Bill:</strong> ₱{billing.previousUnpaidBill.toFixed(2)}</p>
             <p><strong>Total Due:</strong> ₱{totalDue.toFixed(2)}</p>
           </div>
         </div>

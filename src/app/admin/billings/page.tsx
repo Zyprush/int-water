@@ -19,6 +19,7 @@ interface BillingItem {
   status: string;
   currentReading: number;
   previousReading: number;
+  previousUnpaidBill: number;
 }
 
 const Billings: React.FC = () => {
@@ -46,9 +47,29 @@ const Billings: React.FC = () => {
         
         if (dueDatePassed && status !== "Paid") {
           status = "Overdue";
-          // Update the status in Firestore
           await setDoc(doc.ref, { status: "Overdue" }, { merge: true });
         }
+
+        // Fetch previous month's billing
+        const previousMonth = dayjs(`${selectedYear}-${selectedMonth}-01`).subtract(1, 'month');
+        const previousMonthYear = previousMonth.format("YYYY-MM");
+        const previousBillingQuery = query(
+          billingsRef,
+          where("month", "==", previousMonthYear),
+          where("consumerSerialNo", "==", data.consumerSerialNo)
+        );
+        const previousBillingSnapshot = await getDocs(previousBillingQuery);
+        
+        let previousUnpaidBill = 0;
+        if (!previousBillingSnapshot.empty) {
+          const previousBillingData = previousBillingSnapshot.docs[0].data();
+          if (previousBillingData.status !== "Paid") {
+            previousUnpaidBill = parseFloat(previousBillingData.amount);
+          }
+        }
+
+        // Update the current billing with the previous unpaid amount
+        await setDoc(doc.ref, { previousUnpaidBill }, { merge: true });
 
         return {
           id: doc.id,
@@ -60,6 +81,8 @@ const Billings: React.FC = () => {
           status: status,
           currentReading: data.currentReading,
           previousReading: data.previousReading,
+          month: data.month,
+          previousUnpaidBill: previousUnpaidBill,
         };
       }));
 

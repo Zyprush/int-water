@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../../firebase';
 
+
 const useBillingData = (uid: string) => {
-    const [billingData, setBillingData] = useState<{ amount: number; dueDate: string } | null>(null);
+    const [billingData, setBillingData] = useState<{ amount: number; dueDate: string; previousUnpaidBill: number } | null>(null);
 
     useEffect(() => {
         const fetchBillingData = async () => {
@@ -14,7 +15,7 @@ const useBillingData = (uid: string) => {
             let billingInfo = null;
 
             querySnapshot.forEach((doc) => {
-                billingInfo = doc.data() as { amount: number; dueDate: string };
+                billingInfo = doc.data() as { amount: number; dueDate: string; previousUnpaidBill: number };
             });
 
             setBillingData(billingInfo);
