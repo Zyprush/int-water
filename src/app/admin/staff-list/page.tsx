@@ -5,8 +5,8 @@ import React, { useEffect, useState } from "react";
 import { IconBarcode, IconBarcodeOff, IconEye, IconPlus, IconPrinter, IconTrash } from "@tabler/icons-react";
 import ReactPaginate from "react-paginate";
 
-import { collection, deleteDoc, doc, getDocs, updateDoc } from "firebase/firestore";
-import { db, storage } from "../../../../firebase";
+import { collection, deleteDoc, doc, getDocs, query, updateDoc, where } from "firebase/firestore";
+import { auth, db, storage } from "../../../../firebase";
 import Loading from "@/components/Loading";
 import AlertDialog from "@/components/DeleteDialog";
 import AddNewConsumerModal from "@/components/adminUserlist/AccountModal";
@@ -35,8 +35,14 @@ const UserList = () => {
 
   const fetchUsers = async () => {
     try {
+      const currentUser = auth.currentUser;
+      if (!currentUser) {
+        throw new Error("No user is currently logged in");
+      }
+      
       const usersCollection = collection(db, 'users');
-      const usersSnapshot = await getDocs(usersCollection);
+      const q = query(usersCollection, where("id", "!=", currentUser.uid));
+      const usersSnapshot = await getDocs(q);
       const usersList = usersSnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
