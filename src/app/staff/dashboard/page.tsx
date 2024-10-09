@@ -151,7 +151,7 @@ const Dashboard: React.FC = () => {
               <h2 className="text-xl font-bold">Total Clients</h2>
             </div>
             <p className="text-4xl font-semibold text-gray-800">{totalClients}</p>
-            <a href="#" className="text-sm text-blue-500 mt-2">See more</a>
+            <a href="#" className="text-sm text-blue-500 mt-2">More</a>
           </div>
 
           <div className="bg-white shadow-lg rounded-xl p-6 flex flex-col justify-between">
@@ -160,7 +160,7 @@ const Dashboard: React.FC = () => {
               <h2 className="text-xl font-bold">Paid</h2>
             </div>
             <p className="text-4xl font-semibold text-gray-800">{paidCount}</p>
-            <a href="#" className="text-sm text-blue-500 mt-2">See more</a>
+            <a href="#" className="text-sm text-blue-500 mt-2">More</a>
           </div>
 
           <div className="bg-white shadow-lg rounded-xl p-6 flex flex-col justify-between">
@@ -169,7 +169,7 @@ const Dashboard: React.FC = () => {
               <h2 className="text-xl font-bold">Total Staff</h2>
             </div>
             <p className="text-4xl font-semibold text-gray-800">{totalStaff}</p>
-            <a href="#" className="text-sm text-blue-500 mt-2">See more</a>
+            <a href="#" className="text-sm text-blue-500 mt-2">More</a>
           </div>
 
           <div className="bg-white shadow-lg rounded-xl p-6 flex flex-col justify-between">
@@ -178,7 +178,7 @@ const Dashboard: React.FC = () => {
               <h2 className="text-xl font-bold">Unpaid</h2>
             </div>
             <p className="text-4xl font-semibold text-gray-800">{unpaidCount}</p>
-            <a href="#" className="text-sm text-blue-500 mt-2">See more</a>
+            <a href="#" className="text-sm text-blue-500 mt-2">More</a>
           </div>
 
           <div className="bg-white shadow-lg rounded-xl p-6 flex flex-col justify-between">
@@ -187,7 +187,7 @@ const Dashboard: React.FC = () => {
               <h2 className="text-xl font-bold">Total Revenue</h2>
             </div>
             <p className="text-4xl font-semibold text-gray-800">₱{totalRevenue.toFixed(2)}</p>
-            <a href="#" className="text-sm text-blue-500 mt-2">See more</a>
+            <a href="#" className="text-sm text-blue-500 mt-2">More</a>
           </div>
 
           
@@ -200,7 +200,7 @@ const Dashboard: React.FC = () => {
               <h2 className="text-xl font-bold">Overdue</h2>
             </div>
             <p className="text-4xl font-semibold text-gray-800">{overdueCount}</p>
-            <a href="#" className="text-sm text-blue-500 mt-2">See more</a>
+            <a href="#" className="text-sm text-blue-500 mt-2">More</a>
           </div>
         </div>
 

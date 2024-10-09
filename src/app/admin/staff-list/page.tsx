@@ -39,7 +39,7 @@ const UserList = () => {
       if (!currentUser) {
         throw new Error("No user is currently logged in");
       }
-      
+
       const usersCollection = collection(db, 'users');
       const q = query(usersCollection, where("id", "!=", currentUser.uid));
       const usersSnapshot = await getDocs(q);
@@ -180,23 +180,18 @@ const UserList = () => {
           scanner: newScannerStatus
         });
         console.log(`Scanner status for ${userToScan.name} has been set to ${newScannerStatus}.`);
-        
+
         // Update the local state
-        setUsers(users.map(user => 
-          user.id === userToScan.id ? {...user, scanner: newScannerStatus} : user
+        setUsers(users.map(user =>
+          user.id === userToScan.id ? { ...user, scanner: newScannerStatus } : user
         ));
-        
+
         setIsScanAlertOpen(false);
         setUserToScan(null);
       } catch (error) {
         console.error("Error updating scanner field:", error);
       }
     }
-  };
-
-  const handleScan = (user: Users) => {
-    setUserToScan(user);
-    setIsScanAlertOpen(true);
   };
 
 
@@ -251,7 +246,10 @@ const UserList = () => {
               {displayedData.map((item) => (
                 <tr key={item.id} className="border-t border-b">
                   <td className="px-4 py-2">{item.updatedAt}</td>
-                  <td className="px-4 py-2">
+                  <td className="px-4 py-2 flex space-x-2">
+                    <span className="mt-3 text-lg text-blue-600">
+                      {item.scanner ? <IconBarcode size={18} /> : <IconBarcodeOff size={18} />}
+                    </span>
                     {/* Display the profile picture */}
                     <img
                       src={item.profilePicUrl}
@@ -264,12 +262,6 @@ const UserList = () => {
                   <td className="px-4 py-2">{item.position}</td>
                   <td className="px-4 py-2">
                     <div className="flex space-x-2">
-                      <button
-                        className="text-blue-500 hover:text-blue-700"
-                        onClick={() => handleScan(item)}
-                      >
-                        {item.scanner ? <IconBarcode size={18} /> : <IconBarcodeOff size={18} />}
-                      </button>
 
                       <button className="text-green-500 hover:text-green-700"
                         onClick={() => handleEdit(item)}

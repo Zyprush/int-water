@@ -1,12 +1,13 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { IconEye, IconCurrencyDollar } from "@tabler/icons-react";
 import ReactPaginate from "react-paginate";
 import { collection, getDocs, doc, setDoc, query, where } from "firebase/firestore";
 import dayjs from "dayjs";
 import { db } from "../../../../firebase";
 import Modal from "@/components/BillingModal";
+import { FaPesoSign } from "react-icons/fa6";
+import { FaEye } from "react-icons/fa";
 import StaffNav from "@/components/StaffNav";
 
 interface BillingItem {
@@ -19,6 +20,7 @@ interface BillingItem {
   status: string;
   currentReading: number;
   previousReading: number;
+  previousUnpaidBill: number;
 }
 
 const Billings: React.FC = () => {
@@ -46,9 +48,29 @@ const Billings: React.FC = () => {
         
         if (dueDatePassed && status !== "Paid") {
           status = "Overdue";
-          // Update the status in Firestore
           await setDoc(doc.ref, { status: "Overdue" }, { merge: true });
         }
+
+        // Fetch previous month's billing
+        const previousMonth = dayjs(`${selectedYear}-${selectedMonth}-01`).subtract(1, 'month');
+        const previousMonthYear = previousMonth.format("YYYY-MM");
+        const previousBillingQuery = query(
+          billingsRef,
+          where("month", "==", previousMonthYear),
+          where("consumerSerialNo", "==", data.consumerSerialNo)
+        );
+        const previousBillingSnapshot = await getDocs(previousBillingQuery);
+        
+        let previousUnpaidBill = 0;
+        if (!previousBillingSnapshot.empty) {
+          const previousBillingData = previousBillingSnapshot.docs[0].data();
+          if (previousBillingData.status !== "Paid") {
+            previousUnpaidBill = parseFloat(previousBillingData.amount);
+          }
+        }
+
+        // Update the current billing with the previous unpaid amount
+        await setDoc(doc.ref, { previousUnpaidBill }, { merge: true });
 
         return {
           id: doc.id,
@@ -60,6 +82,8 @@ const Billings: React.FC = () => {
           status: status,
           currentReading: data.currentReading,
           previousReading: data.previousReading,
+          month: data.month,
+          previousUnpaidBill: previousUnpaidBill,
         };
       }));
 
@@ -207,13 +231,13 @@ const Billings: React.FC = () => {
                         onClick={() => handleView(item)}
                         className="text-gray-600 hover:text-gray-800"
                       >
-                        <IconCurrencyDollar size={16} />
+                        <FaPesoSign size={16} />
                       </button>
                       <button
                         onClick={() => handleViewHistory(item)}
                         className="text-gray-600 hover:text-gray-800"
                       >
-                        <IconEye size={16} />
+                        <FaEye size={16} />
                       </button>
                     </div>
                   </td>

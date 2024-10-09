@@ -49,6 +49,13 @@ const AddNewConsumerModal: React.FC<AddNewUserModal> = ({ isOpen, onClose }) => 
         }));
     };
 
+    const handleScannerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setFormData(prevState => ({
+            ...prevState,
+            scanner: e.target.checked
+        }));
+    };
+
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
             setFormData(prevState => ({
@@ -107,7 +114,8 @@ const AddNewConsumerModal: React.FC<AddNewUserModal> = ({ isOpen, onClose }) => 
                 role: formData.role,
                 uid: user.uid,
                 updatedAt: new Date().toISOString().split('T')[0],
-                profilePicUrl
+                profilePicUrl,
+                scanner: formData.scanner
             };
     
             // Save user data to Firestore with the explicit ID
@@ -255,6 +263,26 @@ const AddNewConsumerModal: React.FC<AddNewUserModal> = ({ isOpen, onClose }) => 
                                     hover:file:bg-blue-100"
                                 accept="image/*"
                             />
+                        </div>
+                        {/* Add the scanner switch */}
+                        <div className="col-span-2">
+                            <label htmlFor="scanner" className="flex items-center cursor-pointer">
+                                <div className="relative">
+                                    <input
+                                        type="checkbox"
+                                        id="scanner"
+                                        name="scanner"
+                                        className="sr-only"
+                                        checked={formData.scanner}
+                                        onChange={handleScannerChange}
+                                    />
+                                    <div className={`block bg-gray-600 w-14 h-8 rounded-full ${formData.scanner ? 'bg-blue-600' : ''}`}></div>
+                                    <div className={`dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition ${formData.scanner ? 'transform translate-x-6' : ''}`}></div>
+                                </div>
+                                <div className="ml-3 text-gray-700 font-medium">
+                                    Assign as Scanner
+                                </div>
+                            </label>
                         </div>
                     </div>
 

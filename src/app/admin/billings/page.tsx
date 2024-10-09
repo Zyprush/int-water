@@ -2,12 +2,13 @@
 
 import NavLayout from "@/components/NavLayout";
 import React, { useEffect, useState } from "react";
-import { IconEye, IconCurrencyDollar } from "@tabler/icons-react";
 import ReactPaginate from "react-paginate";
 import { collection, getDocs, doc, setDoc, query, where } from "firebase/firestore";
 import dayjs from "dayjs";
 import { db } from "../../../../firebase";
 import Modal from "@/components/BillingModal";
+import { FaPesoSign } from "react-icons/fa6";
+import { FaEye } from "react-icons/fa";
 
 interface BillingItem {
   id: string;
@@ -229,14 +230,16 @@ const Billings: React.FC = () => {
                       <button
                         onClick={() => handleView(item)}
                         className="text-gray-600 hover:text-gray-800"
+                        title="Billing Summary"
                       >
-                        <IconCurrencyDollar size={16} />
+                        <FaPesoSign size={16} />
                       </button>
                       <button
                         onClick={() => handleViewHistory(item)}
                         className="text-gray-600 hover:text-gray-800"
+                        title="Bill History"
                       >
-                        <IconEye size={16} />
+                        <FaEye size={16} />
                       </button>
                     </div>
                   </td>
