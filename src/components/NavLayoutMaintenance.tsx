@@ -1,18 +1,17 @@
 "use client";
 
 import React, { ReactNode } from "react";
-import SideNavbar from "./staffNav/SideNavbar";
-import Header from "./staffNav/Header";
-import MobileHeader from "./staffNav/MobileHeader";
-
+import SideNavbar from "./navbarMaintenance/SideNavbar";
+import Header from "./navbarMaintenance/Header";
+import MobileHeader from "./navbarMaintenance/MobileHeader";
 
 interface NavbarProps {
   children: ReactNode;
 }
 
-const StaffNav: React.FC<NavbarProps> = ({ children }) => {
+const NavLayout: React.FC<NavbarProps> = ({ children }) => {
   return (
-    <div className="flex gap-0">
+    <div className="flex gap-0 h-screen">
       <SideNavbar />
       <div className="flex flex-col w-full">
         <Header />
@@ -23,4 +22,4 @@ const StaffNav: React.FC<NavbarProps> = ({ children }) => {
   );
 };
 
-export default StaffNav;
+export default NavLayout;

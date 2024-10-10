@@ -40,6 +40,8 @@ const Login = () => {
         // Check user role and route accordingly
         if (userData.role === "admin") {
           router.push("/admin/dashboard");
+        } else if (userData.role === "maintenance") {
+          router.push("/maintenance/technical");
         } else if (userData.role === "staff") {
           if (userData.scanner === true) {
             router.push("/scanner/dashboard");
