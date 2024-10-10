@@ -58,7 +58,7 @@ const SideNavbar: React.FC = () => {
         <p className="text-zinc-300 text-xs capitalize">{role || "Loading..."}</p>
       </span>
       <div className="w-full overflow-y-auto h-full flex">
-      <nav className="flex w-56 bg-neutral custom-shadow border-rda border-zinc-600 dark:border-zinc-700 relative h-auto flex-col items-start justify-start pt-5 px-0 gap-2">
+        <nav className="flex w-56 bg-neutral custom-shadow border-rda border-zinc-600 dark:border-zinc-700 relative h-auto flex-col items-start justify-start pt-5 px-0 gap-2">
           {navItems.map((item) => (
             <NavLink
               key={item.href}
