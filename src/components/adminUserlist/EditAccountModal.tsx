@@ -187,6 +187,8 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ isOpen, onClose, user, on
                 >
                   <option value="staff">Staff</option>
                   <option value="admin">Admin</option>
+                  <option value="scanner">Scanner</option>
+                  <option value="maintenance">Maintenance</option>
                 </select>
               </div>
             </div>

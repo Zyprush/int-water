@@ -49,12 +49,12 @@ const AddNewConsumerModal: React.FC<AddNewUserModal> = ({ isOpen, onClose }) => 
         }));
     };
 
-    const handleScannerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    /*const handleScannerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData(prevState => ({
             ...prevState,
             scanner: e.target.checked
         }));
-    };
+    };*/
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
@@ -105,7 +105,7 @@ const AddNewConsumerModal: React.FC<AddNewUserModal> = ({ isOpen, onClose }) => 
     
             // Prepare user data for Firestore
             const userData = {
-                id: docRef.id, // Set the generated id in the document
+                id: docRef.id,
                 name: formData.name,
                 address: formData.address,
                 cellphoneNo: formData.cellphoneNo,
@@ -115,7 +115,7 @@ const AddNewConsumerModal: React.FC<AddNewUserModal> = ({ isOpen, onClose }) => 
                 uid: user.uid,
                 updatedAt: new Date().toISOString().split('T')[0],
                 profilePicUrl,
-                scanner: formData.scanner
+                scanner: formData.role === 'scanner' // Set scanner based on role
             };
     
             // Save user data to Firestore with the explicit ID
@@ -203,8 +203,11 @@ const AddNewConsumerModal: React.FC<AddNewUserModal> = ({ isOpen, onClose }) => 
                                 className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
                                 required
                             >
+                                <option value="">Select a role</option>
                                 <option value="staff">Staff</option>
                                 <option value="admin">Admin</option>
+                                <option value="scanner">Scanner</option>
+                                <option value="maintenance">Maintenance</option>
                             </select>
                         </div>
                         <div>
@@ -265,6 +268,7 @@ const AddNewConsumerModal: React.FC<AddNewUserModal> = ({ isOpen, onClose }) => 
                             />
                         </div>
                         {/* Add the scanner switch */}
+                        {/** 
                         <div className="col-span-2">
                             <label htmlFor="scanner" className="flex items-center cursor-pointer">
                                 <div className="relative">
@@ -284,6 +288,7 @@ const AddNewConsumerModal: React.FC<AddNewUserModal> = ({ isOpen, onClose }) => 
                                 </div>
                             </label>
                         </div>
+                         */}
                     </div>
 
                     <div className="flex justify-end space-x-2 border-t border-gray-200 pt-4">

@@ -9,6 +9,7 @@ import { db } from "../../../../firebase";
 import Modal from "@/components/BillingModal";
 import { FaPesoSign } from "react-icons/fa6";
 import { FaEye } from "react-icons/fa";
+import Loading from "@/components/Loading";
 
 interface BillingItem {
   id: string;
@@ -31,6 +32,8 @@ const Billings: React.FC = () => {
   const [selectedYear, setSelectedYear] = useState(dayjs().format("YYYY"));
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedBilling, setSelectedBilling] = useState<BillingItem | null>(null);
+
+  const [loading, setLoading] = useState(true);
 
   const itemsPerPage = 10;
 
@@ -88,8 +91,9 @@ const Billings: React.FC = () => {
       }));
 
       setBillings(fetchedBillings);
+      setLoading(false);
     };
-
+    
     fetchBillings();
   }, [selectedMonth, selectedYear]);
 
@@ -173,6 +177,12 @@ const Billings: React.FC = () => {
     // TODO: Implement view history functionality
     console.log("View history for billing:", billing);
   };
+
+  if (loading) {
+    return (
+      <Loading/>
+    );
+  }
 
   return (
     <NavLayout>
