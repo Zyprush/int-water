@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, query, where } from "firebase/firestore";
 import { Bar } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -14,8 +14,9 @@ import {
 } from "chart.js";
 import { IconUser, IconUsers, IconCash, IconCalendarCheck, IconCalendarX, IconCalendar } from "@tabler/icons-react";
 import { db } from "../../../../firebase";
+import Modal from "@/components/ViewModal";
+import Loading from "@/components/Loading";
 import StaffNav from "@/components/StaffNav";
-
 
 ChartJS.register(
   CategoryScale,
@@ -43,6 +44,30 @@ interface ChartData {
     borderWidth: number;
   }[];
 }
+interface Consumer {
+  id: string;
+  applicantName: string;
+  email: string;
+  // Add other fields as necessary
+}
+
+interface User {
+  id: string;
+  name: string;
+  role: string;
+  // Add other fields as necessary
+}
+
+interface Billing {
+  id: string;
+  consumerName: string;
+  amount: string;
+  month: string;
+  status: 'Paid' | 'Unpaid' | 'Overdue';
+  currentReading: string;
+  // Add other fields as necessary
+}
+
 
 const Dashboard: React.FC = () => {
   const [totalClients, setTotalClients] = useState<number>(0);
@@ -53,9 +78,67 @@ const Dashboard: React.FC = () => {
   const [overdueCount, setOverdueCount] = useState<number>(0);
   const [revenueData, setRevenueData] = useState<Record<string, number>>({});
   const [waterConsumptionData, setWaterConsumptionData] = useState<Record<string, number>>({});
+  const [dateRange, setDateRange] = useState<string>("");
+  const [error, setError] = useState<string | null>(null);
+
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalTitle, setModalTitle] = useState("");
+  const [modalContent, setModalContent] = useState<React.ReactNode>(null);
+  const [loading, setLoading] = useState(true);
+
+  const openModal = (title: string, content: React.ReactNode) => {
+    setModalTitle(title);
+    setModalContent(content);
+    setModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setModalOpen(false);
+  };
+
+  const fetchClients = async () => {
+    const clientsSnapshot = await getDocs(collection(db, "consumers"));
+    const clientsList = clientsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Consumer));
+    return (
+      <ul className="list-disc pl-5">
+        {clientsList.map(client => (
+          <li key={client.id}>{client.applicantName} - {client.email}</li>
+        ))}
+      </ul>
+    );
+  };
+
+  const fetchStaff = async () => {
+    const staffQuery = query(collection(db, "users"), where("role", "in", ["staff", "scanner"]));
+    const staffSnapshot = await getDocs(staffQuery);
+    const staffList = staffSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as User));
+    return (
+      <ul className="list-disc pl-5">
+        {staffList.map(staff => (
+          <li key={staff.id}>{staff.name} - {staff.role}</li>
+        ))}
+      </ul>
+    );
+  };
+
+  const fetchBillings = async (status: string) => {
+    const billingsQuery = query(collection(db, "billings"), where("status", "==", status));
+    const billingsSnapshot = await getDocs(billingsQuery);
+    const billingsList = billingsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Billing));
+    return (
+      <ul className="list-disc pl-5">
+        {billingsList.map(billing => (
+          <li key={billing.id}>
+            {billing.consumerName} - ₱{billing.amount} - {billing.month}
+          </li>
+        ))}
+      </ul>
+    );
+  };
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
       try {
         // Fetch total clients
         const clientsSnapshot = await getDocs(collection(db, "consumers"));
@@ -73,43 +156,75 @@ const Dashboard: React.FC = () => {
         let totalPaidAmount = 0;
         const revenueByMonth: Record<string, number> = {};
         const waterConsumptionByMonth: Record<string, number> = {};
+        let minDate = new Date();
+        let maxDate = new Date(0);
 
         billingsSnapshot.forEach((doc) => {
-          const data = doc.data() as BillingData;
-          const amount = parseFloat(data.amount) || 0;
-          const monthYear = data.month; // Format is '2024-09'
-          const currentReading = parseFloat(data.currentReading) || 0;
-          console.log(currentReading);
+          try {
+            const data = doc.data() as BillingData;
+            console.log("Processing billing data:", JSON.stringify(data)); // Log each billing data
 
-          // Process revenue data (only for paid amounts)
-          if (data.status === 'Paid') {
-            revenueByMonth[monthYear] = (revenueByMonth[monthYear] || 0) + amount;
-            totalPaidAmount += amount;
-            paid++;
-          }
+            const amount = parseFloat(data.amount) || 0;
+            const monthYear = data.month; // Format is '2024-09'
+            const currentReading = parseFloat(data.currentReading) || 0;
+            const currentDate = new Date(monthYear + '-01');
 
-          // Process water consumption data
-          waterConsumptionByMonth[monthYear] = (waterConsumptionByMonth[monthYear] || 0) + currentReading;
+            // Update min and max dates
+            if (currentDate < minDate) minDate = currentDate;
+            if (currentDate > maxDate) maxDate = currentDate;
 
-          switch (data.status) {
-            case "Unpaid":
-              unpaid++;
-              break;
-            case "Overdue":
-              overdue++;
-              break;
+            // Process revenue data (only for paid amounts)
+            if (data.status === 'Paid') {
+              revenueByMonth[monthYear] = (revenueByMonth[monthYear] || 0) + amount;
+              totalPaidAmount += amount;
+              paid++;
+            }
+
+            // Process water consumption data
+            waterConsumptionByMonth[monthYear] = (waterConsumptionByMonth[monthYear] || 0) + currentReading;
+
+            switch (data.status) {
+              case "Unpaid":
+                unpaid++;
+                break;
+              case "Overdue":
+                overdue++;
+                break;
+            }
+          } catch (docError) {
+            console.error("Error processing document:", docError);
+            setError("Error processing billing data. Please check the console for more information.");
           }
         });
 
         setPaidCount(paid);
         setUnpaidCount(unpaid);
         setOverdueCount(overdue);
-        setTotalRevenue(totalPaidAmount); // Total revenue is the sum of all paid amounts
-
+        setTotalRevenue(totalPaidAmount);
         setRevenueData(revenueByMonth);
         setWaterConsumptionData(waterConsumptionByMonth);
+
+        // Set date range
+        const monthNames = ["January", "February", "March", "April", "May", "June",
+          "July", "August", "September", "October", "November", "December"];
+        const minMonth = monthNames[minDate.getMonth()];
+        const maxMonth = monthNames[maxDate.getMonth()];
+        const minYear = minDate.getFullYear();
+        const maxYear = maxDate.getFullYear();
+
+        if (minYear === maxYear && minMonth === maxMonth) {
+          setDateRange(`${minMonth} ${minYear}`);
+        } else if (minYear === maxYear) {
+          setDateRange(`${minMonth}-${maxMonth} ${minYear}`);
+        } else {
+          setDateRange(`${minMonth} ${minYear} - ${maxMonth} ${maxYear}`);
+        }
+
+        setLoading(false);
       } catch (error) {
         console.error("Error fetching data:", error);
+        setError("Error fetching data. Please check the console for more information.");
+        setLoading(false);
       }
     };
 
@@ -140,6 +255,21 @@ const Dashboard: React.FC = () => {
   const dataRevenue = prepareChartData(revenueData, "Total Revenue");
   const dataWaterConsumption = prepareChartData(waterConsumptionData, "Water Consumption");
 
+  if (loading) {
+    return <Loading />;
+  }
+  
+  if (error) {
+    return (
+      <StaffNav>
+        <div className="p-4">
+          <h2 className="text-2xl font-bold text-red-600">Error</h2>
+          <p>{error}</p>
+        </div>
+      </StaffNav>
+    );
+  }
+
   return (
     <StaffNav>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-4">
@@ -151,7 +281,11 @@ const Dashboard: React.FC = () => {
               <h2 className="text-xl font-bold">Total Clients</h2>
             </div>
             <p className="text-4xl font-semibold text-gray-800">{totalClients}</p>
-            <a href="#" className="text-sm text-blue-500 mt-2">More</a>
+            <a href="#" className="text-sm text-blue-500 mt-2" onClick={async (e) => {
+              e.preventDefault();
+              const content = await fetchClients();
+              openModal("Total Clients", content);
+            }}>View</a>
           </div>
 
           <div className="bg-white shadow-lg rounded-xl p-6 flex flex-col justify-between">
@@ -160,7 +294,12 @@ const Dashboard: React.FC = () => {
               <h2 className="text-xl font-bold">Paid</h2>
             </div>
             <p className="text-4xl font-semibold text-gray-800">{paidCount}</p>
-            <a href="#" className="text-sm text-blue-500 mt-2">More</a>
+            <p className="text-sm text-gray-500">{dateRange}</p>
+            <a href="#" className="text-sm text-blue-500 mt-2" onClick={async (e) => {
+              e.preventDefault();
+              const content = await fetchBillings("Paid");
+              openModal("Paid Billings", content);
+            }}>View</a>
           </div>
 
           <div className="bg-white shadow-lg rounded-xl p-6 flex flex-col justify-between">
@@ -169,7 +308,11 @@ const Dashboard: React.FC = () => {
               <h2 className="text-xl font-bold">Total Staff</h2>
             </div>
             <p className="text-4xl font-semibold text-gray-800">{totalStaff}</p>
-            <a href="#" className="text-sm text-blue-500 mt-2">More</a>
+            <a href="#" className="text-sm text-blue-500 mt-2" onClick={async (e) => {
+              e.preventDefault();
+              const content = await fetchStaff();
+              openModal("Total Staff", content);
+            }}>View</a>
           </div>
 
           <div className="bg-white shadow-lg rounded-xl p-6 flex flex-col justify-between">
@@ -178,7 +321,12 @@ const Dashboard: React.FC = () => {
               <h2 className="text-xl font-bold">Unpaid</h2>
             </div>
             <p className="text-4xl font-semibold text-gray-800">{unpaidCount}</p>
-            <a href="#" className="text-sm text-blue-500 mt-2">More</a>
+            <p className="text-sm text-gray-500">{dateRange}</p>
+            <a href="#" className="text-sm text-blue-500 mt-2" onClick={async (e) => {
+              e.preventDefault();
+              const content = await fetchBillings("Unpaid");
+              openModal("Unpaid Billings", content);
+            }}>View</a>
           </div>
 
           <div className="bg-white shadow-lg rounded-xl p-6 flex flex-col justify-between">
@@ -187,12 +335,12 @@ const Dashboard: React.FC = () => {
               <h2 className="text-xl font-bold">Total Revenue</h2>
             </div>
             <p className="text-4xl font-semibold text-gray-800">₱{totalRevenue.toFixed(2)}</p>
-            <a href="#" className="text-sm text-blue-500 mt-2">More</a>
+            <p className="text-sm text-gray-500">{dateRange}</p>
+            <a href="#" className="text-sm text-blue-500 mt-2" onClick={(e) => {
+              e.preventDefault();
+              openModal("Total Revenue", <p>₱{totalRevenue.toFixed(2)}</p>);
+            }}>View</a>
           </div>
-
-          
-
-          
 
           <div className="bg-white shadow-lg rounded-xl p-6 flex flex-col justify-between">
             <div className="flex items-center space-x-4">
@@ -200,7 +348,12 @@ const Dashboard: React.FC = () => {
               <h2 className="text-xl font-bold">Overdue</h2>
             </div>
             <p className="text-4xl font-semibold text-gray-800">{overdueCount}</p>
-            <a href="#" className="text-sm text-blue-500 mt-2">More</a>
+            <p className="text-sm text-gray-500">{dateRange}</p>
+            <a href="#" className="text-sm text-blue-500 mt-2" onClick={async (e) => {
+              e.preventDefault();
+              const content = await fetchBillings("Overdue");
+              openModal("Overdue Billings", content);
+            }}>View</a>
           </div>
         </div>
 
@@ -229,7 +382,9 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
       </div>
-
+      <Modal isOpen={modalOpen} onClose={closeModal} title={modalTitle}>
+        {modalContent}
+      </Modal>
     </StaffNav>
   );
 };
