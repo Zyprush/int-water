@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation"; // To handle redirection
 import { auth } from "../../../../firebase";
 import StaffNav from "@/components/StaffNav";
 import SystemInfo from "@/app/admin/settings/SystemInfo";
+import UserProfile from "@/components/AccSettings";
 
 const Settings = () => {
   const { theme, setTheme } = useTheme(); // Access theme and setTheme from next-themes
@@ -78,7 +79,7 @@ const Settings = () => {
           </div>
           {accountSettingsOpen && (
             <div className="mt-4 space-y-4 p-4 border-t border-gray-200 dark:border-gray-600">
-              {/* Account settings form */}
+              <UserProfile />
             </div>
           )}
         </div>
