@@ -12,7 +12,7 @@ interface NavbarProps {
 
 const StaffNav: React.FC<NavbarProps> = ({ children }) => {
   return (
-    <div className="flex gap-0">
+    <div className="flex gap-0 h-screen">
       <SideNavbar />
       <div className="flex flex-col w-full">
         <Header />
