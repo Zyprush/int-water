@@ -204,10 +204,10 @@ const AddNewConsumerModal: React.FC<AddNewUserModal> = ({ isOpen, onClose }) => 
                                 required
                             >
                                 <option value="">Select a role</option>
-                                <option value="staff">Staff</option>
+                                <option value="Office Staff">Office Staff</option>
                                 <option value="admin">Admin</option>
-                                <option value="scanner">Scanner</option>
-                                <option value="maintenance">Maintenance</option>
+                                <option value="Meter Reader">Meter Reader</option>
+                                <option value="Technical Staff">Technical Staff</option>
                             </select>
                         </div>
                         <div>

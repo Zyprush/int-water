@@ -44,19 +44,6 @@ interface ChartData {
     borderWidth: number;
   }[];
 }
-interface Consumer {
-  id: string;
-  applicantName: string;
-  email: string;
-  // Add other fields as necessary
-}
-
-interface User {
-  id: string;
-  name: string;
-  role: string;
-  // Add other fields as necessary
-}
 
 interface Billing {
   id: string;
@@ -86,6 +73,9 @@ const Dashboard: React.FC = () => {
   const [modalContent, setModalContent] = useState<React.ReactNode>(null);
   const [loading, setLoading] = useState(true);
 
+  const [unpaidDateRange, setUnpaidDateRange] = useState<string>("");
+  const [overdueDateRange, setOverdueDateRange] = useState<string>("");
+
   const openModal = (title: string, content: React.ReactNode) => {
     setModalTitle(title);
     setModalContent(content);
@@ -94,31 +84,6 @@ const Dashboard: React.FC = () => {
 
   const closeModal = () => {
     setModalOpen(false);
-  };
-
-  const fetchClients = async () => {
-    const clientsSnapshot = await getDocs(collection(db, "consumers"));
-    const clientsList = clientsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Consumer));
-    return (
-      <ul className="list-disc pl-5">
-        {clientsList.map(client => (
-          <li key={client.id}>{client.applicantName} - {client.email}</li>
-        ))}
-      </ul>
-    );
-  };
-
-  const fetchStaff = async () => {
-    const staffQuery = query(collection(db, "users"), where("role", "in", ["staff", "scanner"]));
-    const staffSnapshot = await getDocs(staffQuery);
-    const staffList = staffSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as User));
-    return (
-      <ul className="list-disc pl-5">
-        {staffList.map(staff => (
-          <li key={staff.id}>{staff.name} - {staff.role}</li>
-        ))}
-      </ul>
-    );
   };
 
   const fetchBillings = async (status: string) => {
@@ -158,18 +123,20 @@ const Dashboard: React.FC = () => {
         const waterConsumptionByMonth: Record<string, number> = {};
         let minDate = new Date();
         let maxDate = new Date(0);
+        let unpaidMinDate = new Date();
+        let unpaidMaxDate = new Date(0);
+        let overdueMinDate = new Date();
+        let overdueMaxDate = new Date(0);
 
         billingsSnapshot.forEach((doc) => {
           try {
             const data = doc.data() as BillingData;
-            console.log("Processing billing data:", JSON.stringify(data)); // Log each billing data
-
             const amount = parseFloat(data.amount) || 0;
             const monthYear = data.month; // Format is '2024-09'
             const currentReading = parseFloat(data.currentReading) || 0;
             const currentDate = new Date(monthYear + '-01');
 
-            // Update min and max dates
+            // Update overall min and max dates
             if (currentDate < minDate) minDate = currentDate;
             if (currentDate > maxDate) maxDate = currentDate;
 
@@ -186,9 +153,13 @@ const Dashboard: React.FC = () => {
             switch (data.status) {
               case "Unpaid":
                 unpaid++;
+                if (currentDate < unpaidMinDate) unpaidMinDate = currentDate;
+                if (currentDate > unpaidMaxDate) unpaidMaxDate = currentDate;
                 break;
               case "Overdue":
                 overdue++;
+                if (currentDate < overdueMinDate) overdueMinDate = currentDate;
+                if (currentDate > overdueMaxDate) overdueMaxDate = currentDate;
                 break;
             }
           } catch (docError) {
@@ -204,21 +175,27 @@ const Dashboard: React.FC = () => {
         setRevenueData(revenueByMonth);
         setWaterConsumptionData(waterConsumptionByMonth);
 
-        // Set date range
-        const monthNames = ["January", "February", "March", "April", "May", "June",
-          "July", "August", "September", "October", "November", "December"];
-        const minMonth = monthNames[minDate.getMonth()];
-        const maxMonth = monthNames[maxDate.getMonth()];
-        const minYear = minDate.getFullYear();
-        const maxYear = maxDate.getFullYear();
+        // Set date ranges
+        const formatDateRange = (min: Date, max: Date) => {
+          const monthNames = ["January", "February", "March", "April", "May", "June",
+            "July", "August", "September", "October", "November", "December"];
+          const minMonth = monthNames[min.getMonth()];
+          const maxMonth = monthNames[max.getMonth()];
+          const minYear = min.getFullYear();
+          const maxYear = max.getFullYear();
 
-        if (minYear === maxYear && minMonth === maxMonth) {
-          setDateRange(`${minMonth} ${minYear}`);
-        } else if (minYear === maxYear) {
-          setDateRange(`${minMonth}-${maxMonth} ${minYear}`);
-        } else {
-          setDateRange(`${minMonth} ${minYear} - ${maxMonth} ${maxYear}`);
-        }
+          if (minYear === maxYear && min.getMonth() === max.getMonth()) {
+            return `${minMonth} ${minYear}`;
+          } else if (minYear === maxYear) {
+            return `${minMonth}-${maxMonth} ${minYear}`;
+          } else {
+            return `${minMonth} ${minYear} - ${maxMonth} ${maxYear}`;
+          }
+        };
+
+        setDateRange(formatDateRange(minDate, maxDate));
+        setUnpaidDateRange(formatDateRange(unpaidMinDate, unpaidMaxDate));
+        setOverdueDateRange(formatDateRange(overdueMinDate, overdueMaxDate));
 
         setLoading(false);
       } catch (error) {
@@ -281,11 +258,7 @@ const Dashboard: React.FC = () => {
               <h2 className="text-xl font-bold">Total Clients</h2>
             </div>
             <p className="text-4xl font-semibold text-gray-800">{totalClients}</p>
-            <a href="#" className="text-sm text-blue-500 mt-2" onClick={async (e) => {
-              e.preventDefault();
-              const content = await fetchClients();
-              openModal("Total Clients", content);
-            }}>View</a>
+            <p className="text-sm text-gray-500"></p>
           </div>
 
           <div className="bg-white shadow-lg rounded-xl p-6 flex flex-col justify-between">
@@ -308,11 +281,7 @@ const Dashboard: React.FC = () => {
               <h2 className="text-xl font-bold">Total Staff</h2>
             </div>
             <p className="text-4xl font-semibold text-gray-800">{totalStaff}</p>
-            <a href="#" className="text-sm text-blue-500 mt-2" onClick={async (e) => {
-              e.preventDefault();
-              const content = await fetchStaff();
-              openModal("Total Staff", content);
-            }}>View</a>
+            <p className="text-sm text-gray-500"></p>
           </div>
 
           <div className="bg-white shadow-lg rounded-xl p-6 flex flex-col justify-between">
@@ -321,7 +290,7 @@ const Dashboard: React.FC = () => {
               <h2 className="text-xl font-bold">Unpaid</h2>
             </div>
             <p className="text-4xl font-semibold text-gray-800">{unpaidCount}</p>
-            <p className="text-sm text-gray-500">{dateRange}</p>
+            <p className="text-sm text-gray-500">{unpaidDateRange}</p>
             <a href="#" className="text-sm text-blue-500 mt-2" onClick={async (e) => {
               e.preventDefault();
               const content = await fetchBillings("Unpaid");
@@ -348,7 +317,7 @@ const Dashboard: React.FC = () => {
               <h2 className="text-xl font-bold">Overdue</h2>
             </div>
             <p className="text-4xl font-semibold text-gray-800">{overdueCount}</p>
-            <p className="text-sm text-gray-500">{dateRange}</p>
+            <p className="text-sm text-gray-500">{overdueDateRange}</p>
             <a href="#" className="text-sm text-blue-500 mt-2" onClick={async (e) => {
               e.preventDefault();
               const content = await fetchBillings("Overdue");
