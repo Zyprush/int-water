@@ -10,12 +10,14 @@ import {
   BarElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  ChartOptions
 } from "chart.js";
 import { IconUser, IconUsers, IconCash, IconCalendarCheck, IconCalendarX, IconCalendar } from "@tabler/icons-react";
 import { db } from "../../../../firebase";
 import Modal from "@/components/ViewModal";
 import Loading from "@/components/Loading";
+import ChartDataLabels from 'chartjs-plugin-datalabels';
 import StaffNav from "@/components/StaffNav";
 
 ChartJS.register(
@@ -24,7 +26,8 @@ ChartJS.register(
   BarElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  ChartDataLabels
 );
 
 interface BillingData {
@@ -232,6 +235,36 @@ const Dashboard: React.FC = () => {
   const dataRevenue = prepareChartData(revenueData, "Total Revenue");
   const dataWaterConsumption = prepareChartData(waterConsumptionData, "Water Consumption");
 
+  const chartOptions: ChartOptions<'bar'> = {
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      tooltip: { enabled: true },
+      datalabels: {
+        anchor: 'end',
+        align: 'top',
+        formatter: function(value, context) {
+          const datasetLabel = context.dataset.label;
+          
+          // Check the dataset to format accordingly
+          if (datasetLabel === 'Total Revenue') {
+            return `₱${value.toLocaleString()}`; // Format with peso sign and commas
+          } else if (datasetLabel === 'Water Consumption') {
+            return `${Math.round(value)} m³`; // No decimal, add cubic meter sign
+          }
+        },
+        font: {
+          weight: 'bold'
+        }
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true
+      }
+    }
+  };
+
   if (loading) {
     return <Loading />;
   }
@@ -305,10 +338,7 @@ const Dashboard: React.FC = () => {
             </div>
             <p className="text-4xl font-semibold text-gray-800">₱{totalRevenue.toFixed(2)}</p>
             <p className="text-sm text-gray-500">{dateRange}</p>
-            <a href="#" className="text-sm text-blue-500 mt-2" onClick={(e) => {
-              e.preventDefault();
-              openModal("Total Revenue", <p>₱{totalRevenue.toFixed(2)}</p>);
-            }}>View</a>
+            <p className="text-sm text-gray-500"></p>
           </div>
 
           <div className="bg-white shadow-lg rounded-xl p-6 flex flex-col justify-between">
@@ -332,10 +362,7 @@ const Dashboard: React.FC = () => {
             <h3 className="text-lg font-bold mb-4">Total Revenue Per Month</h3>
             <Bar
               data={dataRevenue}
-              options={{
-                responsive: true,
-                plugins: { legend: { display: false } },
-              }}
+              options={chartOptions}
             />
           </div>
 
@@ -343,10 +370,7 @@ const Dashboard: React.FC = () => {
             <h3 className="text-lg font-bold mb-4">Water Consumption Per Month</h3>
             <Bar
               data={dataWaterConsumption}
-              options={{
-                responsive: true,
-                plugins: { legend: { display: false } },
-              }}
+              options={chartOptions}
             />
           </div>
         </div>

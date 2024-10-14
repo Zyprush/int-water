@@ -2,7 +2,7 @@
 
 import NavLayout from "@/components/NavLayout";
 import React, { useEffect, useState } from "react";
-import { IconBarcode, IconBarcodeOff, IconEye, IconPlus, IconPrinter, IconTrash } from "@tabler/icons-react";
+import { IconEye, IconPlus, IconPrinter, IconTrash } from "@tabler/icons-react";
 import ReactPaginate from "react-paginate";
 
 import { collection, deleteDoc, doc, getDocs, query, updateDoc, where } from "firebase/firestore";
@@ -247,9 +247,12 @@ const UserList = () => {
                 <tr key={item.id} className="border-t border-b">
                   <td className="px-4 py-2">{item.updatedAt}</td>
                   <td className="px-4 py-2 flex space-x-2">
+                    {/**
+                     * 
                     <span className="mt-3 text-lg text-blue-600">
                       {item.scanner ? <IconBarcode size={18} /> : <IconBarcodeOff size={18} />}
                     </span>
+                     */}
                     {/* Display the profile picture */}
                     <img
                       src={item.profilePicUrl}

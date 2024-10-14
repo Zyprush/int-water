@@ -243,7 +243,16 @@ const Dashboard: React.FC = () => {
       datalabels: {
         anchor: 'end',
         align: 'top',
-        formatter: (value: number) => value.toFixed(2),
+        formatter: function(value, context) {
+          const datasetLabel = context.dataset.label;
+          
+          // Check the dataset to format accordingly
+          if (datasetLabel === 'Total Revenue') {
+            return `₱${value.toLocaleString()}`; // Format with peso sign and commas
+          } else if (datasetLabel === 'Water Consumption') {
+            return `${Math.round(value)} m³`; // No decimal, add cubic meter sign
+          }
+        },
         font: {
           weight: 'bold'
         }
@@ -329,10 +338,7 @@ const Dashboard: React.FC = () => {
             </div>
             <p className="text-4xl font-semibold text-gray-800">₱{totalRevenue.toFixed(2)}</p>
             <p className="text-sm text-gray-500">{dateRange}</p>
-            <a href="#" className="text-sm text-blue-500 mt-2" onClick={(e) => {
-              e.preventDefault();
-              openModal("Total Revenue", <p>₱{totalRevenue.toFixed(2)}</p>);
-            }}>View</a>
+            <p className="text-sm text-gray-500"></p>
           </div>
 
           <div className="bg-white shadow-lg rounded-xl p-6 flex flex-col justify-between">
