@@ -10,13 +10,15 @@ import {
   BarElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  ChartOptions
 } from "chart.js";
 import { IconUser, IconUsers, IconCash, IconCalendarCheck, IconCalendarX, IconCalendar } from "@tabler/icons-react";
 import NavLayout from "@/components/NavLayout";
 import { db } from "../../../../firebase";
 import Modal from "@/components/ViewModal";
 import Loading from "@/components/Loading";
+import ChartDataLabels from 'chartjs-plugin-datalabels';
 
 ChartJS.register(
   CategoryScale,
@@ -24,7 +26,8 @@ ChartJS.register(
   BarElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  ChartDataLabels
 );
 
 interface BillingData {
@@ -232,6 +235,27 @@ const Dashboard: React.FC = () => {
   const dataRevenue = prepareChartData(revenueData, "Total Revenue");
   const dataWaterConsumption = prepareChartData(waterConsumptionData, "Water Consumption");
 
+  const chartOptions: ChartOptions<'bar'> = {
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      tooltip: { enabled: true },
+      datalabels: {
+        anchor: 'end',
+        align: 'top',
+        formatter: (value: number) => value.toFixed(2),
+        font: {
+          weight: 'bold'
+        }
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true
+      }
+    }
+  };
+
   if (loading) {
     return <Loading />;
   }
@@ -332,10 +356,7 @@ const Dashboard: React.FC = () => {
             <h3 className="text-lg font-bold mb-4">Total Revenue Per Month</h3>
             <Bar
               data={dataRevenue}
-              options={{
-                responsive: true,
-                plugins: { legend: { display: false } },
-              }}
+              options={chartOptions}
             />
           </div>
 
@@ -343,10 +364,7 @@ const Dashboard: React.FC = () => {
             <h3 className="text-lg font-bold mb-4">Water Consumption Per Month</h3>
             <Bar
               data={dataWaterConsumption}
-              options={{
-                responsive: true,
-                plugins: { legend: { display: false } },
-              }}
+              options={chartOptions}
             />
           </div>
         </div>

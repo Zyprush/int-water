@@ -48,7 +48,10 @@ const Login = () => {
           } else {
             router.push("/staff/dashboard");
           }
-        } else {
+        } else if (userData.role === "Meter Reader") {
+          router.push("/scanner/dashboard");
+        }
+        else {
           router.push("/admin/dashboard");
         }
       } else {
