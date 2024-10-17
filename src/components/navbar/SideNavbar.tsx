@@ -52,7 +52,7 @@ const SideNavbar: React.FC = () => {
             />
           </div>
         </div>
-        <p className="text-white text-base font-bold mt-2">
+        <p className="text-white text-base font-bold mt-2 text-center ">
           {name || "Loading..."}
         </p>
         <p className="text-zinc-300 text-xs capitalize">{role || "Loading..."}</p>

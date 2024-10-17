@@ -11,11 +11,11 @@ import { useRouter } from "next/navigation"; // To handle redirection
 import { auth } from "../../../../firebase";
 import CAlertDialog from "@/components/ConfirmDialog";
 import UserProfile from "@/components/AccSettings";
+// import ActivityLog from "./ActivityLog";
 
 const Settings = () => {
   const { theme, setTheme } = useTheme(); // Access theme and setTheme from next-themes
   const [accountSettingsOpen, setAccountSettingsOpen] = useState(false);
-  const [activityLogsOpen, setActivityLogsOpen] = useState(false);
   const [systemInfoOpen, setSystemInfoOpen] = useState(false);
   const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
   const router = useRouter(); // Initialize useRouter for navigation
@@ -102,20 +102,8 @@ const Settings = () => {
         </div>
 
         {/* Activity Logs */}
-        <div className="mb-6">
-          <div
-            className="cursor-pointer flex justify-between items-center bg-gray-200 bg-opacity-80 dark:bg-gray-800 p-4 rounded-lg"
-            onClick={() => setActivityLogsOpen(!activityLogsOpen)}
-          >
-            <h2 className="font-semibold">Activity Logs</h2>
-            <span>{activityLogsOpen ? "-" : "+"}</span>
-          </div>
-          {activityLogsOpen && (
-            <div className="mt-4 space-y-2 p-4 border-t border-gray-200 dark:border-gray-600">
-              {/* Activity logs content */}
-            </div>
-          )}
-        </div>
+        {/* <ActivityLog /> */}
+
         <CAlertDialog
           isOpen={isLogoutDialogOpen}
           onClose={() => setIsLogoutDialogOpen(false)}

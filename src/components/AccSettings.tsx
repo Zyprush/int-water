@@ -137,7 +137,7 @@ const UserProfile: React.FC = () => {
   }
 
   return (
-    <div className="max-w-3xl mx-auto p-6 bg-white shadow-lg rounded-lg">
+    <div className="max-w-3xl mx-auto p-6 bg-gray-200 bg-opacity-80 border shadow-lg rounded-lg">
       <div className="flex justify-between items-center mb-6">
         <h3 className="text-2xl font-bold text-gray-800">User Profile</h3>
         {isEditing ? (
@@ -160,6 +160,7 @@ const UserProfile: React.FC = () => {
         <div className="flex flex-col items-center">
           <label className="text-lg font-semibold mb-2">Profile Picture</label>
           <div className="relative w-32 h-32 mb-4">
+             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={userProfile.profilePicUrl || '/default-profile-pic.png'}
               alt="Profile Picture"

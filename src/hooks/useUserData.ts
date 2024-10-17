@@ -12,35 +12,11 @@ interface ConsumerData {
   cellphoneNo: string;
   position: string;
   role: string;
-  applicantName?: string;
-  barangay?: string;
-  buildingOwnerAddress?: string;
-  buildingOwnerCellphone?: string;
-  buildingOwnerName?: string;
-  createdAt?: string;
-  currentAddress?: string;
-  customerAccountNo?: string;
-  guarantyDeposit?: number;
-  id?: string;
-  initialReading?: number;
-  installationAddress?: string;
-  installationFee?: number;
-  meterDeposit?: number;
-  paidUnderOR?: number;
-  serviceConnectionNo?: number;
-  serviceConnectionSize?: string;
-  serviceConnectionType?: string;
-  status?: string;
-  totalAmountDue?: number;
-  uid?: string;
-  waterMeterBrand?: string;
-  waterMeterSerialNo?: number;
-  waterMeterSize?: string;
 }
 
-const useConsumerData = () => {
+const useUserData = () => {
   const [uid, setUid] = useState<string>("");
-  const [consumerData, setConsumerData] = useState<ConsumerData | null>(null);
+  const [userData, setConsumerData] = useState<ConsumerData | null>(null);
 
   useEffect(() => {
     const auth = getAuth();
@@ -59,7 +35,7 @@ const useConsumerData = () => {
   const fetchConsumerData = async (uid: string) => {
     try {
       // Use a query with 'where' to get the document by the user's uid
-      const q = query(collection(db, "consumers"), where("uid", "==", uid));
+      const q = query(collection(db, "users"), where("uid", "==", uid));
       const querySnapshot = await getDocs(q);
 
       if (!querySnapshot.empty) {
@@ -74,7 +50,7 @@ const useConsumerData = () => {
     }
   };
 
-  return { uid, consumerData };
+  return { uid, userData };
 };
 
-export default useConsumerData;
+export default useUserData;

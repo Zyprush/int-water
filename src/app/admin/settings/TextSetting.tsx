@@ -2,6 +2,7 @@
 import React, { useState, useEffect, ChangeEvent } from "react";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "../../../../firebase"; // Adjust your Firebase config path
+import useUserData from "@/hooks/useUserData";
 
 interface TextSettingProps {
   name: string;
@@ -17,7 +18,9 @@ const TextSetting: React.FC<TextSettingProps> = ({
   const [loading, setLoading] = useState<boolean>(true);
   const [newValue, setNewValue] = useState<string>("");
   const [isSaving, setIsSaving] = useState<boolean>(false); // Loading state for saving changes
-
+  const { userData } = useUserData();
+    
+  
   // Fetch setting value by name from Firestore on component mount
   useEffect(() => {
     const fetchSetting = async () => {
@@ -67,7 +70,6 @@ const TextSetting: React.FC<TextSettingProps> = ({
     setIsEditing(false);
     setNewValue(value || "");
   };
-
   return (
     <div className="flex flex-col items-center justify-apart border-t w-full border-zinc-400 border-opacity-45 dark:border-zinc-700 p-5 group">
       {loading ? (
@@ -109,15 +111,17 @@ const TextSetting: React.FC<TextSettingProps> = ({
               <p className="font-semibold text-primary text-sm mr-auto dark:text-zinc-200">
                 {title}
               </p>
-              <p className="text-sm ml-1 max-w-80 text-center">
+              <p className="ml-1 max-w-80 text-center">
                 {value ? value : `No data for ${title}`}
               </p>
-              <button
-                onClick={toggleEdit}
-                className="btn btn-outline btn-sm rounded-sm text-primary mx-auto hover:text-secondary ml-auto mr-0 dark:text-zinc-300"
-              >
-                Edit
-              </button>
+              {userData?.role === "admin" && (
+                <button
+                  onClick={toggleEdit}
+                  className="btn btn-outline btn-sm rounded-sm text-primary mx-auto hover:text-secondary ml-auto mr-0 dark:text-zinc-300"
+                >
+                  Edit
+                </button>
+              )}
             </div>
           )}
         </>
