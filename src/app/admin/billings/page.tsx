@@ -186,67 +186,67 @@ const Billings: React.FC = () => {
 
   return (
     <NavLayout>
-      <div className="p-4 space-y-6">
+      <div className="p-4 space-y-6 dark:bg-gray-800">
         <div className="flex justify-between items-center mb-4">
-          <h1 className="text-2xl font-bold">Billings</h1>
+          <h1 className="text-2xl font-bold dark:text-white">Billings</h1>
           <div className="flex space-x-2">
             <select
               value={selectedMonth}
               onChange={(e) => setSelectedMonth(e.target.value)}
-              className="p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring focus:border-blue-500"
+              className="p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring focus:border-blue-500 dark:bg-gray-700 dark:text-white"
             >
               {generateMonthOptions()}
             </select>
             <select
               value={selectedYear}
               onChange={(e) => setSelectedYear(e.target.value)}
-              className="p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring focus:border-blue-500"
+              className="p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring focus:border-blue-500 dark:bg-gray-700 dark:text-white"
             >
               {generateYearOptions()}
             </select>
           </div>
         </div>
-        <div className="card shadow-md p-4 bg-white">
+        <div className="card shadow-md p-4 bg-white dark:bg-gray-800">
           <div className="mb-2 flex justify-end">
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search by consumer name..."
-              className="w-1/3 p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring focus:border-blue-500"
+              className="w-1/3 p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring focus:border-blue-500 dark:bg-gray-700 dark:text-white"
             />
           </div>
-          <table className="min-w-full bg-white rounded-lg border-t mt-2">
-            <thead className="bg-gray-100">
+          <table className="min-w-full bg-white rounded-lg border-t mt-2 dark:bg-gray-800">
+            <thead className="bg-gray-100 dark:bg-gray-700">
               <tr>
-                <th className="px-4 py-2 text-left">Reading Date</th>
-                <th className="px-4 py-2 text-left">Consumer</th>
-                <th className="px-4 py-2 text-left">Amount</th>
-                <th className="px-4 py-2 text-left">Due Date</th>
-                <th className="px-4 py-2 text-left">Status</th>
-                <th className="px-4 py-2 text-left">Actions</th>
+                <th className="px-4 py-2 text-left dark:text-white">Reading Date</th>
+                <th className="px-4 py-2 text-left dark:text-white">Consumer</th>
+                <th className="px-4 py-2 text-left dark:text-white">Amount</th>
+                <th className="px-4 py-2 text-left dark:text-white">Due Date</th>
+                <th className="px-4 py-2 text-left dark:text-white">Status</th>
+                <th className="px-4 py-2 text-left dark:text-white">Actions</th>
               </tr>
             </thead>
             <tbody>
               {displayedBillings.map((item) => (
-                <tr key={item.id} className="border-t border-b">
-                  <td className="px-4 py-2">{item.readingDate}</td>
-                  <td className="px-4 py-2">{item.consumer}</td>
-                  <td className="px-4 py-2">{item.amount}</td>
-                  <td className="px-4 py-2">{item.dueDate}</td>
+                <tr key={item.id} className="border-t border-b dark:border-gray-600 dark:bg-gray-800">
+                  <td className="px-4 py-2 dark:text-white">{item.readingDate}</td>
+                  <td className="px-4 py-2 dark:text-white">{item.consumer}</td>
+                  <td className="px-4 py-2 dark:text-white">{item.amount}</td>
+                  <td className="px-4 py-2 dark:text-white">{item.dueDate}</td>
                   <td className={`px-4 py-2 ${getStatusClasses(item.status)}`}>{item.status}</td>
                   <td className="px-4 py-2">
                     <div className="flex space-x-2">
                       <button
                         onClick={() => handleView(item)}
-                        className="text-gray-600 hover:text-gray-800"
+                        className="text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-400"
                         title="Billing Summary"
                       >
                         <FaPesoSign size={16} />
                       </button>
                       <button
                         onClick={() => handleViewHistory(item)}
-                        className="text-gray-600 hover:text-gray-800"
+                        className="text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-400"
                         title="Bill History"
                       >
                         <FaEye size={16} />
@@ -269,11 +269,11 @@ const Billings: React.FC = () => {
               pageRangeDisplayed={5}
               onPageChange={handlePageChange}
               containerClassName={"pagination"}
-              activeClassName={"active"}
-              pageClassName="inline-block px-4 py-2 border rounded-md hover:bg-gray-200"
-              previousClassName="inline-block px-4 py-2 border rounded-md hover:bg-gray-200 mr-1"
-              nextClassName="inline-block px-4 py-2 border rounded-md hover:bg-gray-200 ml-1"
-              activeLinkClassName="text-black font-bold"
+              activeClassName={"active dark:bg-gray-700"}
+              pageClassName="inline-block px-4 py-2 border rounded-md hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-600"
+              previousClassName="inline-block px-4 py-2 border rounded-md hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-600 mr-1 dark:text-white"
+              nextClassName="inline-block px-4 py-2 border rounded-md hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-600 ml-1 dark:text-white"
+              activeLinkClassName="text-black font-bold dark:text-white"
             />
           </div>
 

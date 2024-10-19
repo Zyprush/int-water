@@ -162,7 +162,7 @@ const Account = () => {
     <NavLayout>
       <div className="p-4 space-y-6">
         <div className="flex justify-between items-center mb-4">
-          <h1 className="text-2xl font-bold">Account Management</h1>
+          <h1 className="text-2xl font-bold dark:text-white">Account Management</h1>
           <div className="space-x-2">
             <button
               onClick={handleExportCSV}
@@ -180,18 +180,18 @@ const Account = () => {
             </button>
           </div>
         </div>
-        <div className="card shadow-sm p-4 bg-white">
+        <div className="card shadow-sm p-4 bg-white dark:bg-gray-800 dark:text-white">
           <div className="mb-2 flex justify-end">
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search..."
-              className="w-1/3 p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring focus:border-blue-500"
+              className="w-1/3 p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring focus:border-blue-500 dark:border-zinc-600 dark:bg-zinc-600 text-sm dark:text-white"
             />
           </div>
-          <table className="min-w-full bg-white rounded-lg border-t mt-2">
-            <thead className="bg-gray-100">
+          <table className="min-w-full bg-white rounded-lg border-t mt-2 dark:bg-gray-800 dark:text-white">
+            <thead className="bg-gray-100 dark:bg-gray-800">
               <tr>
                 <th className="px-4 py-2 text-left">Created At</th>
                 <th className="px-4 py-2 text-left">Meter Serial Number</th>
@@ -202,24 +202,24 @@ const Account = () => {
             </thead>
             <tbody>
               {displayedData.map((item) => (
-                <tr key={item.id} className="border-t border-b">
+                <tr key={item.id} className="border-t border-b dark:border-zinc-600">
                   <td className="px-4 py-2">{item.createdAt}</td>
                   <td className="px-4 py-2">{item.waterMeterSerialNo}</td>
                   <td className="px-4 py-2">{item.applicantName}</td>
                   <td className="px-4 py-2">{item.status}</td>
                   <td className="px-4 py-2">
                     <div className="flex space-x-2">
-                      <button className="text-blue-500 hover:text-blue-700"
+                      <button className="text-blue-500 hover:text-blue-700 dark:text-blue-300 dark:hover:text-blue-500"
                         onClick={() => handleView(item.id)}
                       >
                         <IconEye size={18} />
                       </button>
-                      <button className="text-green-500 hover:text-green-700"
+                      <button className="text-green-500 hover:text-green-700 dark:text-green-300 dark:hover:text-green-500"
                         onClick={() => handleEdit(item)}
                       >
                         <IconEdit size={18} />
                       </button>
-                      <button className="text-red-500 hover:text-red-700"
+                      <button className="text-red-500 hover:text-red-700 dark:text-red-300 dark:hover:text-red-500"
                         onClick={() => openDeleteAlert(item.id)}
                       >
                         <IconTrash size={18} />
@@ -240,12 +240,12 @@ const Account = () => {
               marginPagesDisplayed={2}
               pageRangeDisplayed={5}
               onPageChange={handlePageChange}
-              containerClassName={"pagination"}
+              containerClassName={"pagination dark:bg-gray-800"}
               activeClassName={"active"}
-              pageClassName="inline-block px-4 py-2 border rounded-md hover:bg-gray-200"
-              previousClassName="inline-block px-4 py-2 border rounded-md hover:bg-gray-200 mr-1"
-              nextClassName="inline-block px-4 py-2 border rounded-md hover:bg-gray-200 ml-1"
-              activeLinkClassName="text-black font-bold"
+              pageClassName="inline-block px-4 py-2 border rounded-md hover:bg-gray-200 dark:hover:bg-zinc-600"
+              previousClassName="inline-block px-4 py-2 border rounded-md hover:bg-gray-200 mr-1 dark:hover:bg-zinc-600"
+              nextClassName="inline-block px-4 py-2 border rounded-md hover:bg-gray-200 ml-1 dark:hover:bg-zinc-600"
+              activeLinkClassName="text-black font-bold dark:text-white"
             />
           </div>
         </div>

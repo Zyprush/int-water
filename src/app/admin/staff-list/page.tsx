@@ -201,52 +201,52 @@ const UserList = () => {
 
   return (
     <NavLayout>
-      <div className="p-4 space-y-6">
+      <div className="p-4 space-y-6 dark:bg-none">
         <div className="flex justify-between items-center mb-4">
-          <h1 className="text-2xl font-bold">Account Management</h1>
+          <h1 className="text-2xl font-bold dark:text-white">Account Management</h1>
           <div className="space-x-2">
             <button
               onClick={handleExportCSV}
-              className="bg-blue-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-600"
+              className="bg-blue-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-600 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
             >
               Export CSV
               <IconPrinter className="inline-block ml-2" />
             </button>
             <button
               onClick={handleAddNew}
-              className="bg-green-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-green-600"
+              className="bg-green-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-green-600 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
             >
               Add New
               <IconPlus className="inline-block ml-2" />
             </button>
           </div>
         </div>
-        <div className="card shadow-sm p-4 bg-white">
+        <div className="card shadow-sm p-4 bg-white dark:bg-gray-800">
           <div className="mb-2 flex justify-end">
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search..."
-              className="w-1/3 p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring focus:border-blue-500"
+              className="w-1/3 p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring focus:border-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:focus:border-blue-500 dark:focus:ring-blue-500 dark:text-white"
             />
           </div>
-          <table className="min-w-full bg-white rounded-lg border-t mt-2">
-            <thead className="bg-gray-100">
+          <table className="min-w-full bg-white rounded-lg border-t mt-2 dark:bg-gray-700">
+            <thead className="bg-gray-100 dark:bg-gray-600">
               <tr>
-                <th className="px-4 py-2 text-left">Date Updated</th>
-                <th className="px-4 py-2 text-left">Profile Picture</th>
-                <th className="px-4 py-2 text-left">Name</th>
-                <th className="px-4 py-2 text-left">Cellphone</th>
-                <th className="px-4 py-2 text-left">Position</th>
-                <th className="px-4 py-2 text-left">Actions</th>
+                <th className="px-4 py-2 text-left dark:text-white">Date Updated</th>
+                <th className="px-4 py-2 text-left dark:text-white">Profile Picture</th>
+                <th className="px-4 py-2 text-left dark:text-white">Name</th>
+                <th className="px-4 py-2 text-left dark:text-white">Cellphone</th>
+                <th className="px-4 py-2 text-left dark:text-white">Position</th>
+                <th className="px-4 py-2 text-left dark:text-white">Actions</th>
               </tr>
             </thead>
             <tbody>
               {displayedData.map((item) => (
-                <tr key={item.id} className="border-t border-b">
-                  <td className="px-4 py-2">{item.updatedAt}</td>
-                  <td className="px-4 py-2 flex space-x-2">
+                <tr key={item.id} className="border-t border-b dark:bg-gray-800 dark:border-gray-600">
+                  <td className="px-4 py-2 dark:text-white">{item.updatedAt}</td>
+                  <td className="px-4 py-2 flex space-x-2 dark:text-white">
                     {/**
                      * 
                     <span className="mt-3 text-lg text-blue-600">
@@ -257,21 +257,20 @@ const UserList = () => {
                     <img
                       src={item.profilePicUrl}
                       alt={item.name}
-                      className="h-12 w-12 rounded-full object-cover"
+                      className="h-12 w-12 rounded-full object-cover dark:border dark:border-gray-400"
                     />
                   </td>
-                  <td className="px-4 py-2">{item.name}</td>
-                  <td className="px-4 py-2">{item.cellphoneNo}</td>
-                  <td className="px-4 py-2">{item.position}</td>
-                  <td className="px-4 py-2">
+                  <td className="px-4 py-2 dark:text-white">{item.name}</td>
+                  <td className="px-4 py-2 dark:text-white">{item.cellphoneNo}</td>
+                  <td className="px-4 py-2 dark:text-white">{item.position}</td>
+                  <td className="px-4 py-2 dark:text-white">
                     <div className="flex space-x-2">
-
-                      <button className="text-green-500 hover:text-green-700"
+                      <button className="text-green-500 hover:text-green-700 dark:text-white dark:hover:text-green-700"
                         onClick={() => handleEdit(item)}
                       >
                         <IconEye size={18} />
                       </button>
-                      <button className="text-red-500 hover:text-red-700"
+                      <button className="text-red-500 hover:text-red-700 dark:text-white dark:hover:text-red-700"
                         onClick={() => openDeleteAlert(item)}
                       >
                         <IconTrash size={18} />
@@ -282,7 +281,7 @@ const UserList = () => {
               ))}
             </tbody>
           </table>
-          <div className="mt-8 flex justify-end">
+          <div className="mt-8 flex justify-end dark:bg-gray-800">
             <ReactPaginate
               previousLabel={"Previous"}
               nextLabel={"Next"}
@@ -294,10 +293,10 @@ const UserList = () => {
               onPageChange={handlePageChange}
               containerClassName={"pagination"}
               activeClassName={"active"}
-              pageClassName="inline-block px-4 py-2 border rounded-md hover:bg-gray-200"
-              previousClassName="inline-block px-4 py-2 border rounded-md hover:bg-gray-200 mr-1"
-              nextClassName="inline-block px-4 py-2 border rounded-md hover:bg-gray-200 ml-1"
-              activeLinkClassName="text-black font-bold"
+              pageClassName="inline-block px-4 py-2 border rounded-md hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white mx-1"
+              previousClassName="inline-block px-4 py-2 border rounded-md hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white"
+              nextClassName="inline-block px-4 py-2 border rounded-md hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white"
+              activeLinkClassName="text-black font-bold dark:text-white"
             />
           </div>
         </div>

@@ -242,7 +242,7 @@ const Dashboard: React.FC = () => {
       tooltip: { enabled: true },
       datalabels: {
         anchor: 'end',
-        align: 'top',
+        align: 'bottom',
         formatter: function(value, context) {
           const datasetLabel = context.dataset.label;
           
