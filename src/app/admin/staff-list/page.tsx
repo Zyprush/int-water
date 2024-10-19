@@ -254,6 +254,7 @@ const UserList = () => {
                     </span>
                      */}
                     {/* Display the profile picture */}
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={item.profilePicUrl}
                       alt={item.name}

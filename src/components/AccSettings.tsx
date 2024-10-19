@@ -137,178 +137,178 @@ const UserProfile: React.FC = () => {
   }
 
   return (
-    <div className="max-w-3xl mx-auto p-6 bg-gray-200 bg-opacity-80 border shadow-lg rounded-lg">
-      <div className="flex justify-between items-center mb-6">
-        <h3 className="text-2xl font-bold text-gray-800">User Profile</h3>
-        {isEditing ? (
-          <button
-            onClick={handleSaveProfile}
-            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-all"
-          >
-            Save
-          </button>
-        ) : (
-          <button
-            onClick={() => setIsEditing(true)}
-            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-all"
-          >
-            Edit
-          </button>
-        )}
+<div className="max-w-3xl mx-auto p-6 bg-gray-200 dark:bg-gray-800 bg-opacity-80 border dark:border-gray-700 shadow-lg rounded-lg">
+  <div className="flex justify-between items-center mb-6">
+    <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-100">User Profile</h3>
+    {isEditing ? (
+      <button
+        onClick={handleSaveProfile}
+        className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 transition-all"
+      >
+        Save
+      </button>
+    ) : (
+      <button
+        onClick={() => setIsEditing(true)}
+        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 transition-all"
+      >
+        Edit
+      </button>
+    )}
+  </div>
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div className="flex flex-col items-center">
+      <label className="text-lg font-semibold mb-2 dark:text-gray-200">Profile Picture</label>
+      <div className="relative w-32 h-32 mb-4">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={userProfile.profilePicUrl || '/default-profile-pic.png'}
+          alt="Profile Picture"
+          className="border border-gray-300 dark:border-gray-600 shadow-sm rounded-full w-full h-full object-cover"
+        />
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="flex flex-col items-center">
-          <label className="text-lg font-semibold mb-2">Profile Picture</label>
-          <div className="relative w-32 h-32 mb-4">
-             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={userProfile.profilePicUrl || '/default-profile-pic.png'}
-              alt="Profile Picture"
-              className="border border-gray-300 shadow-sm rounded-full w-full h-full object-cover"
-            />
-          </div>
-          {isEditing && (
-            <>
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                className="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300 transition-all"
-              >
-                Change Picture
-              </button>
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleImageUpload}
-                accept="image/*"
-                className="hidden"
-              />
-            </>
-          )}
-        </div>
-        <div className="space-y-4">
-          <div className="flex flex-col">
-            <label className="text-sm font-medium text-gray-600">Name</label>
-            <input
-              type="text"
-              name="name"
-              value={userProfile.name}
-              onChange={handleInputChange}
-              disabled={!isEditing}
-              className={`border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                isEditing ? 'bg-white' : 'bg-gray-100'
-              }`}
-            />
-          </div>
-          <div className="flex flex-col">
-            <label className="text-sm font-medium text-gray-600">Email</label>
-            <input
-              type="email"
-              name="email"
-              value={userProfile.email}
-              disabled
-              className="border rounded-lg p-3 bg-gray-100"
-            />
-          </div>
-          <div className="flex flex-col">
-            <label className="text-sm font-medium text-gray-600">Address</label>
-            <input
-              type="text"
-              name="address"
-              value={userProfile.address}
-              onChange={handleInputChange}
-              disabled={!isEditing}
-              className={`border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                isEditing ? 'bg-white' : 'bg-gray-100'
-              }`}
-            />
-          </div>
-          <div className="flex flex-col">
-            <label className="text-sm font-medium text-gray-600">Cellphone Number</label>
-            <input
-              type="tel"
-              name="cellphoneNo"
-              value={userProfile.cellphoneNo}
-              onChange={handleInputChange}
-              disabled={!isEditing}
-              className={`border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                isEditing ? 'bg-white' : 'bg-gray-100'
-              }`}
-            />
-          </div>
-          <div className="flex flex-col">
-            <label className="text-sm font-medium text-gray-600">Position</label>
-            <input
-              type="text"
-              name="position"
-              value={userProfile.position}
-              onChange={handleInputChange}
-              disabled={!isEditing}
-              className={`border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                isEditing ? 'bg-white' : 'bg-gray-100'
-              }`}
-            />
-          </div>
-          <div className="flex flex-col">
-            <label className="text-sm font-medium text-gray-600">Role</label>
-            <input
-              type="text"
-              name="role"
-              value={userProfile.role}
-              disabled
-              className="border rounded-lg p-3 bg-gray-100"
-            />
-          </div>
-        </div>
-      </div>
-      <div className="mt-6">
-        <button
-          onClick={() => setShowPasswordChange(!showPasswordChange)}
-          className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 transition-all"
-        >
-          {showPasswordChange ? 'Cancel Password Change' : 'Change Password'}
-        </button>
-      </div>
-      {showPasswordChange && (
-        <div className="mt-4 space-y-4">
-          <div className="flex flex-col">
-            <label className="text-sm font-medium text-gray-600">Old Password</label>
-            <input
-              type="password"
-              name="oldPassword"
-              value={passwordData.oldPassword}
-              onChange={handlePasswordInputChange}
-              className="border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div className="flex flex-col">
-            <label className="text-sm font-medium text-gray-600">New Password</label>
-            <input
-              type="password"
-              name="newPassword"
-              value={passwordData.newPassword}
-              onChange={handlePasswordInputChange}
-              className="border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div className="flex flex-col">
-            <label className="text-sm font-medium text-gray-600">Confirm New Password</label>
-            <input
-              type="password"
-              name="confirmPassword"
-              value={passwordData.confirmPassword}
-              onChange={handlePasswordInputChange}
-              className="border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
+      {isEditing && (
+        <>
           <button
-            onClick={handleChangePassword}
-            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-all"
+            onClick={() => fileInputRef.current?.click()}
+            className="bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200 px-4 py-2 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition-all"
           >
-            Change Password
+            Change Picture
           </button>
-        </div>
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleImageUpload}
+            accept="image/*"
+            className="hidden"
+          />
+        </>
       )}
     </div>
+    <div className="space-y-4">
+      <div className="flex flex-col">
+        <label className="text-sm font-medium text-gray-600 dark:text-gray-300">Name</label>
+        <input
+          type="text"
+          name="name"
+          value={userProfile.name}
+          onChange={handleInputChange}
+          disabled={!isEditing}
+          className={`border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 dark:border-gray-600 dark:text-gray-100 ${
+            isEditing ? 'bg-white dark:bg-gray-700' : 'bg-gray-100 dark:bg-gray-800'
+          }`}
+        />
+      </div>
+      <div className="flex flex-col">
+        <label className="text-sm font-medium text-gray-600 dark:text-gray-300">Email</label>
+        <input
+          type="email"
+          name="email"
+          value={userProfile.email}
+          disabled
+          className="border rounded-lg p-3 bg-gray-100 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100"
+        />
+      </div>
+      <div className="flex flex-col">
+        <label className="text-sm font-medium text-gray-600 dark:text-gray-300">Address</label>
+        <input
+          type="text"
+          name="address"
+          value={userProfile.address}
+          onChange={handleInputChange}
+          disabled={!isEditing}
+          className={`border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 dark:border-gray-600 dark:text-gray-100 ${
+            isEditing ? 'bg-white dark:bg-gray-700' : 'bg-gray-100 dark:bg-gray-800'
+          }`}
+        />
+      </div>
+      <div className="flex flex-col">
+        <label className="text-sm font-medium text-gray-600 dark:text-gray-300">Cellphone Number</label>
+        <input
+          type="tel"
+          name="cellphoneNo"
+          value={userProfile.cellphoneNo}
+          onChange={handleInputChange}
+          disabled={!isEditing}
+          className={`border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 dark:border-gray-600 dark:text-gray-100 ${
+            isEditing ? 'bg-white dark:bg-gray-700' : 'bg-gray-100 dark:bg-gray-800'
+          }`}
+        />
+      </div>
+      <div className="flex flex-col">
+        <label className="text-sm font-medium text-gray-600 dark:text-gray-300">Position</label>
+        <input
+          type="text"
+          name="position"
+          value={userProfile.position}
+          onChange={handleInputChange}
+          disabled={!isEditing}
+          className={`border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 dark:border-gray-600 dark:text-gray-100 ${
+            isEditing ? 'bg-white dark:bg-gray-700' : 'bg-gray-100 dark:bg-gray-800'
+          }`}
+        />
+      </div>
+      <div className="flex flex-col">
+        <label className="text-sm font-medium text-gray-600 dark:text-gray-300">Role</label>
+        <input
+          type="text"
+          name="role"
+          value={userProfile.role}
+          disabled
+          className="border rounded-lg p-3 bg-gray-100 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100"
+        />
+      </div>
+    </div>
+  </div>
+  <div className="mt-6">
+    <button
+      onClick={() => setShowPasswordChange(!showPasswordChange)}
+      className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 dark:bg-yellow-600 dark:hover:bg-yellow-700 transition-all"
+    >
+      {showPasswordChange ? 'Cancel Password Change' : 'Change Password'}
+    </button>
+  </div>
+  {showPasswordChange && (
+    <div className="mt-4 space-y-4">
+      <div className="flex flex-col">
+        <label className="text-sm font-medium text-gray-600 dark:text-gray-300">Old Password</label>
+        <input
+          type="password"
+          name="oldPassword"
+          value={passwordData.oldPassword}
+          onChange={handlePasswordInputChange}
+          className="border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+        />
+      </div>
+      <div className="flex flex-col">
+        <label className="text-sm font-medium text-gray-600 dark:text-gray-300">New Password</label>
+        <input
+          type="password"
+          name="newPassword"
+          value={passwordData.newPassword}
+          onChange={handlePasswordInputChange}
+          className="border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+        />
+      </div>
+      <div className="flex flex-col">
+        <label className="text-sm font-medium text-gray-600 dark:text-gray-300">Confirm New Password</label>
+        <input
+          type="password"
+          name="confirmPassword"
+          value={passwordData.confirmPassword}
+          onChange={handlePasswordInputChange}
+          className="border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+        />
+      </div>
+      <button
+        onClick={handleChangePassword}
+        className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 transition-all"
+      >
+        Change Password
+      </button>
+    </div>
+  )}
+</div>
   );
 };
 

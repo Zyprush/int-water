@@ -52,3 +52,41 @@ input[type="number"] {
     ),
     repeating-linear-gradient(#25640355, #256403);
 }
+
+/* Custom styles for the slider arrows */
+.slick-prev,
+.slick-next {
+  z-index: 1;
+  width: 30px;
+  height: 30px;
+  background: rgba(0, 0, 0, 0.5) !important;
+  border-radius: 50%;
+}
+
+.slick-prev {
+  left: 10px;
+}
+
+.slick-next {
+  right: 10px;
+}
+
+.slick-prev:before,
+.slick-next:before {
+  font-size: 20px;
+}
+
+/* Custom styles for the dots */
+.slick-dots {
+  bottom: 10px;
+}
+
+.slick-dots li button:before {
+  color: white;
+  opacity: 0.8;
+}
+
+.slick-dots li.slick-active button:before {
+  color: white;
+  opacity: 1;
+}
