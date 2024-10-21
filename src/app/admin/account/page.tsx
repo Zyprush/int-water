@@ -220,7 +220,7 @@ const Account = () => {
                         <IconEdit size={18} />
                       </button>
                       <button className="text-red-500 hover:text-red-700 dark:text-red-300 dark:hover:text-red-500"
-                        onClick={() => openDeleteAlert(item.id)}
+                        onClick={() => openDeleteAlert(item.id)} hidden
                       >
                         <IconTrash size={18} />
                       </button>
