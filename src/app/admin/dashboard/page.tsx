@@ -180,13 +180,17 @@ const Dashboard: React.FC = () => {
 
         // Set date ranges
         const formatDateRange = (min: Date, max: Date) => {
+          if (min > max) {
+            return "No data available";
+          }
+          
           const monthNames = ["January", "February", "March", "April", "May", "June",
             "July", "August", "September", "October", "November", "December"];
           const minMonth = monthNames[min.getMonth()];
           const maxMonth = monthNames[max.getMonth()];
           const minYear = min.getFullYear();
           const maxYear = max.getFullYear();
-
+        
           if (minYear === maxYear && min.getMonth() === max.getMonth()) {
             return `${minMonth} ${minYear}`;
           } else if (minYear === maxYear) {
