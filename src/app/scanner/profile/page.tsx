@@ -18,7 +18,7 @@ const Profile: React.FC = () => {
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
   const router = useRouter();
 
-  useEffect(() => {
+  useEffect(() => {  
     const fetchUserData = async () => {
       try {
         const currentUser = auth.currentUser;
