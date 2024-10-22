@@ -5,7 +5,7 @@ import React, { useEffect, useState } from "react";
 import { IconEdit, IconEye, IconPlus, IconPrinter, IconTrash } from "@tabler/icons-react";
 import ReactPaginate from "react-paginate";
 
-import { collection, deleteDoc, doc, getDocs } from "firebase/firestore";
+import { collection, deleteDoc, doc, getDocs, query, updateDoc, where } from "firebase/firestore";
 import { db } from "../../../../firebase";
 import Loading from "@/components/Loading";
 import AlertDialog from "@/components/DeleteDialog";
@@ -28,6 +28,39 @@ const Account = () => {
 
   const [isExportCSVAlertOpen, setIsExportCSVAlertOpen] = useState(false);
 
+  const checkOverdueBills = async (consumerId: string) => {
+    try {
+      const billingsCollection = collection(db, 'billings');
+      const billingsQuery = query(billingsCollection, where('consumerId', '==', consumerId));
+      const billingsSnapshot = await getDocs(billingsQuery);
+
+      const overdueBills = billingsSnapshot.docs
+        .map(doc => ({
+          month: doc.data().month,
+          status: doc.data().status
+        }))
+        .filter(bill => bill.status === 'overdue');
+
+      // Get unique months with overdue status
+      const uniqueOverdueMonths = new Set(overdueBills.map(bill => bill.month));
+
+      return uniqueOverdueMonths.size >= 3;
+    } catch (error) {
+      console.error("Error checking overdue bills:", error);
+      return false;
+    }
+  };
+
+  const updateConsumerStatus = async (consumerId: string, hasThreeOverdueBills: boolean) => {
+    try {
+      const consumerRef = doc(db, 'consumers', consumerId);
+      await updateDoc(consumerRef, {
+        status: hasThreeOverdueBills ? 'inactive' : 'active'
+      });
+    } catch (error) {
+      console.error("Error updating consumer status:", error);
+    }
+  };
 
   const fetchConsumers = async () => {
     try {
@@ -37,6 +70,16 @@ const Account = () => {
         id: doc.id,
         ...doc.data()
       })) as Consumer[];
+
+      // Check overdue bills for each consumer
+      for (const consumer of consumersList) {
+        const hasThreeOverdueBills = await checkOverdueBills(consumer.id);
+        if (hasThreeOverdueBills && consumer.status !== 'inactive') {
+          await updateConsumerStatus(consumer.id, true);
+          consumer.status = 'inactive';
+        }
+      }
+
       setConsumers(consumersList);
       setLoading(false);
     } catch (error) {
@@ -99,7 +142,7 @@ const Account = () => {
     }
     setIsExportCSVAlertOpen(false);
   };
-  
+
 
   const handleAddNew = () => {
     setIsAddNewModalOpen(true);
@@ -206,21 +249,27 @@ const Account = () => {
                   <td className="px-4 py-2">{item.createdAt}</td>
                   <td className="px-4 py-2">{item.waterMeterSerialNo}</td>
                   <td className="px-4 py-2">{item.applicantName}</td>
-                  <td className="px-4 py-2">{item.status}</td>
+                  <td className={`px-4 py-2 ${item.status === 'inactive' ? 'text-red-500' : 'text-green-500'}`}>
+                    {item.status}
+                  </td>
                   <td className="px-4 py-2">
                     <div className="flex space-x-2">
-                      <button className="text-blue-500 hover:text-blue-700 dark:text-blue-300 dark:hover:text-blue-500"
+                      <button
+                        className="text-blue-500 hover:text-blue-700 dark:text-blue-300 dark:hover:text-blue-500"
                         onClick={() => handleView(item.id)}
                       >
                         <IconEye size={18} />
                       </button>
-                      <button className="text-green-500 hover:text-green-700 dark:text-green-300 dark:hover:text-green-500"
+                      <button
+                        className="text-green-500 hover:text-green-700 dark:text-green-300 dark:hover:text-green-500"
                         onClick={() => handleEdit(item)}
                       >
                         <IconEdit size={18} />
                       </button>
-                      <button className="text-red-500 hover:text-red-700 dark:text-red-300 dark:hover:text-red-500"
-                        onClick={() => openDeleteAlert(item.id)} hidden
+                      <button
+                        className="text-red-500 hover:text-red-700 dark:text-red-300 dark:hover:text-red-500"
+                        onClick={() => openDeleteAlert(item.id)}
+                        hidden
                       >
                         <IconTrash size={18} />
                       </button>
