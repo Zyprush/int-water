@@ -7,7 +7,7 @@ import { collection, getDocs, doc, setDoc, query, where } from "firebase/firesto
 import dayjs from "dayjs";
 import { db } from "../../../../firebase";
 import Modal from "@/components/BillingModal";
-//import { FaPesoSign } from "react-icons/fa6";
+import { FaPesoSign } from "react-icons/fa6";
 import { FaEye } from "react-icons/fa";
 import Loading from "@/components/Loading";
 
@@ -127,10 +127,10 @@ const Billings: React.FC = () => {
     await setDoc(billingDoc, { status: updatedBillings.find((b) => b.id === id)?.status }, { merge: true });
   };
 
-  /*const handleView = (billing: BillingItem) => {
+  const handleView = (billing: BillingItem) => {
     setSelectedBilling(billing);
     setIsModalOpen(true);
-  };*/
+  };
 
   const closeModal = () => {
     setIsModalOpen(false);
@@ -237,20 +237,18 @@ const Billings: React.FC = () => {
                   <td className={`px-4 py-2 ${getStatusClasses(item.status)}`}>{item.status}</td>
                   <td className="px-4 py-2">
                     <div className="flex space-x-2">
-                      
-                      {/**
-                       * <button
+                      <button
                         onClick={() => handleView(item)}
                         className="text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-400"
                         title="Billing Summary"
                       >
                         <FaPesoSign size={16} />
                       </button>
-                       */}
                       <button
                         onClick={() => handleViewHistory(item)}
                         className="text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-400"
                         title="Bill History"
+                        hidden
                       >
                         <FaEye size={16} />
                       </button>
