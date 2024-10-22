@@ -324,7 +324,7 @@ const UserList = () => {
         onClose={closeDeleteAlert}
         onConfirm={confirmDelete}
         title="Confirm Deletion"
-        message="Are you sure you want to delete this consumer? This action cannot be undone."
+        message="Are you sure you want to delete this User? This action cannot be undone."
       />
       <CAlertDialog
         isOpen={isScanAlertOpen}

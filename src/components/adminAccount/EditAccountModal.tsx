@@ -202,7 +202,6 @@ const EditConsumerModal: React.FC<EditConsumerModalProps> = ({ isOpen, onClose, 
               <select name="status" value={formData.status} onChange={handleChange} className="mt-1 px-4 border py-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
-                <option value="pending">Pending</option>
               </select>
             </div>
           </div>
