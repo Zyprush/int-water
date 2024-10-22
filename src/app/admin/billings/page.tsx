@@ -22,6 +22,13 @@ interface BillingItem {
   currentReading: number;
   previousReading: number;
   previousUnpaidBill: number;
+  consumerId: string;
+  rate: number;
+}
+
+interface ConsumerItem {
+  rate: number;
+  uid: string;
 }
 
 const Billings: React.FC = () => {
@@ -36,6 +43,25 @@ const Billings: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   const itemsPerPage = 10;
+
+  const getConsumerRate = async (consumerId: string): Promise<number> => {
+    try {
+      // Create a query to find the consumer where uid matches consumerId
+      const consumersRef = collection(db, "consumers");
+      const q = query(consumersRef, where("uid", "==", consumerId));
+      const querySnapshot = await getDocs(q);
+      
+      // If we found a matching consumer, return their rate
+      if (!querySnapshot.empty) {
+        const consumerData = querySnapshot.docs[0].data() as ConsumerItem;
+        return consumerData.rate || 0;
+      }
+      return 0;
+    } catch (error) {
+      console.error("Error fetching consumer rate:", error);
+      return 0;
+    }
+  };
 
   useEffect(() => {
     const fetchBillings = async () => {
@@ -53,6 +79,9 @@ const Billings: React.FC = () => {
           status = "Overdue";
           await setDoc(doc.ref, { status: "Overdue" }, { merge: true });
         }
+
+        // Fetch consumer rate
+        const rate = await getConsumerRate(data.consumerId);
 
         // Fetch previous month's billing
         const previousMonth = dayjs(`${selectedYear}-${selectedMonth}-01`).subtract(1, 'month');
@@ -87,6 +116,8 @@ const Billings: React.FC = () => {
           previousReading: data.previousReading,
           month: data.month,
           previousUnpaidBill: previousUnpaidBill,
+          consumerId: data.consumerId,
+          rate: rate
         };
       }));
 

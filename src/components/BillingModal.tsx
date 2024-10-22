@@ -12,6 +12,7 @@ interface BillingItem {
   currentReading: number;
   previousReading: number;
   previousUnpaidBill: number;
+  rate: number;
 }
 
 interface ModalProps {
@@ -91,8 +92,10 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, billing, onPayStatusChan
 
   const consumption = billing.currentReading - billing.previousReading;
   const freeCubicMeter = 3; //idk what the real data is so I am putting 3
+  const totalFree = billing.rate * freeCubicMeter;
+  console.log("Total free:", billing.rate);
   const currentBillAmount = parseFloat(billing.amount.replace('₱', ''));
-  const totalDue = currentBillAmount + billing.previousUnpaidBill;
+  const totalDue = currentBillAmount + billing.previousUnpaidBill - totalFree;
 
   return createPortal(
     <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50">
