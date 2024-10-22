@@ -76,12 +76,30 @@ const UserList = () => {
     setIsExportCSVAlertOpen(true);
   };
   const convertToCSV = (data: Users[]) => {
-    const headers = ["Name", "Cellphone No.", "Position"];
+    const headers = [
+      "Name", 
+      "Address",
+      "Cellphone No.", 
+      "Position",
+      "Role",
+      "Email",
+    ];
     const rows = data.map(consumer => [
       consumer.name,
+      consumer.address,
       consumer.cellphoneNo,
-      consumer.position
-    ]);
+      consumer.position,
+      consumer.role,
+      consumer.email
+    ].map(value => {
+      // Handle special characters and commas in CSV
+      if (value === null || value === undefined) return '';
+      const stringValue = String(value);
+      if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
+        return `"${stringValue.replace(/"/g, '""')}"`;
+      }
+      return stringValue;
+    }));
 
     const csvContent = [
       headers.join(','),

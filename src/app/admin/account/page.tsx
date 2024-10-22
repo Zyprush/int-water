@@ -110,14 +110,67 @@ const Account = () => {
     setIsExportCSVAlertOpen(true);
   };
   const convertToCSV = (data: Consumer[]) => {
-    const headers = ["ID", "Name", "Meter Serial Number", "Status", "Created At"];
+    // Define all possible fields from a consumer
+    const headers = [
+      "Applicant Name",
+      "CellPhone No.",
+      "Barangay",
+      "Current Address",
+      "Installation Address",
+      "Email",
+      "Type of Service Connection",
+      "Size of Service Connection",
+      "Name of the Building Owner",
+      "Address of the Building Owner",
+      "Cellphone No. of the Building Owner",
+      "Rate",
+      "Installation Fee",
+      "Meter Deposit",
+      "Guarantee Deposit",
+      "Total Amount Due",
+      "Paid Under OR#",
+      "Service Connection Number",
+      "Customer's Account No.",
+      "Water Meter Serial No.",
+      "Initial Meter Reading",
+      "Water Meter Brand",
+      "Water Meter Size",
+    ];
+
+    // Map each consumer to an array of values in the same order as headers
     const rows = data.map(consumer => [
-      consumer.id,
       consumer.applicantName,
+      consumer.cellphoneNo,
+      consumer.barangay,
+      consumer.currentAddress,
+      consumer.installationAddress,
+      consumer.email,
+      consumer.serviceConnectionType,
+      consumer.serviceConnectionSize,
+      consumer.buildingOwnerName,
+      consumer.buildingOwnerAddress,
+      consumer.buildingOwnerCellphone,
+      consumer.rate,
+      consumer.installationFee,
+      consumer.meterDeposit,
+      consumer.guarantyDeposit,
+      consumer.totalAmountDue,
+      consumer.paidUnderOR,
+      consumer.serviceConnectionNo,
+      consumer.customerAccountNo,
       consumer.waterMeterSerialNo,
-      consumer.status,
-      consumer.createdAt
-    ]);
+      consumer.initialReading,
+      consumer.waterMeterBrand,
+      consumer.waterMeterSize
+    ].map(value => {
+      // Handle special characters and commas in CSV
+      if (value === null || value === undefined) return '';
+      const stringValue = String(value);
+      if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
+        return `"${stringValue.replace(/"/g, '""')}"`;
+      }
+      return stringValue;
+    }));
 
     const csvContent = [
       headers.join(','),
@@ -131,10 +184,12 @@ const Account = () => {
     const csvData = convertToCSV(consumers);
     const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
+    
     if (link.download !== undefined) {
       const url = URL.createObjectURL(blob);
+      const date = new Date().toISOString().split('T')[0];
       link.setAttribute("href", url);
-      link.setAttribute("download", "consumers_export.csv");
+      link.setAttribute("download", `consumers_export_${date}.csv`);
       link.style.visibility = 'hidden';
       document.body.appendChild(link);
       link.click();
@@ -142,6 +197,7 @@ const Account = () => {
     }
     setIsExportCSVAlertOpen(false);
   };
+
 
 
   const handleAddNew = () => {

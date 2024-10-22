@@ -25,6 +25,7 @@ export interface Consumer {
   createdAt: string;
   role: string;
   status: string;
+  rate: number;
 }
 
 export interface FormData {
