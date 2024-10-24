@@ -152,7 +152,7 @@ const Report: React.FC = () => {
               className="select select-sm border-primary text-sm border-opacity-30"
             >
               <option value="all">All</option>
-              <option value="pending">Pending</option>
+              <option value="unresolved">Unresolved</option>
               <option value="inProgress">In Progress</option>
               <option value="resolved">Resolved</option>
             </select>

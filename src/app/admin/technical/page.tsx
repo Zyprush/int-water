@@ -151,7 +151,7 @@ const Technical = () => {
 
           <div className="flex-1">
             <h2 className="font-bold text-primary dark:text-white">
-              {report.submittedBy}
+              {report.submittedBy} <span>{report.status}</span>
             </h2>
             <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
               Issues: {report.issues.join(", ") || "No Issues"}
@@ -238,7 +238,7 @@ const Technical = () => {
             className={`px-4 py-2 rounded ${
               activeTab === "unresolved"
                 ? "bg-primary text-white"
-                : "bg-gray-100 dark:bg-gray-700"
+                : "bg-gray-100 dark:bg-gray-700 text-primary text-sm"
             }`}
           >
             Unresolved
@@ -248,7 +248,7 @@ const Technical = () => {
             className={`px-4 py-2 rounded ${
               activeTab === "inProgress"
                 ? "bg-primary text-white"
-                : "bg-gray-100 dark:bg-gray-700"
+                : "bg-gray-100 dark:bg-gray-700 text-primary text-sm"
             }`}
           >
             In Progress
@@ -258,7 +258,7 @@ const Technical = () => {
             className={`px-4 py-2 rounded ${
               activeTab === "resolved"
                 ? "bg-primary text-white"
-                : "bg-gray-100 dark:bg-gray-700"
+                : "bg-gray-100 dark:bg-gray-700 text-primary text-sm"
             }`}
           >
             Resolved
