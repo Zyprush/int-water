@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation"; // To handle redirection
 import { auth } from "../../../../firebase";
 import CAlertDialog from "@/components/ConfirmDialog";
 import UserProfile from "@/components/AccSettings";
+import ActivityLog from "./ActivityLog";
 // import ActivityLog from "./ActivityLog";
 
 const Settings = () => {
@@ -102,7 +103,7 @@ const Settings = () => {
         </div>
 
         {/* Activity Logs */}
-        {/* <ActivityLog /> */}
+        <ActivityLog />
 
         <CAlertDialog
           isOpen={isLogoutDialogOpen}
