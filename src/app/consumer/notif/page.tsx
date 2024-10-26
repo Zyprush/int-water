@@ -3,14 +3,15 @@
 import Layout from "@/components/MobConLay";
 import { useEffect } from "react";
 import { useNotification } from "@/hooks/useNotification";
+import useConsumerData from "@/hooks/useConsumerData";
 
 const Notification: React.FC = () => {
     const { notifications, loadingNotifications, fetchNotifications, markAsRead, deleteNotification } = useNotification();
+    const {uid} = useConsumerData();
 
     useEffect(() => {
-        const consumerId = "consumer-id"; // Replace with actual consumerId, if available.
-        fetchNotifications(consumerId);
-    }, [fetchNotifications]);
+        fetchNotifications(uid);
+    }, [fetchNotifications, uid]);
 
     return (
         <Layout>
@@ -25,26 +26,26 @@ const Notification: React.FC = () => {
                             notifications.map((notification) => (
                                 <div
                                     key={notification.id}
-                                    className={`p-4 rounded-lg flex items-center justify-between ${
-                                        notification.read ? "bg-gray-100" : "bg-blue-100"
+                                    className={`p-4 rounded-lg flex flex-col items-center justify-between ${
+                                        notification.read ? "bg-gray-100 text-primary" : "bg-primary text-white"
                                     }`}
                                 >
                                     <div>
-                                        <p className="font-medium">{notification.name}</p>
-                                        <p className="text-sm text-gray-500">{notification.date}</p>
+                                        <p className="text-xs">{notification.name}</p>
+                                        <p className="text-xs text-gray-400">{notification.date}</p>
                                     </div>
-                                    <div className="flex gap-2">
+                                    <div className="flex gap-2 mt-2 ml-auto mr-0">
                                         {!notification.read && (
                                             <button
                                                 onClick={() => markAsRead(notification.id)}
-                                                className="text-sm text-green-500 hover:underline"
+                                                className="btn btn-outline text-secondary rounded-none btn-xs"
                                             >
                                                 Mark as Read
                                             </button>
                                         )}
                                         <button
                                             onClick={() => deleteNotification(notification.id)}
-                                            className="text-sm text-red-500 hover:underline"
+                                            className="btn btn-outline text-error rounded-none btn-xs"
                                         >
                                             Delete
                                         </button>

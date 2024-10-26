@@ -66,6 +66,7 @@ const useConsumerData = () => {
         const userDoc = querySnapshot.docs[0]; // Assumes one result
         const userData = userDoc.data() as ConsumerData;
         setConsumerData(userData);
+        setUid(uid);
       } else {
         console.error("No such consumer found!");
       }

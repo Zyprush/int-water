@@ -2,12 +2,13 @@
 import React, { useState, useEffect } from "react";
 import Layout from "@/components/MobConLay";
 import ReportIssueForm from "@/components/ReportIssueForm";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "../../../../firebase";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import ReactPaginate from "react-paginate"; // Import ReactPaginate
+import useConsumerData from "@/hooks/useConsumerData";
 
 interface Report {
   issues: string[];
@@ -17,6 +18,7 @@ interface Report {
   imageUrls: string[];
   createdAt: string | { seconds: number };
   submittedBy: string;
+  consumerID: string;
   location: string;
   status: string;
   declineMessage?: string;
@@ -31,7 +33,7 @@ const Report: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const itemsPerPage = 5; // Customize items per page
   const pageCount = Math.ceil(filteredReports.length / itemsPerPage);
-
+  const { uid } = useConsumerData();
   const sliderSettings = {
     dots: true,
     infinite: true,
@@ -72,7 +74,9 @@ const Report: React.FC = () => {
   useEffect(() => {
     const fetchReports = async () => {
       try {
-        const querySnapshot = await getDocs(collection(db, "reports"));
+        const querySnapshot = await getDocs(
+          query(collection(db, "reports"), where("consumerID", "==", uid))
+        );
         const reportsData: Report[] = querySnapshot.docs.map((doc) => {
           const data = doc.data();
           return {
@@ -102,7 +106,8 @@ const Report: React.FC = () => {
     };
 
     fetchReports();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [uid]);
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => filterReports(), [selectedDate, selectedStatus]);
@@ -172,24 +177,39 @@ const Report: React.FC = () => {
                   >
                     {report.imageUrls && report.imageUrls.length > 0 && (
                       <div className="w-full mb-4">
-                        <Slider {...sliderSettings}>
-                          {report.imageUrls.map((url, imageIndex) => (
-                            <div key={imageIndex} className="relative">
-                              <a
-                                href={url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                              >
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img
-                                  src={url}
-                                  alt={`Report ${imageIndex + 1}`}
-                                  className="h-40 w-full object-cover rounded-lg"
-                                />
-                              </a>
-                            </div>
-                          ))}
-                        </Slider>
+                        {report.imageUrls.length > 1 ? (
+                          <Slider {...sliderSettings}>
+                            {report.imageUrls.map((url, imageIndex) => (
+                              <div key={imageIndex} className="">
+                                <a
+                                  href={url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                >
+                                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                                  <img
+                                    src={url}
+                                    alt={`Report ${imageIndex + 1}`}
+                                    className="h-40 w-full object-cover rounded-lg"
+                                  />
+                                </a>
+                              </div>
+                            ))}
+                          </Slider>
+                        ) : (
+                          <a
+                            href={report.imageUrls[0]}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={report.imageUrls[0]}
+                              alt="Report"
+                              className="h-40 w-full object-cover rounded-lg"
+                            />
+                          </a>
+                        )}
                       </div>
                     )}
 

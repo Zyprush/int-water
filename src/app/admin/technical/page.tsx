@@ -9,6 +9,7 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import { useLogs } from "@/hooks/useLogs";
 import { currentTime } from "@/helper/time";
+import { useNotification } from "@/hooks/useNotification";
 
 interface Report {
   id: string;
@@ -18,6 +19,7 @@ interface Report {
   time: string;
   imageUrls: string[];
   submittedBy: string;
+  consumerID: string;
   location: string;
   createdAt: {
     seconds: number;
@@ -35,14 +37,16 @@ const Technical = () => {
   const [isUpdating, setIsUpdating] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const { addLog } = useLogs();
+  const { addNotification } = useNotification();
 
   const sliderSettings = {
     infinite: true,
     speed: 500,
     slidesToShow: 1,
     slidesToScroll: 1,
-    arrows: true,
+    arrows: false,
     autoplay: false,
+    dots: true,
   };
 
   useEffect(() => {
@@ -103,6 +107,14 @@ const Technical = () => {
               .replace(/([A-Z])/g, " $1")
               .toLowerCase()}`,
           });
+          await addNotification({
+            date: currentTime,
+            name: `Report ID: ${report.id}, Dated: ${report.date} updated to ${newStatus
+              .replace(/([A-Z])/g, " $1")
+              .toLowerCase()}`,
+            read: false,
+            consumerId: report.consumerID,
+          });
         }
 
         setReports((prevReports) =>
@@ -152,6 +164,12 @@ const Technical = () => {
           date: currentTime,
           name: `Declined ${report.submittedBy}'s report: ${declineMessage}`,
         });
+        await addNotification({
+          date: currentTime,
+          name: `Report ID: ${report.id}, dated: ${report.date}, updated to declined`,
+          read: false,
+          consumerId: report.consumerID,
+        });
       }
 
       setReports((prevReports) =>
@@ -193,27 +211,49 @@ const Technical = () => {
       >
         <div className="flex gap-8 items-start">
           {report.imageUrls && report.imageUrls.length > 0 && (
-            <div className="w-48">
-              <Slider {...sliderSettings}>
-                {report.imageUrls.map((url, index) => (
-                  <div key={index} className="relative">
-                    <a href={url} target="_blank" rel="noopener noreferrer">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={url}
-                        alt={`Report ${index + 1}`}
-                        className="w-40 h-40 object-cover rounded-lg"
-                      />
-                    </a>
-                  </div>
-                ))}
-              </Slider>
+            <div className="w-48 mb-4">
+              {report.imageUrls.length > 1 ? (
+                <Slider {...sliderSettings}>
+                  {report.imageUrls.map((url, imageIndex) => (
+                    <div key={imageIndex} className="">
+                      <a
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={url}
+                          alt={`Report ${imageIndex + 1}`}
+                          className="h-40 w-full object-cover rounded-lg"
+                        />
+                      </a>
+                    </div>
+                  ))}
+                </Slider>
+              ) : (
+                <a
+                  href={report.imageUrls[0]}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={report.imageUrls[0]}
+                    alt="Report"
+                    className="h-40 w-full object-cover rounded-lg"
+                  />
+                </a>
+              )}
             </div>
           )}
 
           <div className="flex-1">
             <h2 className="font-bold text-primary dark:text-white mb-2">
-              {report.submittedBy} <span className="bg-primary text-white rounded p-1 px-2 text-xs">{report.status}</span>
+              {report.submittedBy}{" "}
+              <span className="bg-primary text-white rounded p-1 px-2 text-xs">
+                {report.status}
+              </span>
             </h2>
             <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
               Issues: {report.issues.join(", ") || "No Issues"}

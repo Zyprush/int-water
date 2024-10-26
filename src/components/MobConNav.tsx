@@ -24,7 +24,7 @@ const MobConNav: React.FC = () => {
     <>
       <header className="bg-gray-200 bg-opacity-95 border-b border-zinc-400 border-opacity-30 text-white py-4 px-6 fixed top-0 left-0 right-0 z-50 flex justify-between items-center">
         <h1 className="ml-8 w-full text-lg font-semibold text-primary">
-          {consumerData?.applicantName}
+          {consumerData?.applicantName || "Consumer"}
         </h1>
         <div className="absolute left-4">
           <Link href="/consumer/profile" className="text-black">

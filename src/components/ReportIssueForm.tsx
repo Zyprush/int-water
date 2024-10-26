@@ -15,7 +15,8 @@ const ReportIssueForm: React.FC<ReportIssueFormProps> = ({ onCancel }) => {
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [images, setImages] = useState<File[]>([]);
-  const { consumerData } = useConsumerData();
+  const [loading, setLoading] = useState(false); // Loading state
+  const { consumerData, uid } = useConsumerData();
 
   const handleCheckboxChange = (issue: string) => {
     setSelectedIssues((prevIssues) =>
@@ -30,8 +31,7 @@ const ReportIssueForm: React.FC<ReportIssueFormProps> = ({ onCancel }) => {
       const newImages = Array.from(e.target.files);
       setImages((prev) => {
         const combined = [...prev, ...newImages];
-        // Limit to 5 images
-        return combined.slice(0, 5);
+        return combined.slice(0, 5); // Limit to 5 images
       });
     }
   };
@@ -42,8 +42,9 @@ const ReportIssueForm: React.FC<ReportIssueFormProps> = ({ onCancel }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true); // Set loading to true at the start
     try {
-      // Upload all images to Firebase Storage
+      // Upload images to Firebase Storage
       const imageUrls = await Promise.all(
         images.map(async (image) => {
           const imageRef = ref(storage, `images/${Date.now()}_${image.name}`);
@@ -56,29 +57,28 @@ const ReportIssueForm: React.FC<ReportIssueFormProps> = ({ onCancel }) => {
       await addDoc(collection(db, "reports"), {
         submittedBy: consumerData?.applicantName,
         location: consumerData?.installationAddress,
+        consumerID: uid,
         issues: selectedIssues,
         otherIssue,
         date,
         time,
-        imageUrls, // Now an array of URLs
+        imageUrls,
         createdAt: currentTime,
         status: "unresolved",
       });
 
       alert("Issue reported successfully!");
-
-      // Clear the form fields
       setSelectedIssues([]);
       setOtherIssue("");
       setDate("");
       setTime("");
       setImages([]);
-
-      // Call the onCancel function to close the form
-      onCancel();
+      onCancel(); // Close the form
     } catch (error) {
       console.error("Error reporting issue: ", error);
       alert("Failed to report issue.");
+    } finally {
+      setLoading(false); // Set loading back to false after completion
     }
   };
 
@@ -86,6 +86,7 @@ const ReportIssueForm: React.FC<ReportIssueFormProps> = ({ onCancel }) => {
     <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md">
       <h2 className="text-xl text-primary font-semibold mb-4">Report Issue</h2>
 
+      {/* Issues Checkbox */}
       <p className="text-lg mb-2 text-zinc-700">
         What are the existing issues occurring?
       </p>
@@ -160,7 +161,7 @@ const ReportIssueForm: React.FC<ReportIssueFormProps> = ({ onCancel }) => {
         <div className="flex flex-wrap gap-4">
           {images.map((image, index) => (
             <div key={index} className="relative">
-             {/* eslint-disable-next-line @next/next/no-img-element */}
+               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={URL.createObjectURL(image)}
                 alt={`Issue ${index + 1}`}
@@ -175,7 +176,6 @@ const ReportIssueForm: React.FC<ReportIssueFormProps> = ({ onCancel }) => {
               </button>
             </div>
           ))}
-
           {images.length < 5 && (
             <label
               htmlFor="image-upload"
@@ -209,8 +209,12 @@ const ReportIssueForm: React.FC<ReportIssueFormProps> = ({ onCancel }) => {
         >
           Cancel
         </button>
-        <button type="submit" className="btn btn-primary text-white">
-          Submit
+        <button
+          type="submit"
+          className="btn btn-primary text-white"
+          disabled={loading} // Disable button if loading
+        >
+          {loading ? "Submitting..." : "Submit"}
         </button>
       </div>
     </form>
