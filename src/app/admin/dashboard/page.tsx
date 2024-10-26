@@ -124,7 +124,7 @@ const Dashboard: React.FC = () => {
         let totalPaidAmount = 0;
         const revenueByMonth: Record<string, number> = {};
         const waterConsumptionByMonth: Record<string, number> = {};
-        
+
         // Initialize date tracking variables only for entries with actual data
         let minDate: Date | null = null;
         let maxDate: Date | null = null;
@@ -148,7 +148,7 @@ const Dashboard: React.FC = () => {
                 revenueByMonth[monthYear] = (revenueByMonth[monthYear] || 0) + amount;
                 totalPaidAmount += amount;
                 paid++;
-                
+
                 // Update revenue date range only for paid entries
                 if (minDate === null || currentDate < minDate) minDate = currentDate;
                 if (maxDate === null || currentDate > maxDate) maxDate = currentDate;
@@ -188,14 +188,14 @@ const Dashboard: React.FC = () => {
           if (!min || !max || min > max) {
             return "No data available";
           }
-          
+
           const monthNames = ["January", "February", "March", "April", "May", "June",
             "July", "August", "September", "October", "November", "December"];
           const minMonth = monthNames[min.getMonth()];
           const maxMonth = monthNames[max.getMonth()];
           const minYear = min.getFullYear();
           const maxYear = max.getFullYear();
-        
+
           if (minYear === maxYear && min.getMonth() === max.getMonth()) {
             return `${minMonth} ${minYear}`;
           } else if (minYear === maxYear) {
@@ -252,9 +252,9 @@ const Dashboard: React.FC = () => {
       datalabels: {
         anchor: 'end',
         align: 'bottom',
-        formatter: function(value, context) {
+        formatter: function (value, context) {
           const datasetLabel = context.dataset.label;
-          
+
           // Check the dataset to format accordingly
           if (datasetLabel === 'Total Revenue') {
             return `₱${value.toLocaleString()}`; // Format with peso sign and commas
@@ -277,7 +277,7 @@ const Dashboard: React.FC = () => {
   if (loading) {
     return <Loading />;
   }
-  
+
   if (error) {
     return (
       <NavLayout>
