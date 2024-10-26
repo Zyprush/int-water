@@ -124,12 +124,14 @@ const Dashboard: React.FC = () => {
         let totalPaidAmount = 0;
         const revenueByMonth: Record<string, number> = {};
         const waterConsumptionByMonth: Record<string, number> = {};
-        let minDate = new Date();
-        let maxDate = new Date(0);
-        let unpaidMinDate = new Date();
-        let unpaidMaxDate = new Date(0);
-        let overdueMinDate = new Date();
-        let overdueMaxDate = new Date(0);
+        
+        // Initialize date tracking variables only for entries with actual data
+        let minDate: Date | null = null;
+        let maxDate: Date | null = null;
+        let unpaidMinDate: Date | null = null;
+        let unpaidMaxDate: Date | null = null;
+        let overdueMinDate: Date | null = null;
+        let overdueMaxDate: Date | null = null;
 
         billingsSnapshot.forEach((doc) => {
           try {
@@ -139,31 +141,34 @@ const Dashboard: React.FC = () => {
             const currentReading = parseFloat(data.currentReading) || 0;
             const currentDate = new Date(monthYear + '-01');
 
-            // Update overall min and max dates
-            if (currentDate < minDate) minDate = currentDate;
-            if (currentDate > maxDate) maxDate = currentDate;
+            // Only update date ranges if this is a valid date
+            if (!isNaN(currentDate.getTime())) {
+              // Process revenue data (only for paid amounts)
+              if (data.status === 'Paid') {
+                revenueByMonth[monthYear] = (revenueByMonth[monthYear] || 0) + amount;
+                totalPaidAmount += amount;
+                paid++;
+                
+                // Update revenue date range only for paid entries
+                if (minDate === null || currentDate < minDate) minDate = currentDate;
+                if (maxDate === null || currentDate > maxDate) maxDate = currentDate;
+              }
 
-            // Process revenue data (only for paid amounts)
-            if (data.status === 'Paid') {
-              revenueByMonth[monthYear] = (revenueByMonth[monthYear] || 0) + amount;
-              totalPaidAmount += amount;
-              paid++;
-            }
+              // Process water consumption data
+              waterConsumptionByMonth[monthYear] = (waterConsumptionByMonth[monthYear] || 0) + currentReading;
 
-            // Process water consumption data
-            waterConsumptionByMonth[monthYear] = (waterConsumptionByMonth[monthYear] || 0) + currentReading;
-
-            switch (data.status) {
-              case "Unpaid":
-                unpaid++;
-                if (currentDate < unpaidMinDate) unpaidMinDate = currentDate;
-                if (currentDate > unpaidMaxDate) unpaidMaxDate = currentDate;
-                break;
-              case "Overdue":
-                overdue++;
-                if (currentDate < overdueMinDate) overdueMinDate = currentDate;
-                if (currentDate > overdueMaxDate) overdueMaxDate = currentDate;
-                break;
+              switch (data.status) {
+                case "Unpaid":
+                  unpaid++;
+                  if (unpaidMinDate === null || currentDate < unpaidMinDate) unpaidMinDate = currentDate;
+                  if (unpaidMaxDate === null || currentDate > unpaidMaxDate) unpaidMaxDate = currentDate;
+                  break;
+                case "Overdue":
+                  overdue++;
+                  if (overdueMinDate === null || currentDate < overdueMinDate) overdueMinDate = currentDate;
+                  if (overdueMaxDate === null || currentDate > overdueMaxDate) overdueMaxDate = currentDate;
+                  break;
+              }
             }
           } catch (docError) {
             console.error("Error processing document:", docError);
@@ -178,9 +183,9 @@ const Dashboard: React.FC = () => {
         setRevenueData(revenueByMonth);
         setWaterConsumptionData(waterConsumptionByMonth);
 
-        // Set date ranges
-        const formatDateRange = (min: Date, max: Date) => {
-          if (min > max) {
+        // Format date ranges
+        const formatDateRange = (min: Date | null, max: Date | null) => {
+          if (!min || !max || min > max) {
             return "No data available";
           }
           
