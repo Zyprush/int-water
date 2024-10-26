@@ -7,6 +7,7 @@ import { db } from "../../../../firebase";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
+import ReactPaginate from "react-paginate"; // Import ReactPaginate
 
 interface Report {
   issues: string[];
@@ -14,10 +15,11 @@ interface Report {
   date: string;
   time: string;
   imageUrls: string[];
-  createdAt: string | { seconds: number }; // Updated type
+  createdAt: string | { seconds: number };
   submittedBy: string;
   location: string;
   status: string;
+  declineMessage?: string;
 }
 
 const Report: React.FC = () => {
@@ -25,7 +27,10 @@ const Report: React.FC = () => {
   const [filteredReports, setFilteredReports] = useState<Report[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [selectedStatus, setSelectedStatus] = useState<string | "all">("all");
+  const [selectedStatus, setSelectedStatus] = useState<string | "">("");
+  const [currentPage, setCurrentPage] = useState(0);
+  const itemsPerPage = 5; // Customize items per page
+  const pageCount = Math.ceil(filteredReports.length / itemsPerPage);
 
   const sliderSettings = {
     dots: true,
@@ -37,13 +42,8 @@ const Report: React.FC = () => {
     autoplay: false,
   };
 
-  const handleReportClick = () => {
-    setShowForm(true);
-  };
-
-  const handleCancelForm = () => {
-    setShowForm(false);
-  };
+  const handleReportClick = () => setShowForm(true);
+  const handleCancelForm = () => setShowForm(false);
 
   const formatDate = (createdAt: string | { seconds: number }) => {
     if (typeof createdAt === "string") {
@@ -54,23 +54,19 @@ const Report: React.FC = () => {
     return "Date unavailable";
   };
 
-  // Filter reports based on selected date and status
   const filterReports = () => {
     let filtered = reports;
-
-    // Filter by date
-    if (selectedDate) {
+    if (selectedDate)
       filtered = filtered.filter((report) =>
         report.date.includes(selectedDate)
       );
-    }
-
-    // Filter by status
-    if (selectedStatus !== "all") {
+    if (selectedStatus !== "all")
       filtered = filtered.filter((report) => report.status === selectedStatus);
-    }
-
     setFilteredReports(filtered);
+  };
+
+  const handlePageClick = ({ selected }: { selected: number }) => {
+    setCurrentPage(selected);
   };
 
   useEffect(() => {
@@ -81,12 +77,11 @@ const Report: React.FC = () => {
           const data = doc.data();
           return {
             ...data,
-            createdAt: data.createdAt, // Don't try to convert it here
-            imageUrls: data.imageUrls || [], // Handle case where imageUrls might be undefined
+            createdAt: data.createdAt,
+            imageUrls: data.imageUrls || [],
           } as Report;
         });
 
-        // Sort reports by createdAt (newest first)
         reportsData.sort((a, b) => {
           const timeA =
             typeof a.createdAt === "string"
@@ -109,11 +104,13 @@ const Report: React.FC = () => {
     fetchReports();
   }, []);
 
-  // Apply filter whenever selectedDate or selectedStatus changes
-  useEffect(() => {
-    filterReports();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedDate, selectedStatus]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => filterReports(), [selectedDate, selectedStatus]);
+
+  const paginatedReports = filteredReports.slice(
+    currentPage * itemsPerPage,
+    (currentPage + 1) * itemsPerPage
+  );
 
   return (
     <Layout>
@@ -155,24 +152,24 @@ const Report: React.FC = () => {
               <option value="unresolved">Unresolved</option>
               <option value="inProgress">In Progress</option>
               <option value="resolved">Resolved</option>
+              <option value="declined">Declined</option>
             </select>
           </div>
         </div>
-        {/* <hr className="w-full border mb-4 -mt-4" /> */}
+
         {showForm ? (
           <ReportIssueForm onCancel={handleCancelForm} />
         ) : (
           <div>
-            {filteredReports.length === 0 ? (
+            {paginatedReports.length === 0 ? (
               <p className="text-gray-500 text-center">No reports available.</p>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredReports.map((report, index) => (
+                {paginatedReports.map((report, index) => (
                   <div
                     key={index}
                     className="bg-white p-6 rounded-xl shadow-md flex flex-col gap-4 border"
                   >
-                    {/* Image Slider */}
                     {report.imageUrls && report.imageUrls.length > 0 && (
                       <div className="w-full mb-4">
                         <Slider {...sliderSettings}>
@@ -196,13 +193,12 @@ const Report: React.FC = () => {
                       </div>
                     )}
 
-                    {/* Status Badge */}
                     <div className="flex justify-between items-start mb-2">
                       <span
-                        className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                        className={`px-3 py-1 rounded-full text-xs font-semibold border ${
                           report.status === "resolved"
-                            ? "bg-green-100 text-green-800"
-                            : "bg-yellow-100 text-yellow-800"
+                            ? "bg-green-100 text-green-800 border-green-700"
+                            : "bg-yellow-100 text-yellow-800 border-yellow-700"
                         }`}
                       >
                         {report.status}
@@ -212,7 +208,6 @@ const Report: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Report Details */}
                     <div className="mb-4">
                       <h2 className="font-semibold text-primary mb-2">
                         Reported Issues:
@@ -228,8 +223,11 @@ const Report: React.FC = () => {
                         </p>
                       )}
                     </div>
-
-                    {/* Reporter Info */}
+                    {report.status === "declined" && report.declineMessage && (
+                      <p className="text-xs text-red-500 dark:text-red-400 mt-1">
+                        Declined: {report.declineMessage}
+                      </p>
+                    )}
                     <div className="text-sm text-gray-600 space-y-1">
                       <p>Location: {report.location}</p>
                       <p>
@@ -240,6 +238,26 @@ const Report: React.FC = () => {
                 ))}
               </div>
             )}
+            {/* Pagination */}
+            <ReactPaginate
+              previousLabel={"Previous"}
+              nextLabel={"Next"}
+              pageCount={pageCount}
+              onPageChange={handlePageClick}
+              previousLinkClassName={"prev-link"}
+              nextLinkClassName={"next-link"}
+              disabledClassName={"disabled"}
+              marginPagesDisplayed={2}
+              pageRangeDisplayed={3}
+              pageLinkClassName={"page-link"}
+              breakLabel="..."
+              containerClassName="pagination mt-5 dark:bg-gray-800"
+              activeClassName="active"
+              pageClassName="inline-block px-3 py-2 border rounded-md hover:bg-gray-200 dark:hover:bg-zinc-600 text-sm text-zinc-400 dark:text-zinc-700"
+              previousClassName="inline-block px-4 py-2 border rounded-md hover:bg-gray-200 mr-1 dark:hover:bg-zinc-600 text-sm"
+              nextClassName="inline-block px-4 py-2 border rounded-md hover:bg-gray-200 ml-1 dark:hover:bg-zinc-600 text-sm"
+              activeLinkClassName="text-black font-bold dark:text-white text-sm text-primary"
+            />
           </div>
         )}
       </div>

@@ -1,122 +1,102 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import {
   addDoc,
   collection,
+  doc,
   getDocs,
   orderBy,
   query,
+  updateDoc,
   where,
+  deleteDoc,
 } from "firebase/firestore";
 import { db } from "../../firebase";
 
 interface Notification {
-  id?: string;
-  for: string;
-  message: string;
-  seen: boolean;
-  time: string;
+  id: string;
+  date: string;
+  name: string;
+  read: boolean;
+  consumerId: string;
 }
 
-interface UseNotification {
-  notif: Array<Notification> | null;
-  loadingNotif: boolean;
-  fetchNotifByUser: (userId: string) => Promise<void>;
-  fetchNotifByAdmin: () => Promise<void>;
-  addNotif: (data: Notification) => Promise<void>;
-}
+export const useNotification = () => {
+  const [notifications, setNotifications] = useState<Array<Notification> | null>(null);
+  const [loadingNotifications, setLoadingNotifications] = useState(false);
 
-export const useNotification = (): UseNotification => {
-  const [notif, setNotif] = useState<Array<Notification> | null>(null);
-  const [loadingNotif, setLoadingNotif] = useState(false);
-
-  const addNotif = async (data: Notification) => {
-    setLoadingNotif(true);
+  const addNotification = useCallback(async (data: Omit<Notification, "id">) => {
+    setLoadingNotifications(true);
     try {
-      const submittedDoc = await addDoc(collection(db, "notif"), data);
-      console.log("Upload successful");
-      setNotif((prevNotif) => (prevNotif ? [...prevNotif, { id: submittedDoc.id, ...data }] : [{ id: submittedDoc.id, ...data }]));
+      const submittedDoc = await addDoc(collection(db, "notifications"), data);
+      setNotifications((prevNotifications) =>
+        prevNotifications
+          ? [...prevNotifications, { id: submittedDoc.id, ...data }]
+          : [{ id: submittedDoc.id, ...data }]
+      );
     } catch (error) {
-      console.log("error", error);
+      console.log("Error adding notification:", error);
     } finally {
-      setLoadingNotif(false);
+      setLoadingNotifications(false);
     }
-  };
+  }, []);
 
-  const fetchNotifByUser = async (userId: string) => {
-    setLoadingNotif(true);
+  const fetchNotifications = useCallback(async (id: string) => {
+    setLoadingNotifications(true);
     try {
-      const unreadNotifByUserQuery = query(
-        collection(db, "notif"),
-        where("for", "==", userId),
-        where("read", "==", false),
-        orderBy("time", "desc")
+      const notificationsQuery = query(
+        collection(db, "notifications"),
+        orderBy("date", "desc"),
+        where("consumerId", "==", id)
       );
-      const unreadNotifDocSnap = await getDocs(unreadNotifByUserQuery);
-
-      const readNotifByUserQuery = query(
-        collection(db, "notif"),
-        where("for", "==", userId),
-        where("read", "==", true),
-        orderBy("time", "desc")
-      );
-      const readNotifDocSnap = await getDocs(readNotifByUserQuery);
-
-      const allNotifications = [
-        ...unreadNotifDocSnap.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        })),
-        ...readNotifDocSnap.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        })),
-      ];
-
-      setNotif(allNotifications as Notification[]);
+      const notificationsDocSnap = await getDocs(notificationsQuery);
+      const allNotifications = notificationsDocSnap.docs.map((doc) => ({
+        id: doc.id,
+        ...(doc.data() as Omit<Notification, "id">),
+      }));
+      setNotifications(allNotifications);
     } catch (error) {
-      console.log("error", error);
+      console.log("Error fetching notifications by admin:", error);
     } finally {
-      setLoadingNotif(false);
+      setLoadingNotifications(false);
     }
-  };
+  }, []);
 
-  const fetchNotifByAdmin = async () => {
-    setLoadingNotif(true);
+  // Function to mark a notification as read
+  const markAsRead = useCallback(async (notificationId: string) => {
     try {
-      const unreadNotifByAdminQuery = query(
-        collection(db, "notif"),
-        where("type", "in", ["admin"]),
-        where("read", "==", false),
-        orderBy("time", "desc")
+      const notificationRef = doc(db, "notifications", notificationId);
+      await updateDoc(notificationRef, { read: true });
+      setNotifications((prevNotifications) =>
+        prevNotifications
+          ? prevNotifications.map((notification) =>
+              notification.id === notificationId ? { ...notification, read: true } : notification
+            )
+          : null // Ensure it returns null if prevNotifications is null
       );
-      const unreadNotifDocSnap = await getDocs(unreadNotifByAdminQuery);
-
-      const readNotifByAdminQuery = query(
-        collection(db, "notif"),
-        where("type", "in", ["admin"]),
-        where("read", "==", true),
-        orderBy("time", "desc")
-      );
-      const readNotifDocSnap = await getDocs(readNotifByAdminQuery);
-
-      const allNotifications = [
-        ...unreadNotifDocSnap.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        })),
-        ...readNotifDocSnap.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        })),
-      ];
-
-      setNotif(allNotifications as Notification[]);
     } catch (error) {
-      console.log("error", error);
-    } finally {
-      setLoadingNotif(false);
+      console.log("Error marking notification as read:", error);
     }
-  };
+  }, []);
 
-  return { notif, loadingNotif, fetchNotifByUser, fetchNotifByAdmin, addNotif };
+  // Function to delete a notification
+  const deleteNotification = useCallback(async (notificationId: string) => {
+    try {
+      const notificationRef = doc(db, "notifications", notificationId);
+      await deleteDoc(notificationRef);
+      setNotifications((prevNotifications) =>
+        prevNotifications ? prevNotifications.filter((notification) => notification.id !== notificationId) : null
+      );
+    } catch (error) {
+      console.log("Error deleting notification:", error);
+    }
+  }, []);
+
+  return {
+    notifications,
+    loadingNotifications,
+    addNotification,
+    fetchNotifications,
+    markAsRead,
+    deleteNotification,
+  };
 };
