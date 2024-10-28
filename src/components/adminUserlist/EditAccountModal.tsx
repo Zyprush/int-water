@@ -185,10 +185,10 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ isOpen, onClose, user, on
                   className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                   disabled={!isEditing}
                 >
-                  <option value="staff">Staff</option>
+                  <option value="Office Staff">Office Staff</option>
                   <option value="admin">Admin</option>
-                  <option value="scanner">Scanner</option>
-                  <option value="maintenance">Maintenance</option>
+                  <option value="Meter Reader">Meter Reader</option>
+                  <option value="Technical Staff">Technical Staff</option>
                 </select>
               </div>
             </div>
