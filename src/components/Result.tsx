@@ -2,7 +2,6 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { collection, addDoc, getDocs, query, where, Timestamp, doc, updateDoc, orderBy, limit } from 'firebase/firestore';
 import { db } from '../../firebase';
 
-
 interface Consumer {
     waterMeterSerialNo: string;
     applicantName: string;
@@ -12,6 +11,7 @@ interface Consumer {
     uid: string;
     docId: string;
 }
+
 interface Billing {
     month: string;
     readingDate: string;
@@ -49,7 +49,6 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
             calculateBill();
         }
     }, [waterConsumption, selectedConsumer]);
-    
 
     const fetchConsumers = async () => {
         const currentDate = new Date();
@@ -67,10 +66,9 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
 
         const consumersData = consumersSnapshot.docs.map(doc => ({
             ...doc.data() as Consumer,
-            docId: doc.id  // Store the document ID
+            docId: doc.id
         }));
         const billedConsumers = new Set(billingsSnapshot.docs.map(doc => doc.data().consumerSerialNo));
-
         const unbilledConsumers = consumersData.filter(consumer => !billedConsumers.has(consumer.waterMeterSerialNo));
         setConsumers(unbilledConsumers);
     };
@@ -110,6 +108,100 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
         );
     }, [consumers, searchTerm]);
 
+    const handlePrint = async (billingData: Billing, consumer: Consumer) => {
+        const printWindow = window.open('', '_blank');
+        if (!printWindow) return;
+
+        const consumption = billingData.currentReading - billingData.previousReading;
+
+        const printContent = `
+            <html>
+                <head>
+                    <title>Water Billing Receipt</title>
+                    <style>
+                        body { 
+                            font-family: Arial, sans-serif;
+                            padding: 20px;
+                            max-width: 800px;
+                            margin: 0 auto;
+                        }
+                        .header {
+                            text-align: center;
+                            margin-bottom: 20px;
+                        }
+                        .details {
+                            display: grid;
+                            grid-template-columns: 1fr 1fr;
+                            gap: 20px;
+                            margin-bottom: 20px;
+                        }
+                        .readings {
+                            border-top: 1px solid #ccc;
+                            border-bottom: 1px solid #ccc;
+                            padding: 20px 0;
+                            margin-bottom: 20px;
+                        }
+                        .footer {
+                            font-size: 0.9em;
+                            text-align: center;
+                        }
+                        @media print {
+                            body { padding: 0; }
+                            @page { margin: 0.5cm; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>Water Billing Receipt</h1>
+                        <p>Municipal Water System</p>
+                    </div>
+                    
+                    <div class="details">
+                        <div>
+                            <p><strong>Receipt No:</strong> ${billingData.month}-${billingData.consumerSerialNo}</p>
+                            <p><strong>Date:</strong> ${billingData.readingDate}</p>
+                            <p><strong>Due Date:</strong> ${billingData.dueDate}</p>
+                        </div>
+                        <div>
+                            <p><strong>Consumer No:</strong> ${billingData.consumerSerialNo}</p>
+                            <p><strong>Name:</strong> ${billingData.consumerName}</p>
+                            <p><strong>Barangay:</strong> ${consumer.barangay}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="readings">
+                        <div class="details">
+                            <div>
+                                <p><strong>Previous Reading:</strong> ${billingData.previousReading}</p>
+                                <p><strong>Current Reading:</strong> ${billingData.currentReading}</p>
+                                <p><strong>Consumption:</strong> ${consumption} cu.m</p>
+                            </div>
+                            <div>
+                                <p><strong>Rate:</strong> ₱${consumer.rate}/cu.m</p>
+                                <p><strong>Amount Due:</strong> ₱${billingData.amount.toFixed(2)}</p>
+                                <p><strong>Status:</strong> ${billingData.status}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="footer">
+                        <p>Please present this receipt when making payment.</p>
+                        <p>For inquiries, please contact Municipal Water Office.</p>
+                    </div>
+                </body>
+            </html>
+        `;
+
+        printWindow.document.write(printContent);
+        printWindow.document.close();
+
+        setTimeout(() => {
+            printWindow.print();
+            printWindow.close();
+        }, 500);
+    };
+
     const handleUpload = async () => {
         if (!selectedConsumer) return;
 
@@ -141,28 +233,73 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
             const billingsRef = collection(db, 'billings');
             await addDoc(billingsRef, billingData);
 
-            // Update the consumer's initialReading
             const consumerRef = doc(db, 'consumers', selectedConsumer.docId);
             await updateDoc(consumerRef, {
                 initialReading: newReading
             });
 
-            alert('Billing data uploaded and consumer data updated successfully!');
-
-            // Refresh the list of consumers
+            alert('Billing data uploaded successfully!');
             await fetchConsumers();
-
-            // Clear the selection and water consumption
             setSelectedConsumer(null);
             setWaterConsumption('');
             setCurrentBill(0);
             setLastBilling(null);
-
-            // Get back to dashboard
-            closeCamera();  
+            closeCamera();
         } catch (error) {
             console.error("Error updating documents: ", error);
-            alert('Failed to upload billing data and update consumer.');
+            alert('Failed to upload billing data.');
+        }
+    };
+
+    const handleUploadAndPrint = async () => {
+        if (!selectedConsumer) return;
+
+        const currentDate = new Date();
+        const currentYear = currentDate.getFullYear();
+        const currentMonth = currentDate.getMonth() + 1;
+        const monthKey = `${currentYear}-${String(currentMonth).padStart(2, '0')}`;
+        const readingDate = currentDate.toISOString().split('T')[0];
+        const dueDate = new Date(currentYear, currentMonth, 0);
+        dueDate.setDate(dueDate.getDate() - 5);
+
+        const newReading = parseInt(waterConsumption.replace(/^0+/, ''));
+
+        const billingData: Billing = {
+            month: monthKey,
+            readingDate,
+            consumerId: selectedConsumer.uid,
+            consumerSerialNo: selectedConsumer.waterMeterSerialNo,
+            consumerName: selectedConsumer.applicantName,
+            amount: currentBill,
+            dueDate: dueDate.toISOString().split('T')[0],
+            status: 'Unpaid',
+            createdAt: Timestamp.now(),
+            previousReading: lastBilling ? lastBilling.currentReading : selectedConsumer.initialReading,
+            currentReading: newReading
+        };
+
+        try {
+            const billingsRef = collection(db, 'billings');
+            await addDoc(billingsRef, billingData);
+
+            const consumerRef = doc(db, 'consumers', selectedConsumer.docId);
+            await updateDoc(consumerRef, {
+                initialReading: newReading
+            });
+
+            // Print receipt
+            await handlePrint(billingData, selectedConsumer);
+
+            //alert('Billing data uploaded and receipt printed successfully!');
+            await fetchConsumers();
+            setSelectedConsumer(null);
+            setWaterConsumption('');
+            setCurrentBill(0);
+            setLastBilling(null);
+            closeCamera();
+        } catch (error) {
+            console.error("Error processing billing: ", error);
+            alert('Failed to process billing. Please try again.');
         }
     };
 
@@ -244,13 +381,19 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
             </div>
 
             <div className="flex justify-between flex-col-1">
-                {/**
-                 * 
-                <button onClick={handleCancel} className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded w-full mr-1">CANCEL</button>
-                 */}
-                <button onClick={handleUpload} className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded w-full">UPLOAD</button>
+                <button
+                    onClick={handleUpload}
+                    className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded w-full"
+                >
+                    UPLOAD
+                </button>
             </div>
-            <button onClick={handleUpload} className="w-full mt-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">UPLOAD and PRINT Receipt</button>
+            <button
+                onClick={handleUploadAndPrint}
+                className="w-full mt-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+            >
+                UPLOAD and PRINT Receipt
+            </button>
         </div>
     );
 };
