@@ -123,7 +123,7 @@ const Login = () => {
           </div>
         </div>
         <div className="flex justify-between items-center mb-6">
-          <Link href="#" className="text-sm text-zinc-400 hover:underline">
+          <Link href="/forgot-password" className="text-sm text-zinc-200 hover:text-blue-700 underline">
             Forgot password?
           </Link>
         </div>

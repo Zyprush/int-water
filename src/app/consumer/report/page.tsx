@@ -271,12 +271,12 @@ const Report: React.FC = () => {
               pageRangeDisplayed={3}
               pageLinkClassName={"page-link"}
               breakLabel="..."
-              containerClassName="pagination mt-5 dark:bg-gray-800"
+              containerClassName="pagination mt-5"
               activeClassName="active"
-              pageClassName="inline-block px-3 py-2 border rounded-md hover:bg-gray-200 dark:hover:bg-zinc-600 text-sm text-zinc-400 dark:text-zinc-700"
-              previousClassName="inline-block px-4 py-2 border rounded-md hover:bg-gray-200 mr-1 dark:hover:bg-zinc-600 text-sm"
-              nextClassName="inline-block px-4 py-2 border rounded-md hover:bg-gray-200 ml-1 dark:hover:bg-zinc-600 text-sm"
-              activeLinkClassName="text-black font-bold dark:text-white text-sm text-primary"
+              pageClassName="inline-block px-3 py-2 border rounded-md hover:bg-gray-200 text-sm text-zinc-400"
+              previousClassName="inline-block px-4 py-2 border rounded-md hover:bg-gray-200 mr-1 text-sm"
+              nextClassName="inline-block px-4 py-2 border rounded-md hover:bg-gray-200 ml-1 text-sm"
+              activeLinkClassName="text-black font-bold text-sm text-primary"
             />
           </div>
         )}
