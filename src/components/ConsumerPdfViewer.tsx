@@ -188,7 +188,7 @@ export default function ConsumerPDFViewer({ isOpen, onClose, consumer }: Consume
             <button
                 onClick={onClose}
                 aria-label="Close"
-                className="absolute top-4 right-4 bg-red-500 hover:bg-red-700 text-white font-bold p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-red-300"
+                className="absolute top-4 right-72 bg-red-500 hover:bg-red-700 text-white font-bold p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-red-300"
             >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
