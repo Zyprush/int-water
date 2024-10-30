@@ -13,7 +13,7 @@ import AddNewConsumerModal from "@/components/adminAccount/AccountModal";
 import EditConsumerModal from "@/components/adminAccount/EditAccountModal";
 import { Consumer } from "@/components/adminAccount/types";
 import CAlertDialog from "@/components/ConfirmDialog";
-import ConsumerPDFViewer from "@/components/ConsumerPdfViewer";
+import Link from "next/link";
 
 
 const Account = () => {
@@ -28,10 +28,6 @@ const Account = () => {
   const [selectedConsumer, setSelectedConsumer] = useState<Consumer | null>(null);
 
   const [isExportCSVAlertOpen, setIsExportCSVAlertOpen] = useState(false);
-
-
-  const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
-  const [selectedConsumerForPdf, setSelectedConsumerForPdf] = useState<Consumer | null>(null);
 
   const checkOverdueBills = async (consumerId: string) => {
     try {
@@ -189,7 +185,7 @@ const Account = () => {
     const csvData = convertToCSV(consumers);
     const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
-
+    
     if (link.download !== undefined) {
       const url = URL.createObjectURL(blob);
       const date = new Date().toISOString().split('T')[0];
@@ -253,15 +249,10 @@ const Account = () => {
     fetchConsumers(); // Refetch the consumers to update the list
   };
 
-  const handleView = (id: string) => {
-    const consumer = consumers.find(c => c.id === id);
-    if (consumer) {
-      setSelectedConsumerForPdf(consumer);
-      setIsPdfModalOpen(true); // Open the modal after setting the consumer
-    }
-  };
-  
-
+  // const handleView = (id: string) => {
+  //   //TODO: Allen make the form like view. also the can print it
+  //   console.log("View button clicked for id:", id);
+  // };
 
   if (loading) {
     return <Loading />;
@@ -320,14 +311,13 @@ const Account = () => {
                   </td>
                   <td className="px-4 py-2">
                     <div className="flex space-x-2">
-                      <button
+                      <Link
                         className="text-blue-500 hover:text-blue-700 dark:text-blue-300 dark:hover:text-blue-500"
-                        onClick={() => handleView(item.id)}
-                      //href={`/admin/account/${item.id}`}
+                        // onClick={() => handleView(item.id)}
+                        href={`/admin/account/${item.id}`}
                       >
-
                         <IconEye size={18} />
-                      </button>
+                      </Link>
                       <button
                         className="text-green-500 hover:text-green-700 dark:text-green-300 dark:hover:text-green-500"
                         onClick={() => handleEdit(item)}
@@ -390,14 +380,6 @@ const Account = () => {
         onConfirm={confirmExportCSV}
         title="Confirm CSV Export"
         message="Are you sure you want to export the user data to CSV?"
-      />
-      <ConsumerPDFViewer
-        isOpen={isPdfModalOpen}
-        onClose={() => {
-          setIsPdfModalOpen(false);
-          setSelectedConsumerForPdf(null);
-        }}
-        consumer={selectedConsumerForPdf}
       />
     </NavLayout>
   );
