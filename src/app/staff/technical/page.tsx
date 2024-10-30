@@ -6,6 +6,9 @@ import { db } from "../../../../firebase";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
+import { useLogs } from "@/hooks/useLogs";
+import { currentTime } from "@/helper/time";
+import { useNotification } from "@/hooks/useNotification";
 import StaffNav from "@/components/StaffNav";
 
 interface Report {
@@ -16,30 +19,34 @@ interface Report {
   time: string;
   imageUrls: string[];
   submittedBy: string;
+  consumerID: string;
   location: string;
   createdAt: {
     seconds: number;
   };
-  status: "unresolved" | "inProgress" | "resolved";
+  status: "unresolved" | "inProgress" | "resolved" | "declined";
+  declineMessage?: string;
 }
 
 const Technical = () => {
   const [activeTab, setActiveTab] = useState<
-    "unresolved" | "inProgress" | "resolved"
+    "unresolved" | "inProgress" | "resolved" | "declined"
   >("unresolved");
-  const [dropdownVisible, setDropdownVisible] = useState<string | null>(null); // Changed to string for report.id
+  const [dropdownVisible, setDropdownVisible] = useState<string | null>(null);
   const [reports, setReports] = useState<Report[]>([]);
-  const [isUpdating, setIsUpdating] = useState(false); // Add loading state
-  const [searchTerm, setSearchTerm] = useState(""); // New state for search term
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const { addLog } = useLogs();
+  const { addNotification } = useNotification();
 
   const sliderSettings = {
-    // dots: true,
     infinite: true,
     speed: 500,
     slidesToShow: 1,
     slidesToScroll: 1,
-    arrows: true,
+    arrows: false,
     autoplay: false,
+    dots: true,
   };
 
   useEffect(() => {
@@ -62,7 +69,9 @@ const Technical = () => {
     }
   };
 
-  const handleTabClick = (tab: "unresolved" | "inProgress" | "resolved") => {
+  const handleTabClick = (
+    tab: "unresolved" | "inProgress" | "resolved" | "declined"
+  ) => {
     setActiveTab(tab);
     setDropdownVisible(null);
   };
@@ -75,7 +84,7 @@ const Technical = () => {
     reportId: string,
     newStatus: "inProgress" | "resolved"
   ) => {
-    if (isUpdating) return; // Prevent multiple clicks
+    if (isUpdating) return;
 
     if (
       window.confirm(
@@ -90,14 +99,31 @@ const Technical = () => {
           updatedAt: new Date(),
         });
 
-        // Update local state
+        const report = reports.find((r) => r.id === reportId);
+        if (report) {
+          await addLog({
+            date: currentTime,
+            name: `Updated ${report.submittedBy}'s report status to ${newStatus
+              .replace(/([A-Z])/g, " $1")
+              .toLowerCase()}`,
+          });
+          await addNotification({
+            date: currentTime,
+            name: `Report ID: ${report.id}, Dated: ${report.date} updated to ${newStatus
+              .replace(/([A-Z])/g, " $1")
+              .toLowerCase()}`,
+            read: false,
+            consumerId: report.consumerID,
+          });
+        }
+
         setReports((prevReports) =>
           prevReports.map((report) =>
             report.id === reportId ? { ...report, status: newStatus } : report
           )
         );
 
-        setDropdownVisible(null); // Close dropdown after successful update
+        setDropdownVisible(null);
       } catch (error) {
         console.error("Error updating status: ", error);
         alert("Failed to update status. Please try again.");
@@ -107,8 +133,63 @@ const Technical = () => {
     }
   };
 
+  const handleDecline = async (reportId: string) => {
+    if (isUpdating) return;
+
+    const declineMessage = window.prompt(
+      "Please enter the reason for declining:"
+    );
+
+    if (declineMessage === null) {
+      return;
+    }
+
+    if (declineMessage.trim() === "") {
+      alert("Please provide a reason for declining.");
+      return;
+    }
+
+    setIsUpdating(true);
+    try {
+      const reportRef = doc(db, "reports", reportId);
+      await updateDoc(reportRef, {
+        status: "declined",
+        declineMessage: declineMessage,
+        updatedAt: new Date(),
+      });
+
+      const report = reports.find((r) => r.id === reportId);
+      if (report) {
+        await addLog({
+          date: currentTime,
+          name: `Declined ${report.submittedBy}'s report: ${declineMessage}`,
+        });
+        await addNotification({
+          date: currentTime,
+          name: `Report ID: ${report.id}, dated: ${report.date}, updated to declined`,
+          read: false,
+          consumerId: report.consumerID,
+        });
+      }
+
+      setReports((prevReports) =>
+        prevReports.map((report) =>
+          report.id === reportId
+            ? { ...report, status: "declined", declineMessage: declineMessage }
+            : report
+        )
+      );
+
+      setDropdownVisible(null);
+    } catch (error) {
+      console.error("Error declining report: ", error);
+      alert("Failed to decline report. Please try again.");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
   const renderIssues = () => {
-    // Filter reports based on the active tab and search term
     const filteredIssues = reports.filter(
       (report) =>
         report.status === activeTab &&
@@ -129,29 +210,50 @@ const Technical = () => {
         className="relative p-4 bg-white dark:bg-gray-800 shadow rounded-lg mb-4"
       >
         <div className="flex gap-8 items-start">
-          {/* Image Slider */}
           {report.imageUrls && report.imageUrls.length > 0 && (
-            <div className="w-48">
-              <Slider {...sliderSettings}>
-                {report.imageUrls.map((url, index) => (
-                  <div key={index} className="relative">
-                    <a href={url} target="_blank" rel="noopener noreferrer">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={url}
-                        alt={`Report ${index + 1}`}
-                        className="w-40 h-40 object-cover rounded-lg"
-                      />
-                    </a>
-                  </div>
-                ))}
-              </Slider>
+            <div className="w-48 mb-4">
+              {report.imageUrls.length > 1 ? (
+                <Slider {...sliderSettings}>
+                  {report.imageUrls.map((url, imageIndex) => (
+                    <div key={imageIndex} className="">
+                      <a
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={url}
+                          alt={`Report ${imageIndex + 1}`}
+                          className="h-40 w-full object-cover rounded-lg"
+                        />
+                      </a>
+                    </div>
+                  ))}
+                </Slider>
+              ) : (
+                <a
+                  href={report.imageUrls[0]}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={report.imageUrls[0]}
+                    alt="Report"
+                    className="h-40 w-full object-cover rounded-lg"
+                  />
+                </a>
+              )}
             </div>
           )}
 
           <div className="flex-1">
-            <h2 className="font-bold text-primary dark:text-white">
-              {report.submittedBy}
+            <h2 className="font-bold text-primary dark:text-white mb-2">
+              {report.submittedBy}{" "}
+              <span className="bg-primary text-white rounded p-1 px-2 text-xs">
+                {report.status}
+              </span>
             </h2>
             <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
               Issues: {report.issues.join(", ") || "No Issues"}
@@ -161,20 +263,21 @@ const Technical = () => {
                 Other Issue: {report.otherIssue}
               </p>
             )}
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Reported on:{" "}
-              {new Date(report.createdAt.seconds * 1000).toLocaleDateString()}{" "}
-              at{" "}
-              {new Date(report.createdAt.seconds * 1000).toLocaleTimeString()}
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              Reported on: {report.date} at {report.time}
             </p>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
               Location: {report.location}
             </p>
+            {report.status === "declined" && report.declineMessage && (
+              <p className="text-xs text-red-500 dark:text-red-400 mt-1">
+                Declined: {report.declineMessage}
+              </p>
+            )}
           </div>
 
-          {/* Dropdown Container */}
           <div className="dropdown-container relative ml-auto">
-            {report.status !== "resolved" && (
+            {report.status !== "resolved" && report.status !== "declined" && (
               <button
                 className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
                 onClick={(e) => {
@@ -187,19 +290,26 @@ const Technical = () => {
               </button>
             )}
 
-            {/* Dropdown Menu */}
             {dropdownVisible === report.id && (
               <div className="absolute right-0 top-8 dark:text-white bg-white dark:bg-gray-800 shadow-lg rounded-md w-40 z-10">
                 <ul className="py-2">
                   {report.status === "unresolved" && (
-                    <li
-                      className="px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
-                      onClick={() =>
-                        handleStatusChange(report.id, "inProgress")
-                      }
-                    >
-                      Mark as In Progress
-                    </li>
+                    <>
+                      <li
+                        className="px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
+                        onClick={() =>
+                          handleStatusChange(report.id, "inProgress")
+                        }
+                      >
+                        Mark as In Progress
+                      </li>
+                      <li
+                        className="px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
+                        onClick={() => handleDecline(report.id)}
+                      >
+                        Declined
+                      </li>
+                    </>
                   )}
                   {report.status === "inProgress" && (
                     <li
@@ -221,7 +331,6 @@ const Technical = () => {
   return (
     <StaffNav>
       <div className="p-4 pt-0">
-        {/* Search Input */}
         <div className="mb-4">
           <input
             type="text"
@@ -238,7 +347,7 @@ const Technical = () => {
             className={`px-4 py-2 rounded ${
               activeTab === "unresolved"
                 ? "bg-primary text-white"
-                : "bg-gray-100 dark:bg-gray-700"
+                : "bg-gray-100 dark:bg-gray-700 text-primary text-sm"
             }`}
           >
             Unresolved
@@ -248,7 +357,7 @@ const Technical = () => {
             className={`px-4 py-2 rounded ${
               activeTab === "inProgress"
                 ? "bg-primary text-white"
-                : "bg-gray-100 dark:bg-gray-700"
+                : "bg-gray-100 dark:bg-gray-700 text-primary text-sm"
             }`}
           >
             In Progress
@@ -258,10 +367,20 @@ const Technical = () => {
             className={`px-4 py-2 rounded ${
               activeTab === "resolved"
                 ? "bg-primary text-white"
-                : "bg-gray-100 dark:bg-gray-700"
+                : "bg-gray-100 dark:bg-gray-700 text-primary text-sm"
             }`}
           >
             Resolved
+          </button>
+          <button
+            onClick={() => handleTabClick("declined")}
+            className={`px-4 py-2 rounded ${
+              activeTab === "declined"
+                ? "bg-primary text-white"
+                : "bg-gray-100 dark:bg-gray-700 text-primary text-sm"
+            }`}
+          >
+            Declined
           </button>
         </div>
 
