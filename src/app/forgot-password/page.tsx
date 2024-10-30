@@ -49,7 +49,7 @@ const ForgotPassword = () => {
               />
             </div>
             {error && <p className="text-red-500 text-sm">{error}</p>}
-            {message && <p className="text-green-500 text-sm">{message}</p>}
+            {message && <p className="text-white text-sm">{message}</p>}
             <div className="flex justify-between gap-5">
               <Link
                 className="btn btn-primary"
