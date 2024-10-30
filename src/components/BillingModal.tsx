@@ -70,10 +70,16 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, billing, onPayStatusChan
 
   const handlePayStatusChange = () => {
     if (isPaymentValid) {
-      onPayStatusChange(billing.id);
-      setAmountGiven('');
-      setChange(0);
-      setIsPaymentValid(false);
+      const confirmMessage = billing.status === 'Paid' 
+        ? `Are you sure you want to mark this bill as unpaid for ${billing.consumer}?`
+        : `Confirm payment of ₱${totalDue.toFixed(2)} for ${billing.consumer}?`;
+
+      if (window.confirm(confirmMessage)) {
+        onPayStatusChange(billing.id);
+        setAmountGiven('');
+        setChange(0);
+        setIsPaymentValid(false);
+      }
     }
   };
 
