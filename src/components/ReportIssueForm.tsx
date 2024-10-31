@@ -42,6 +42,18 @@ const ReportIssueForm: React.FC<ReportIssueFormProps> = ({ onCancel }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (
+      !selectedIssues.length ||
+      !date ||
+      !time ||
+      !consumerData?.applicantName ||
+      !consumerData?.installationAddress ||
+      !uid
+    ) {
+      window.alert("Please fill in all required fields");
+      return;
+    }
+
     setLoading(true); // Set loading to true at the start
     try {
       // Upload images to Firebase Storage
@@ -67,7 +79,7 @@ const ReportIssueForm: React.FC<ReportIssueFormProps> = ({ onCancel }) => {
         status: "unresolved",
       });
 
-      alert("Issue reported successfully!");
+      window.alert("Issue reported successfully!");
       setSelectedIssues([]);
       setOtherIssue("");
       setDate("");
@@ -76,7 +88,7 @@ const ReportIssueForm: React.FC<ReportIssueFormProps> = ({ onCancel }) => {
       onCancel(); // Close the form
     } catch (error) {
       console.error("Error reporting issue: ", error);
-      alert("Failed to report issue.");
+      window.alert("Failed to report issue.");
     } finally {
       setLoading(false); // Set loading back to false after completion
     }
@@ -145,12 +157,14 @@ const ReportIssueForm: React.FC<ReportIssueFormProps> = ({ onCancel }) => {
             value={date}
             onChange={(e) => setDate(e.target.value)}
             className="p-2 border rounded-lg w-1/2 text-sm bg-zinc-50"
+            required
           />
           <input
             type="time"
             value={time}
             onChange={(e) => setTime(e.target.value)}
             className="p-2 border rounded-lg w-1/2 text-sm bg-zinc-50"
+            required
           />
         </div>
       </div>
@@ -222,3 +236,4 @@ const ReportIssueForm: React.FC<ReportIssueFormProps> = ({ onCancel }) => {
 };
 
 export default ReportIssueForm;
+

@@ -109,9 +109,13 @@ const Technical = () => {
           });
           await addNotification({
             date: currentTime,
-            name: `Report ID: ${report.id}, Dated: ${report.date} updated to ${newStatus
-              .replace(/([A-Z])/g, " $1")
-              .toLowerCase()}`,
+            name: newStatus === "inProgress"
+              ? `Update: We’re currently working to resolve your reported issue. Our technical team is actively addressing it, and we’ll notify you once the issue is resolved. Thank you for your continued patience.`
+              : newStatus === "resolved"
+              ? `Good news! Your reported issue has been resolved. Thank you for allowing us the opportunity to assist. If you experience any further issues, please don’t hesitate to report them.`
+              : newStatus === "declined"
+              ? `We regret to inform you that we could not address your reported issue as submitted. Please review the issue details and re-submit if necessary. Contact our support team if you need assistance.`
+              : `Thank you for reporting your issue on ${report.date}. Our team is reviewing it, and we'll update you on the progress soon. Thank you for your patience.`,
             read: false,
             consumerId: report.consumerID,
           });
@@ -166,7 +170,7 @@ const Technical = () => {
         });
         await addNotification({
           date: currentTime,
-          name: `Report ID: ${report.id}, dated: ${report.date}, updated to declined`,
+          name: `Technical issue dated: ${report.date}, updated to declined. We regret to inform you that we could not address your reported issue as submitted. Please review the issue details and re-submit if necessary. Contact our support team if you need assistance.`,
           read: false,
           consumerId: report.consumerID,
         });
