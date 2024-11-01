@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { db } from '../../firebase';
+import { collection, doc, getDocs, updateDoc } from 'firebase/firestore';
 
 interface BillingItem {
   id: string;
@@ -13,6 +15,7 @@ interface BillingItem {
   previousReading: number;
   previousUnpaidBill: number;
   rate: number;
+  consumerId: string;
 }
 
 interface ModalProps {
@@ -68,16 +71,44 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, billing, onPayStatusChan
     }
   }, [amountGiven, billing.amount, billing.previousUnpaidBill, billing.rate]);
 
-  const handlePayStatusChange = () => {
+  const handlePayStatusChange = async () => {
     const confirmMessage = billing.status === 'Paid'
       ? `Are you sure you want to mark this bill as unpaid for ${billing.consumer}?`
       : `Confirm payment of ₱${totalDue.toFixed(2)} for ${billing.consumer}?`;
-  
+
     if (window.confirm(confirmMessage)) {
-      onPayStatusChange(billing.id);
-      setAmountGiven('');
-      setChange(0);
-      setIsPaymentValid(false);
+      try {
+        if (billing.status !== 'Paid') {
+          // Get all billings
+          const billingsRef = collection(db, 'billings');
+          const querySnapshot = await getDocs(billingsRef);
+
+          // Find and update previous overdue bills
+          querySnapshot.forEach(async (document) => {
+            const billingData = document.data();
+
+            if (billingData.consumerId === billing.consumerId &&
+              billingData.status === 'Overdue' &&
+              billingData.readingDate < billing.readingDate) {
+
+              const billingRef = doc(db, 'billings', document.id);
+              await updateDoc(billingRef, {
+                status: 'Paid',
+                updatedAt: new Date().toISOString()
+              });
+            }
+          });
+        }
+
+        // Update current billing status
+        onPayStatusChange(billing.id);
+        setAmountGiven('');
+        setChange(0);
+        setIsPaymentValid(false);
+      } catch (error) {
+        console.error('Error updating billing status:', error);
+        alert('There was an error updating the billing status. Please try again.');
+      }
     }
   };
 
@@ -159,11 +190,10 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, billing, onPayStatusChan
           {billing.status !== 'Paid' ? (
             <button
               onClick={handlePayStatusChange}
-              className={`px-6 py-3 rounded-lg font-semibold text-white transition-transform duration-200 transform ${
-                isPaymentValid
-                  ? 'bg-green-500 hover:bg-green-600 active:scale-95'
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              }`}
+              className={`px-6 py-3 rounded-lg font-semibold text-white transition-transform duration-200 transform ${isPaymentValid
+                ? 'bg-green-500 hover:bg-green-600 active:scale-95'
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                }`}
               disabled={!isPaymentValid}
             >
               Mark as Paid
