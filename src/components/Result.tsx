@@ -119,35 +119,49 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
                 <head>
                     <title>Water Billing Receipt</title>
                     <style>
+                        @page {
+                            size: 58mm auto;
+                            margin: 2mm;
+                        }
                         body { 
-                            font-family: Arial, sans-serif;
-                            padding: 20px;
-                            max-width: 800px;
-                            margin: 0 auto;
+                            font-family: 'Courier New', monospace;
+                            width: 54mm;
+                            padding: 0;
+                            margin: 0;
+                            font-size: 8pt;
                         }
                         .header {
                             text-align: center;
-                            margin-bottom: 20px;
+                            margin-bottom: 5mm;
                         }
-                        .details {
-                            display: grid;
-                            grid-template-columns: 1fr 1fr;
-                            gap: 20px;
-                            margin-bottom: 20px;
+                        .header h1 {
+                            font-size: 10pt;
+                            margin: 0;
+                            padding: 0;
+                        }
+                        .header p {
+                            font-size: 8pt;
+                            margin: 2mm 0;
+                        }
+                        .detail-line {
+                            display: flex;
+                            justify-content: space-between;
+                            margin: 1mm 0;
+                        }
+                        .divider {
+                            border-top: 1px dashed #000;
+                            margin: 2mm 0;
                         }
                         .readings {
-                            border-top: 1px solid #ccc;
-                            border-bottom: 1px solid #ccc;
-                            padding: 20px 0;
-                            margin-bottom: 20px;
+                            margin: 2mm 0;
                         }
                         .footer {
-                            font-size: 0.9em;
                             text-align: center;
+                            font-size: 7pt;
+                            margin-top: 3mm;
                         }
                         @media print {
-                            body { padding: 0; }
-                            @page { margin: 0.5cm; }
+                            body { width: 100%; }
                         }
                     </style>
                 </head>
@@ -157,37 +171,71 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
                         <p>Municipal Water System</p>
                     </div>
                     
-                    <div class="details">
-                        <div>
-                            <p><strong>Receipt No:</strong> ${billingData.month}-${billingData.consumerSerialNo}</p>
-                            <p><strong>Date:</strong> ${billingData.readingDate}</p>
-                            <p><strong>Due Date:</strong> ${billingData.dueDate}</p>
-                        </div>
-                        <div>
-                            <p><strong>Consumer No:</strong> ${billingData.consumerSerialNo}</p>
-                            <p><strong>Name:</strong> ${billingData.consumerName}</p>
-                            <p><strong>Barangay:</strong> ${consumer.barangay}</p>
-                        </div>
+                    <div class="detail-line">
+                        <span>Receipt#:</span>
+                        <span>${billingData.month}-${billingData.consumerSerialNo}</span>
                     </div>
-                    
+                    <div class="detail-line">
+                        <span>Date:</span>
+                        <span>${billingData.readingDate}</span>
+                    </div>
+                    <div class="detail-line">
+                        <span>Due Date:</span>
+                        <span>${billingData.dueDate}</span>
+                    </div>
+    
+                    <div class="divider"></div>
+    
+                    <div class="detail-line">
+                        <span>Consumer#:</span>
+                        <span>${billingData.consumerSerialNo}</span>
+                    </div>
+                    <div class="detail-line">
+                        <span>Name:</span>
+                        <span>${billingData.consumerName}</span>
+                    </div>
+                    <div class="detail-line">
+                        <span>Brgy:</span>
+                        <span>${consumer.barangay}</span>
+                    </div>
+    
+                    <div class="divider"></div>
+    
                     <div class="readings">
-                        <div class="details">
-                            <div>
-                                <p><strong>Previous Reading:</strong> ${billingData.previousReading}</p>
-                                <p><strong>Current Reading:</strong> ${billingData.currentReading}</p>
-                                <p><strong>Consumption:</strong> ${consumption} cu.m</p>
-                            </div>
-                            <div>
-                                <p><strong>Rate:</strong> ₱${consumer.rate}/cu.m</p>
-                                <p><strong>Amount Due:</strong> ₱${billingData.amount.toFixed(2)}</p>
-                                <p><strong>Status:</strong> ${billingData.status}</p>
-                            </div>
+                        <div class="detail-line">
+                            <span>Prev Reading:</span>
+                            <span>${billingData.previousReading}</span>
+                        </div>
+                        <div class="detail-line">
+                            <span>Curr Reading:</span>
+                            <span>${billingData.currentReading}</span>
+                        </div>
+                        <div class="detail-line">
+                            <span>Consumption:</span>
+                            <span>${consumption} cu.m</span>
+                        </div>
+                        <div class="detail-line">
+                            <span>Rate:</span>
+                            <span>₱${consumer.rate}/cu.m</span>
                         </div>
                     </div>
+    
+                    <div class="divider"></div>
+    
+                    <div class="detail-line" style="font-weight: bold;">
+                        <span>Amount Due:</span>
+                        <span>₱${billingData.amount.toFixed(2)}</span>
+                    </div>
+                    <div class="detail-line">
+                        <span>Status:</span>
+                        <span>${billingData.status}</span>
+                    </div>
+    
+                    <div class="divider"></div>
                     
                     <div class="footer">
-                        <p>Please present this receipt when making payment.</p>
-                        <p>For inquiries, please contact Municipal Water Office.</p>
+                        <p>Please present this receipt when making payment</p>
+                        <p>For inquiries, contact Municipal Water Office</p>
                     </div>
                 </body>
             </html>
