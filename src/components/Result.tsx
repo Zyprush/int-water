@@ -39,7 +39,7 @@ interface BillPreviewProps {
     onCancel: () => void;
 }
 
-const BillPreview: React.FC<BillPreviewProps> = ({ billing, onConfirm, onCancel }) => {
+const BillPreview: React.FC<BillPreviewProps> = ({ billing, consumer, onConfirm, onCancel }) => {
     const consumption = billing.currentReading - billing.previousReading;
 
     return (
@@ -69,16 +69,46 @@ const BillPreview: React.FC<BillPreviewProps> = ({ billing, onConfirm, onCancel 
 
                     <div className="border-t border-b py-2 space-y-2">
                         <div className="flex justify-between">
+                            <span>Consumer#:</span>
+                            <span>{billing.consumerSerialNo}</span>
+                        </div>
+                        <div className="flex justify-between">
                             <span>Name:</span>
                             <span>{billing.consumerName}</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span>Brgy:</span>
+                            <span>{consumer.barangay}</span>
+                        </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <div className="flex justify-between">
+                            <span>Prev Reading:</span>
+                            <span>{billing.previousReading}</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span>Curr Reading:</span>
+                            <span>{billing.currentReading}</span>
                         </div>
                         <div className="flex justify-between">
                             <span>Consumption:</span>
                             <span>{consumption} cu.m</span>
                         </div>
+                        <div className="flex justify-between">
+                            <span>Rate:</span>
+                            <span>₱{consumer.rate}/cu.m</span>
+                        </div>
+                    </div>
+
+                    <div className="border-t pt-2">
                         <div className="flex justify-between font-bold">
                             <span>Amount Due:</span>
                             <span>₱{billing.amount.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span>Status:</span>
+                            <span>{billing.status}</span>
                         </div>
                     </div>
 
