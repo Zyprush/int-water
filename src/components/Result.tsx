@@ -39,7 +39,7 @@ interface BillPreviewProps {
     onCancel: () => void;
 }
 
-const BillPreview: React.FC<BillPreviewProps> = ({ billing, consumer, onConfirm, onCancel }) => {
+const BillPreview: React.FC<BillPreviewProps> = ({ billing, onConfirm, onCancel }) => {
     const consumption = billing.currentReading - billing.previousReading;
 
     return (
@@ -49,7 +49,7 @@ const BillPreview: React.FC<BillPreviewProps> = ({ billing, consumer, onConfirm,
                 <div className="p-4 space-y-4">
                     <div className="text-center space-y-2">
                         <h1 className="text-xl font-bold">Water Billing Receipt</h1>
-                        <p className="text-sm">Municipal Water System</p>
+                        <p className="text-sm">Balao Water System</p>
                     </div>
 
                     <div className="space-y-2">
@@ -69,46 +69,16 @@ const BillPreview: React.FC<BillPreviewProps> = ({ billing, consumer, onConfirm,
 
                     <div className="border-t border-b py-2 space-y-2">
                         <div className="flex justify-between">
-                            <span>Consumer#:</span>
-                            <span>{billing.consumerSerialNo}</span>
-                        </div>
-                        <div className="flex justify-between">
                             <span>Name:</span>
                             <span>{billing.consumerName}</span>
-                        </div>
-                        <div className="flex justify-between">
-                            <span>Brgy:</span>
-                            <span>{consumer.barangay}</span>
-                        </div>
-                    </div>
-
-                    <div className="space-y-2">
-                        <div className="flex justify-between">
-                            <span>Prev Reading:</span>
-                            <span>{billing.previousReading}</span>
-                        </div>
-                        <div className="flex justify-between">
-                            <span>Curr Reading:</span>
-                            <span>{billing.currentReading}</span>
                         </div>
                         <div className="flex justify-between">
                             <span>Consumption:</span>
                             <span>{consumption} cu.m</span>
                         </div>
-                        <div className="flex justify-between">
-                            <span>Rate:</span>
-                            <span>₱{consumer.rate}/cu.m</span>
-                        </div>
-                    </div>
-
-                    <div className="border-t pt-2">
                         <div className="flex justify-between font-bold">
                             <span>Amount Due:</span>
                             <span>₱{billing.amount.toFixed(2)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                            <span>Status:</span>
-                            <span>{billing.status}</span>
                         </div>
                     </div>
 
