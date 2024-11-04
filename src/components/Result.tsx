@@ -32,6 +32,13 @@ interface WaterConsumptionResultProps {
     closeCamera: () => void;
 }
 
+interface BillPreviewProps {
+    billing: Billing;
+    consumer: Consumer;
+    onConfirm: () => void;
+    onCancel: () => void;
+}
+
 const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recognizedText, closeCamera }) => {
     const [waterConsumption, setWaterConsumption] = useState<string>(recognizedText || '');
     const [selectedConsumer, setSelectedConsumer] = useState<Consumer | null>(null);
@@ -460,7 +467,7 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
             alert('Failed to upload billing data.');
         }
     };
-
+    
     const handleUploadAndPrint = async () => {
         if (!selectedConsumer) return;
 
