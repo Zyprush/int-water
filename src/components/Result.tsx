@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { collection, addDoc, getDocs, query, where, Timestamp, doc, updateDoc, orderBy, limit } from 'firebase/firestore';
 import { db } from '../../firebase';
+import { Check, X } from 'lucide-react';
 
 interface Consumer {
     waterMeterSerialNo: string;
@@ -38,6 +39,9 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
     const [consumers, setConsumers] = useState<Consumer[]>([]);
     const [currentBill, setCurrentBill] = useState<number>(0);
     const [lastBilling, setLastBilling] = useState<Billing | null>(null);
+
+    const [showPreview, setShowPreview] = useState(false);
+    const [previewBilling, setPreviewBilling] = useState(null);
 
     useEffect(() => {
         fetchConsumers();
@@ -107,6 +111,164 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
             consumer.barangay.toLowerCase().includes(searchTerm.toLowerCase())
         );
     }, [consumers, searchTerm]);
+
+    const handlePreviewBill = () => {
+        if (!selectedConsumer) return;
+
+        const currentDate = new Date();
+        const currentYear = currentDate.getFullYear();
+        const currentMonth = currentDate.getMonth() + 1;
+        const monthKey = `${currentYear}-${String(currentMonth).padStart(2, '0')}`;
+        const readingDate = currentDate.toISOString().split('T')[0];
+        const dueDate = new Date(currentYear, currentMonth, 0);
+        dueDate.setDate(dueDate.getDate() - 5);
+
+        const newReading = parseInt(waterConsumption.replace(/^0+/, ''));
+
+        const billingData = {
+            month: monthKey,
+            readingDate,
+            consumerId: selectedConsumer.uid,
+            consumerSerialNo: selectedConsumer.waterMeterSerialNo,
+            consumerName: selectedConsumer.applicantName,
+            amount: currentBill,
+            dueDate: dueDate.toISOString().split('T')[0],
+            status: 'Unpaid',
+            createdAt: Timestamp.now(),
+            previousReading: lastBilling ? lastBilling.currentReading : selectedConsumer.initialReading,
+            currentReading: newReading
+        };
+
+        setPreviewBilling(billingData);
+        setShowPreview(true);
+    };
+
+    const BillPreview = ({ billing, consumer, onConfirm, onCancel }) => {
+        const consumption = billing.currentReading - billing.previousReading;
+
+        return (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center h-screen z-50">
+                <div className="bg-white dark:bg-gray-800 w-full max-w-sm rounded-lg shadow-lg overflow-y-auto max-h-screen">
+
+                    <div className="p-4 space-y-4">
+                        <div className="text-center space-y-2">
+                            <h1 className="text-xl font-bold">Water Billing Receipt</h1>
+                            <p className="text-sm">Municipal Water System</p>
+                        </div>
+
+                        <div className="space-y-2">
+                            <div className="flex justify-between">
+                                <span>Receipt#:</span>
+                                <span>{billing.month}-{billing.consumerSerialNo}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span>Date:</span>
+                                <span>{billing.readingDate}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span>Due Date:</span>
+                                <span>{billing.dueDate}</span>
+                            </div>
+                        </div>
+
+                        <div className="border-t border-b py-2 space-y-2">
+                            <div className="flex justify-between">
+                                <span>Consumer#:</span>
+                                <span>{billing.consumerSerialNo}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span>Name:</span>
+                                <span>{billing.consumerName}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span>Brgy:</span>
+                                <span>{consumer.barangay}</span>
+                            </div>
+                        </div>
+
+                        <div className="space-y-2">
+                            <div className="flex justify-between">
+                                <span>Prev Reading:</span>
+                                <span>{billing.previousReading}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span>Curr Reading:</span>
+                                <span>{billing.currentReading}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span>Consumption:</span>
+                                <span>{consumption} cu.m</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span>Rate:</span>
+                                <span>₱{consumer.rate}/cu.m</span>
+                            </div>
+                        </div>
+
+                        <div className="border-t pt-2">
+                            <div className="flex justify-between font-bold">
+                                <span>Amount Due:</span>
+                                <span>₱{billing.amount.toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span>Status:</span>
+                                <span>{billing.status}</span>
+                            </div>
+                        </div>
+
+                        <div className="text-center text-sm space-y-1 text-gray-600 dark:text-gray-400">
+                            <p>Please present this receipt when making payment</p>
+                            <p>For inquiries, contact Municipal Water Office</p>
+                        </div>
+                    </div>
+
+                    <div className="sticky bottom-0 bg-white dark:bg-gray-800 p-4 border-t flex justify-between gap-4">
+                        <button
+                            onClick={onCancel}
+                            className="flex-1 flex items-center justify-center gap-2 bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded"
+                        >
+                            <X size={20} />
+                            Cancel
+                        </button>
+                        <button
+                            onClick={onConfirm}
+                            className="flex-1 flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded"
+                        >
+                            <Check size={20} />
+                            Confirm
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    const handleConfirmBill = async () => {
+        if (!selectedConsumer || !previewBilling) return;
+
+        try {
+            const billingsRef = collection(db, 'billings');
+            await addDoc(billingsRef, previewBilling);
+
+            const consumerRef = doc(db, 'consumers', selectedConsumer.docId);
+            await updateDoc(consumerRef, {
+                initialReading: previewBilling.currentReading
+            });
+
+            await handlePrint(previewBilling, selectedConsumer);
+
+            await fetchConsumers();
+            setSelectedConsumer(null);
+            setWaterConsumption('');
+            setCurrentBill(0);
+            setLastBilling(null);
+            setShowPreview(false);
+            closeCamera();
+        } catch (error) {
+            console.error("Error processing billing: ", error);
+            alert('Failed to process billing. Please try again.');
+        }
+    };
 
     const handlePrint = async (billingData: Billing, consumer: Consumer) => {
         const printWindow = window.open('', '_blank');
@@ -437,11 +599,20 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
                 </button>
             </div>
             <button
-                onClick={handleUploadAndPrint}
+                onClick={handlePreviewBill}
                 className="w-full mt-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
             >
-                UPLOAD and PRINT Receipt
+                Preview and Print Receipt
             </button>
+
+            {showPreview && (
+                <BillPreview
+                    billing={previewBilling}
+                    consumer={selectedConsumer}
+                    onConfirm={handleConfirmBill}
+                    onCancel={() => setShowPreview(false)}
+                />
+            )}
         </div>
     );
 };

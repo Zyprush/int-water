@@ -1,180 +1,93 @@
-"use client"
-
 import NavLayout from '@/components/NavLayout';
 import React from 'react';
 
-const TestReceiptPage = () => {
-    const handlePrint = () => {
-        const printWindow = window.open('', '_blank');
-        if (!printWindow) return;
-
-        const printContent = `
-            <html>
-                <head>
-                    <title>Test Receipt</title>
-                    <style>
-                        @page {
-                            size: 58mm auto;
-                            margin: 2mm;
-                        }
-                        body { 
-                            font-family: 'Courier New', monospace;
-                            width: 54mm;
-                            padding: 0;
-                            margin: 0;
-                            font-size: 8pt;
-                        }
-                        .header {
-                            text-align: center;
-                            margin-bottom: 5mm;
-                        }
-                        .header h1 {
-                            font-size: 10pt;
-                            margin: 0;
-                            padding: 0;
-                        }
-                        .header p {
-                            font-size: 8pt;
-                            margin: 2mm 0;
-                        }
-                        .detail-line {
-                            display: flex;
-                            justify-content: space-between;
-                            margin: 1mm 0;
-                        }
-                        .divider {
-                            border-top: 1px dashed #000;
-                            margin: 2mm 0;
-                        }
-                        .footer {
-                            text-align: center;
-                            font-size: 7pt;
-                            margin-top: 3mm;
-                        }
-                        .items {
-                            margin: 2mm 0;
-                        }
-                        .total {
-                            font-weight: bold;
-                            margin-top: 2mm;
-                        }
-                        @media print {
-                            body { width: 100%; }
-                        }
-                    </style>
-                </head>
-                <body>
-                    <div class="header">
-                        <h1>Test Receipt</h1>
-                        <p>Sample Store</p>
-                    </div>
-                    
-                    <div class="detail-line">
-                        <span>Receipt#:</span>
-                        <span>TEST-001</span>
-                    </div>
-                    <div class="detail-line">
-                        <span>Date:</span>
-                        <span>${new Date().toLocaleDateString()}</span>
-                    </div>
-                    <div class="detail-line">
-                        <span>Time:</span>
-                        <span>${new Date().toLocaleTimeString()}</span>
-                    </div>
-
-                    <div class="divider"></div>
-
-                    <div class="detail-line">
-                        <span>Cashier:</span>
-                        <span>JOHN DOE</span>
-                    </div>
-
-                    <div class="divider"></div>
-
-                    <div class="items">
-                        <div class="detail-line">
-                            <span>Item 1</span>
-                            <span>₱100.00</span>
-                        </div>
-                        <div class="detail-line">
-                            <span>Item 2</span>
-                            <span>₱150.00</span>
-                        </div>
-                        <div class="detail-line">
-                            <span>Item 3</span>
-                            <span>₱200.00</span>
-                        </div>
-                        <div class="detail-line">
-                            <span>Item 4</span>
-                            <span>₱75.50</span>
-                        </div>
-                    </div>
-
-                    <div class="divider"></div>
-
-                    <div class="detail-line total">
-                        <span>TOTAL:</span>
-                        <span>₱525.50</span>
-                    </div>
-
-                    <div class="divider"></div>
-                    
-                    <div class="footer">
-                        <p>Thank you for your purchase!</p>
-                        <p>Please come again</p>
-                    </div>
-                </body>
-            </html>
-        `;
-
-        printWindow.document.write(printContent);
-        printWindow.document.close();
-
-        setTimeout(() => {
-            printWindow.print();
-            printWindow.close();
-        }, 500);
-    };
+const StaticReceipt = () => {
+    const currentDate = new Date().toLocaleDateString();
+    const currentTime = new Date().toLocaleTimeString();
 
     return (
         <NavLayout>
-        <div className="p-4 max-w-md mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-md">
-            <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-gray-100">
-                Printer Test Page
-            </h2>
-            
-            <div className="space-y-4">
-                <div className="p-4 border rounded-lg bg-gray-50 dark:bg-gray-700">
-                    <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-2">
-                        Test Receipt Information
-                    </h3>
-                    <ul className="list-disc pl-5 text-sm text-gray-600 dark:text-gray-300">
-                        <li>Paper width: 58mm</li>
-                        <li>Font: Courier New</li>
-                        <li>Font sizes: 7-10pt</li>
-                        <li>Contains: Header, items, totals, and footer</li>
-                    </ul>
-                </div>
+        <div className="w-[58mm] mx-auto bg-white text-black font-mono text-[8pt] p-[2mm]" style={{ minWidth: '58mm' }}>
+            {/* Header */}
+            <div className="text-center mb-[5mm]">
+                <h1 className="text-[10pt] font-bold m-0">WATER BILLING</h1>
+                <p className="text-[8pt] m-0 mt-1">Municipal Water System</p>
+                <p className="text-[8pt] m-0">Contact: 123-456-7890</p>
+            </div>
 
-                <div className="flex flex-col gap-2">
-                    <button
-                        onClick={handlePrint}
-                        className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
-                    >
-                        Print Test Receipt
-                    </button>
+            {/* Receipt Details */}
+            <div className="border-t border-dashed border-black py-[2mm]">
+                <div className="flex justify-between">
+                    <span>Date:</span>
+                    <span>{currentDate}</span>
                 </div>
+                <div className="flex justify-between">
+                    <span>Time:</span>
+                    <span>{currentTime}</span>
+                </div>
+                <div className="flex justify-between">
+                    <span>Receipt#:</span>
+                    <span>WB-001</span>
+                </div>
+            </div>
 
-                <div className="text-sm text-gray-500 dark:text-gray-400 mt-4">
-                    <p>
-                        Click the button above to generate a test receipt. 
-                        If the receipt prints correctly, your printer is compatible with the format.
-                    </p>
+            {/* Consumer Details */}
+            <div className="border-t border-dashed border-black py-[2mm]">
+                <div className="flex justify-between">
+                    <span>Consumer#:</span>
+                    <span>12345</span>
                 </div>
+                <div className="flex justify-between">
+                    <span>Name:</span>
+                    <span>John Doe</span>
+                </div>
+                <div className="flex justify-between">
+                    <span>Address:</span>
+                    <span>Brgy. Example</span>
+                </div>
+            </div>
+
+            {/* Readings */}
+            <div className="border-t border-dashed border-black py-[2mm]">
+                <div className="flex justify-between">
+                    <span>Previous:</span>
+                    <span>1000</span>
+                </div>
+                <div className="flex justify-between">
+                    <span>Current:</span>
+                    <span>1100</span>
+                </div>
+                <div className="flex justify-between">
+                    <span>Consumption:</span>
+                    <span>100 cu.m</span>
+                </div>
+                <div className="flex justify-between">
+                    <span>Rate:</span>
+                    <span>₱15.00/cu.m</span>
+                </div>
+            </div>
+
+            {/* Total */}
+            <div className="border-t border-dashed border-black py-[2mm]">
+                <div className="flex justify-between font-bold">
+                    <span>TOTAL DUE:</span>
+                    <span>₱1,500.00</span>
+                </div>
+                <div className="flex justify-between">
+                    <span>Due Date:</span>
+                    <span>Nov 30, 2024</span>
+                </div>
+            </div>
+
+            {/* Footer */}
+            <div className="border-t border-dashed border-black pt-[2mm] text-center">
+                <p className="text-[7pt] m-0">Please present this receipt when making payment</p>
+                <p className="text-[7pt] m-0 mt-1">Thank you for your prompt payment!</p>
+                <p className="text-[7pt] m-0 mt-1">--- Municipal Water Office ---</p>
             </div>
         </div>
         </NavLayout>
     );
 };
 
-export default TestReceiptPage;
+export default StaticReceipt;
