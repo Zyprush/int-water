@@ -285,6 +285,8 @@ const Technical = () => {
                   handleDropdownToggle(report.id);
                 }}
                 disabled={isUpdating}
+                hidden
+                //add hidden
               >
                 <IconDotsVertical className="w-6 h-6 text-gray-600 dark:text-gray-400" />
               </button>
