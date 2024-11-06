@@ -56,10 +56,10 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, billing, onPayStatusChan
   }, [isOpen, onClose]);
 
   useEffect(() => {
-    const freeCubicMeter = 3;
-    const totalFree = billing.rate * freeCubicMeter;
+    //const freeCubicMeter = 3;
+    //const totalFree = billing.rate * freeCubicMeter;
     const billAmount = parseFloat(billing.amount.replace('₱', ''));
-    const totalDue = billAmount + billing.previousUnpaidBill - totalFree;
+    const totalDue = billAmount + billing.previousUnpaidBill;
     const givenAmount = parseFloat(amountGiven);
 
     if (!isNaN(givenAmount) && givenAmount >= totalDue) {
@@ -126,10 +126,10 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, billing, onPayStatusChan
   };
 
   const consumption = billing.currentReading - billing.previousReading;
-  const freeCubicMeter = 3;
-  const totalFree = billing.rate * freeCubicMeter;
+  //const freeCubicMeter = 3;
+  //const totalFree = billing.rate * freeCubicMeter;
   const currentBillAmount = parseFloat(billing.amount.replace('₱', ''));
-  const totalDue = currentBillAmount + billing.previousUnpaidBill - totalFree;
+  const totalDue = currentBillAmount + billing.previousUnpaidBill;
 
   return createPortal(
     <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50">
@@ -150,7 +150,6 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, billing, onPayStatusChan
             <p><strong>Consumption:</strong> {consumption} m³</p>
           </div>
           <div className="space-y-2">
-            <p><strong>Free Cubic Meter:</strong> {freeCubicMeter} m³</p>
             <p><strong>Amount this Month:</strong> ₱{currentBillAmount.toFixed(2)}</p>
             <p><strong>Previous Unpaid Bill:</strong> ₱{billing.previousUnpaidBill.toFixed(2)}</p>
             <p><strong>Total Due:</strong> ₱{totalDue.toFixed(2)}</p>
