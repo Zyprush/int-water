@@ -103,7 +103,7 @@ const Technical = () => {
         if (report) {
           await addLog({
             date: currentTime,
-            name: `Updated ${report.submittedBy}'s report status to ${newStatus
+            name: `You updated ${report.submittedBy}'s report status to ${newStatus
               .replace(/([A-Z])/g, " $1")
               .toLowerCase()}`,
           });
@@ -166,7 +166,7 @@ const Technical = () => {
       if (report) {
         await addLog({
           date: currentTime,
-          name: `Declined ${report.submittedBy}'s report: ${declineMessage}`,
+          name: `You updated ${report.submittedBy}'s report to declined: ${declineMessage}`,
         });
         await addNotification({
           date: currentTime,
