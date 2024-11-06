@@ -83,7 +83,7 @@ const MobConNav: React.FC = () => {
               }`}
               stroke={1.5}
             />
-            <span className="text-xs mt-1">Notif</span>
+            <span className="text-xs mt-1">Notification</span>
           </Link>
           <Link
             href="/consumer/history"

@@ -345,7 +345,9 @@ const Dashboard: React.FC = () => {
               <IconCash className="text-yellow-500" size={32} />
               <h2 className="text-xl font-bold">Total Revenue</h2>
             </div>
-            <p className="text-4xl font-semibold text-gray-800">₱{totalRevenue.toFixed(2)}</p>
+            <p className="text-4xl font-semibold text-gray-800">
+              ₱{totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </p>
             <p className="text-sm text-gray-500">{dateRange}</p>
             <p className="text-sm text-gray-500"></p>
           </div>
