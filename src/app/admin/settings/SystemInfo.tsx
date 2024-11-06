@@ -9,6 +9,12 @@ const SystemInfo = () => {
       <TextSetting name="mission" title="Mission" />
       <TextSetting name="address" title="Address" />
       <TextSetting name="contact" title="Contact" />
+      <p>Person authorized to recommend approval for installation</p>
+      <TextSetting name="authorizedName" title="Name" />
+      <TextSetting name="authorizedPosition" title="Position" />
+      <p>Person authorized to approve the installation</p>
+      <TextSetting name="authorizedName2" title="Name" />
+      <TextSetting name="authorizedPosition2" title="Position" />
     </div>
   );
 };

@@ -3,9 +3,14 @@
 import React, { useState, useEffect } from 'react';
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 import { Consumer } from '@/components/adminAccount/types';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../../firebase';
 
 // Define coordinates for each consumer field in the PDF
 const FIELD_COORDINATES = {
+    address: { x: 155, y: 69 },
+    systemName: { x: 155, y: 84 },
+
     applicantName: { x: 135, y: 163 },
     cellphoneNo: { x: 350, y: 163 },
     currentAddress: { x: 168, y: 175 },
@@ -40,20 +45,46 @@ interface ConsumerPDFViewerProps {
     onClose: () => void;
     consumer: Consumer | null;
 }
+interface Settings {
+    systemName: string;
+    address: string;
+}
 
 export default function ConsumerPDFViewer({ isOpen, onClose, consumer }: ConsumerPDFViewerProps) {
     const [modifiedPdfUrl, setModifiedPdfUrl] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [settings, setSettings] = useState<Settings | null>(null);
 
     useEffect(() => {
         if (isOpen && consumer) {
             modifyPdf();
         }
-    }, [isOpen, consumer]); // Keep consumer here to trigger on changes
+    }, [isOpen, consumer, settings]); // Keep consumer here to trigger on changes
+
+    // Fetch settings from Firestore
+    useEffect(() => {
+        const fetchSettings = async () => {
+            try {
+                // Fetch systemName document
+                const systemNameDoc = await getDoc(doc(db, 'settings', 'systemName'));
+                // Fetch address document
+                const addressDoc = await getDoc(doc(db, 'settings', 'address'));
+
+                setSettings({
+                    systemName: systemNameDoc.exists() ? systemNameDoc.data().value : '',
+                    address: addressDoc.exists() ? addressDoc.data().value : ''
+                });
+            } catch (error) {
+                console.error('Error fetching settings:', error);
+            }
+        };
+
+        fetchSettings();
+    }, []);
 
 
     const modifyPdf = async () => {
-        if (!consumer) return;
+        if (!consumer || !settings) return;
 
         setIsLoading(true);
         try {
@@ -70,6 +101,23 @@ export default function ConsumerPDFViewer({ isOpen, onClose, consumer }: Consume
 
             // Embed font
             const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+
+            // Draw settings headers
+            firstPage.drawText(settings.systemName.toUpperCase(), {
+                x: FIELD_COORDINATES.systemName.x,
+                y: height - FIELD_COORDINATES.systemName.y,
+                size: 11,
+                font,
+                color: rgb(0, 0, 0),
+            });
+
+            firstPage.drawText(settings.address, {
+                x: FIELD_COORDINATES.address.x,
+                y: height - FIELD_COORDINATES.address.y,
+                size: 9,
+                font,
+                color: rgb(0, 0, 0),
+            });
 
             // Draw all fields except serviceConnectionType and serviceConnectionSize
             Object.entries(consumer).forEach(([field, value]) => {

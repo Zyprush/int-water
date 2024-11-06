@@ -331,7 +331,6 @@ const Account = () => {
                       <button
                         className="text-green-500 hover:text-green-700 dark:text-green-300 dark:hover:text-green-500"
                         onClick={() => handleEdit(item)}
-                        hidden
                       >
                         <IconEdit size={18} />
                       </button>
