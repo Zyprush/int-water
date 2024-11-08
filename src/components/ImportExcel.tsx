@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, ChangeEvent } from 'react';
 import * as XLSX from 'xlsx';
 import { addDoc, collection } from 'firebase/firestore';
 import { db } from '../../firebase';
@@ -31,6 +31,9 @@ interface ConsumerData {
     status: string;
 }
 
+// Type for raw Excel row data
+type ExcelRow = (string | number | null | undefined)[];
+
 interface ImportConsumersModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -38,58 +41,60 @@ interface ImportConsumersModalProps {
 
 const ImportConsumersModal: React.FC<ImportConsumersModalProps> = ({ isOpen, onClose }) => {
     const [file, setFile] = useState<File | null>(null);
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
 
-    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
         const selectedFile = event.target.files?.[0] || null;
         setFile(selectedFile);
     };
 
-    const handleImport = async () => {
+    const handleImport = async (): Promise<void> => {
         if (file) {
             setIsLoading(true);
             await processExcelData(file);
             setIsLoading(false);
-            onClose(); // Close modal after import
+            onClose();
         }
     };
 
-    const processExcelData = async (file: File) => {
+    const processExcelData = async (file: File): Promise<void> => {
         try {
-            const workbook = XLSX.read(await file.arrayBuffer(), { type: 'array' });
+            const arrayBuffer = await file.arrayBuffer();
+            const workbook = XLSX.read(arrayBuffer, { type: 'buffer' });
             const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-            const data = XLSX.utils.sheet_to_json<ConsumerData>(worksheet, { header: 1 });
+            const rawData = XLSX.utils.sheet_to_json<ExcelRow>(worksheet, { header: 1 });
 
-            for (let i = 1; i < data.length; i++) {
-                const row = data[i];
-                if (!row || Object.values(row).every(value => value === null || value === '')) continue;
+            // Skip header row
+            for (let i = 1; i < rawData.length; i++) {
+                const row = rawData[i];
+                if (!row || row.every(value => value === null || value === undefined || value === '')) continue;
 
                 const consumer: ConsumerData = {
-                    applicantName: row[0] || '',
-                    cellphoneNo: row[1] || '',
-                    barangay: row[2] || '',
-                    currentAddress: row[3] || '',
-                    installationAddress: row[4] || '',
-                    email: row[5] || '',
-                    serviceConnectionType: row[6] || '',
-                    serviceConnectionSize: row[7] || '',
-                    buildingOwnerName: row[8] || '',
-                    buildingOwnerAddress: row[9] || '',
-                    buildingOwnerCellphone: row[10] || '',
-                    rate: Number(row[11]) || 0,
-                    installationFee: Number(row[12]) || 0,
-                    meterDeposit: Number(row[13]) || 0,
-                    guarantyDeposit: Number(row[14]) || 0,
-                    totalAmountDue: Number(row[15]) || 0,
-                    paidUnderOR: Number(row[16]) || 0,
-                    serviceConnectionNo: Number(row[17]) || 0,
-                    customerAccountNo: Number(row[18]) || 0,
-                    waterMeterSerialNo: String(row[19]) || '',
-                    initialReading: Number(row[20]) || 0,
-                    waterMeterBrand: row[21] || '',
-                    waterMeterSize: row[22] || '',
+                    applicantName: toString(row[0]),
+                    cellphoneNo: toString(row[1]),
+                    barangay: toString(row[2]),
+                    currentAddress: toString(row[3]),
+                    installationAddress: toString(row[4]),
+                    email: toString(row[5]),
+                    serviceConnectionType: toString(row[6]),
+                    serviceConnectionSize: toString(row[7]),
+                    buildingOwnerName: toString(row[8]),
+                    buildingOwnerAddress: toString(row[9]),
+                    buildingOwnerCellphone: toString(row[10]),
+                    rate: toNumber(row[11]),
+                    installationFee: toNumber(row[12]),
+                    meterDeposit: toNumber(row[13]),
+                    guarantyDeposit: toNumber(row[14]),
+                    totalAmountDue: toNumber(row[15]),
+                    paidUnderOR: toNumber(row[16]),
+                    serviceConnectionNo: toNumber(row[17]),
+                    customerAccountNo: toNumber(row[18]),
+                    waterMeterSerialNo: toString(row[19]),
+                    initialReading: toNumber(row[20]),
+                    waterMeterBrand: toString(row[21]),
+                    waterMeterSize: toString(row[22]),
                     createdAt: '2024-10-14',
-                    status: 'Active',
+                    status: 'Active'
                 };
 
                 await addDoc(collection(db, 'consumers'), consumer);
@@ -98,7 +103,23 @@ const ImportConsumersModal: React.FC<ImportConsumersModalProps> = ({ isOpen, onC
             console.log('Data imported successfully!');
         } catch (error) {
             console.error('Error importing data:', error);
+            throw error;
         }
+    };
+
+    // Helper functions to safely convert Excel values to the correct types
+    const toString = (value: string | number | null | undefined): string => {
+        if (value === null || value === undefined) return '';
+        return String(value);
+    };
+
+    const toNumber = (value: string | number | null | undefined): number => {
+        if (typeof value === 'number') return value;
+        if (typeof value === 'string') {
+            const parsed = parseFloat(value);
+            return isNaN(parsed) ? 0 : parsed;
+        }
+        return 0;
     };
 
     if (!isOpen) return null;
@@ -110,13 +131,14 @@ const ImportConsumersModal: React.FC<ImportConsumersModalProps> = ({ isOpen, onC
                 <input
                     type="file"
                     onChange={handleFileChange}
+                    accept=".xlsx,.xls"
                     disabled={isLoading}
                     className="w-full mb-4 p-2 border border-gray-300 rounded-md"
                 />
                 <button
                     onClick={handleImport}
                     disabled={!file || isLoading}
-                    className="bg-blue-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-600 w-full"
+                    className="bg-blue-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-600 w-full disabled:bg-gray-400"
                 >
                     {isLoading ? 'Importing...' : 'Import'}
                 </button>
