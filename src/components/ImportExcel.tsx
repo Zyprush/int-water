@@ -1,7 +1,9 @@
 import React, { useState, ChangeEvent } from 'react';
 import * as XLSX from 'xlsx';
 import { addDoc, collection } from 'firebase/firestore';
-import { db } from '../../firebase';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { auth, db } from '../../firebase';
+import { FirebaseError } from 'firebase/app';
 
 interface ConsumerData {
     applicantName: string;
@@ -29,9 +31,10 @@ interface ConsumerData {
     waterMeterSize: string;
     createdAt: string;
     status: string;
+    role: string;
+    uid?: string;
 }
 
-// Type for raw Excel row data
 type ExcelRow = (string | number | null | undefined)[];
 
 interface ImportConsumersModalProps {
@@ -39,21 +42,53 @@ interface ImportConsumersModalProps {
     onClose: () => void;
 }
 
+interface ImportError extends Error {
+    code?: string;
+    message: string;
+}
+
 const ImportConsumersModal: React.FC<ImportConsumersModalProps> = ({ isOpen, onClose }) => {
     const [file, setFile] = useState<File | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [error, setError] = useState<string>('');
 
     const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
         const selectedFile = event.target.files?.[0] || null;
         setFile(selectedFile);
+        setError('');
     };
 
     const handleImport = async (): Promise<void> => {
         if (file) {
             setIsLoading(true);
-            await processExcelData(file);
-            setIsLoading(false);
-            onClose();
+            setError('');
+            try {
+                await processExcelData(file);
+                onClose();
+            } catch (err) {
+                const error = err as ImportError;
+                setError(`Error importing data: ${error.message}`);
+                console.error(error);
+            } finally {
+                setIsLoading(false);
+            }
+        }
+    };
+
+    const createUserAccount = async (email: string, password: string): Promise<string> => {
+        try {
+            const currentUser = auth.currentUser;
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            
+            // Restore the previous user's session
+            if (currentUser) {
+                await auth.updateCurrentUser(currentUser);
+            }
+            
+            return userCredential.user.uid;
+        } catch (err) {
+            const error = err as FirebaseError;
+            throw new Error(`Failed to create account for ${email}: ${error.message}`);
         }
     };
 
@@ -63,6 +98,9 @@ const ImportConsumersModal: React.FC<ImportConsumersModalProps> = ({ isOpen, onC
             const workbook = XLSX.read(arrayBuffer, { type: 'buffer' });
             const worksheet = workbook.Sheets[workbook.SheetNames[0]];
             const rawData = XLSX.utils.sheet_to_json<ExcelRow>(worksheet, { header: 1 });
+
+            // Store the current user to restore session later
+            const currentUser = auth.currentUser;
 
             // Skip header row
             for (let i = 1; i < rawData.length; i++) {
@@ -93,21 +131,42 @@ const ImportConsumersModal: React.FC<ImportConsumersModalProps> = ({ isOpen, onC
                     initialReading: toNumber(row[20]),
                     waterMeterBrand: toString(row[21]),
                     waterMeterSize: toString(row[22]),
-                    createdAt: '2024-10-14',
-                    status: 'Active'
+                    createdAt: new Date().toISOString().split('T')[0],
+                    status: 'active',
+                    role: 'consumer'
                 };
 
-                await addDoc(collection(db, 'consumers'), consumer);
+                try {
+                    // Create user account using email and water meter serial as password
+                    const uid = await createUserAccount(consumer.email, consumer.waterMeterSerialNo);
+                    
+                    // Add the UID to the consumer data
+                    consumer.uid = uid;
+
+                    // Add consumer to Firestore
+                    await addDoc(collection(db, 'consumers'), consumer);
+                    
+                    console.log(`Successfully imported consumer: ${consumer.applicantName}`);
+                } catch (err) {
+                    const error = err as ImportError;
+                    console.error(`Error processing row ${i + 1}:`, error.message);
+                    // Continue with next row even if one fails
+                }
             }
 
-            console.log('Data imported successfully!');
-        } catch (error) {
-            console.error('Error importing data:', error);
+            // Restore the original user's session
+            if (currentUser) {
+                await auth.updateCurrentUser(currentUser);
+            }
+
+            console.log('Import completed successfully!');
+        } catch (err) {
+            const error = err as ImportError;
+            console.error('Error importing data:', error.message);
             throw error;
         }
     };
 
-    // Helper functions to safely convert Excel values to the correct types
     const toString = (value: string | number | null | undefined): string => {
         if (value === null || value === undefined) return '';
         return String(value);
@@ -125,9 +184,14 @@ const ImportConsumersModal: React.FC<ImportConsumersModalProps> = ({ isOpen, onC
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
             <div className="bg-white p-6 rounded-lg shadow-lg w-96">
                 <h2 className="text-lg font-bold mb-4">Import Consumers from Excel</h2>
+                {error && (
+                    <div className="mb-4 p-2 bg-red-100 border border-red-400 text-red-700 rounded">
+                        {error}
+                    </div>
+                )}
                 <input
                     type="file"
                     onChange={handleFileChange}

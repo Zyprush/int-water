@@ -290,18 +290,18 @@ const Account = () => {
               <IconPrinter className="inline-block ml-2" />
             </button>
             <button
-              onClick={handleAddNew}
-              className="bg-green-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-green-600"
-            >
-              Add New
-              <IconPlus className="inline-block ml-2" />
-            </button>
-            <button
               onClick={openModal}
               className="bg-blue-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-600"
             >
               Import
               <IconUpload className="inline-block ml-2" />
+            </button>
+            <button
+              onClick={handleAddNew}
+              className="bg-green-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-green-600"
+            >
+              Add New
+              <IconPlus className="inline-block ml-2" />
             </button>
           </div>
         </div>
