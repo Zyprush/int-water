@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { IconEdit, IconEye, IconPlus, IconPrinter, IconTrash } from "@tabler/icons-react";
+import { IconEdit, IconEye, IconPlus, IconPrinter, IconTrash, IconUpload } from "@tabler/icons-react";
 import ReactPaginate from "react-paginate";
 
 import { collection, deleteDoc, doc, getDocs, query, updateDoc, where } from "firebase/firestore";
@@ -13,6 +13,7 @@ import EditConsumerModal from "@/components/adminAccount/EditAccountModal";
 import { Consumer } from "@/components/adminAccount/types";
 import CAlertDialog from "@/components/ConfirmDialog";
 import ConsumerPDFViewer from "@/components/ConsumerPdfViewer";
+import ImportConsumersModal from "@/components/ImportExcel";
 import StaffNav from "@/components/StaffNav";
 
 
@@ -32,6 +33,14 @@ const Account = () => {
 
   const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
   const [selectedConsumerForPdf, setSelectedConsumerForPdf] = useState<Consumer | null>(null);
+
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+
+  const openModal = () => setIsImportModalOpen(true);
+  const closeModal = () => {
+    setIsImportModalOpen(false);
+    fetchConsumers();
+  };
 
   const checkOverdueBills = async (consumerId: string) => {
     try {
@@ -281,6 +290,13 @@ const Account = () => {
               <IconPrinter className="inline-block ml-2" />
             </button>
             <button
+              onClick={openModal}
+              className="bg-blue-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-600"
+            >
+              Import
+              <IconUpload className="inline-block ml-2" />
+            </button>
+            <button
               onClick={handleAddNew}
               className="bg-green-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-green-600"
             >
@@ -399,6 +415,7 @@ const Account = () => {
         }}
         consumer={selectedConsumerForPdf}
       />
+      <ImportConsumersModal isOpen={isImportModalOpen} onClose={closeModal} />
     </StaffNav>
   );
 };
