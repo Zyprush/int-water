@@ -18,6 +18,11 @@ interface BillingItem {
   consumerId: string;
 }
 
+interface ConsumerData {
+  totalAmountDue: number;
+  uid: string;
+}
+
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -28,8 +33,33 @@ interface ModalProps {
 const Modal: React.FC<ModalProps> = ({ isOpen, onClose, billing, onPayStatusChange }) => {
   const modalRef = useRef<HTMLDivElement>(null);
   const [amountGiven, setAmountGiven] = useState<string>('');
+  const [meterPaymentAmount, setMeterPaymentAmount] = useState<string>('');
   const [change, setChange] = useState<number>(0);
   const [isPaymentValid, setIsPaymentValid] = useState<boolean>(false);
+  const [consumerData, setConsumerData] = useState<ConsumerData | null>(null);
+
+  useEffect(() => {
+    const fetchConsumerData = async () => {
+      try {
+        const consumersRef = collection(db, 'consumers');
+        const querySnapshot = await getDocs(consumersRef);
+        const consumer = querySnapshot.docs.find(doc => doc.data().uid === billing.consumerId);
+        
+        if (consumer) {
+          setConsumerData({
+            totalAmountDue: consumer.data().totalAmountDue || 0,
+            uid: consumer.id
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching consumer data:', error);
+      }
+    };
+
+    if (billing.consumerId) {
+      fetchConsumerData();
+    }
+  }, [billing.consumerId]);
 
   useEffect(() => {
     const handleOutsideClick = (event: MouseEvent) => {
@@ -56,8 +86,6 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, billing, onPayStatusChan
   }, [isOpen, onClose]);
 
   useEffect(() => {
-    //const freeCubicMeter = 3;
-    //const totalFree = billing.rate * freeCubicMeter;
     const billAmount = parseFloat(billing.amount.replace('₱', ''));
     const totalDue = billAmount + billing.previousUnpaidBill;
     const givenAmount = parseFloat(amountGiven);
@@ -69,7 +97,41 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, billing, onPayStatusChan
       setChange(0);
       setIsPaymentValid(false);
     }
-  }, [amountGiven, billing.amount, billing.previousUnpaidBill, billing.rate]);
+  }, [amountGiven, billing.amount, billing.previousUnpaidBill]);
+
+  const handleMeterPayment = async () => {
+    if (!consumerData || !meterPaymentAmount) return;
+
+    const paymentAmount = parseFloat(meterPaymentAmount);
+    if (isNaN(paymentAmount) || paymentAmount <= 0 || paymentAmount > consumerData.totalAmountDue) {
+      alert('Please enter a valid payment amount');
+      return;
+    }
+
+    const confirmMessage = `Confirm meter payment of ₱${paymentAmount.toFixed(2)}?`;
+    
+    if (window.confirm(confirmMessage)) {
+      try {
+        const consumerRef = doc(db, 'consumers', consumerData.uid);
+        const newTotalAmountDue = consumerData.totalAmountDue - paymentAmount;
+        
+        await updateDoc(consumerRef, {
+          totalAmountDue: newTotalAmountDue
+        });
+
+        setConsumerData({
+          ...consumerData,
+          totalAmountDue: newTotalAmountDue
+        });
+        
+        setMeterPaymentAmount('');
+        alert('Meter payment successful!');
+      } catch (error) {
+        console.error('Error processing meter payment:', error);
+        alert('There was an error processing the meter payment. Please try again.');
+      }
+    }
+  };
 
   const handlePayStatusChange = async () => {
     const confirmMessage = billing.status === 'Paid'
@@ -79,11 +141,9 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, billing, onPayStatusChan
     if (window.confirm(confirmMessage)) {
       try {
         if (billing.status !== 'Paid') {
-          // Get all billings
           const billingsRef = collection(db, 'billings');
           const querySnapshot = await getDocs(billingsRef);
 
-          // Find and update previous overdue bills
           querySnapshot.forEach(async (document) => {
             const billingData = document.data();
 
@@ -100,7 +160,6 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, billing, onPayStatusChan
           });
         }
 
-        // Update current billing status
         onPayStatusChange(billing.id);
         setAmountGiven('');
         setChange(0);
@@ -126,8 +185,6 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, billing, onPayStatusChan
   };
 
   const consumption = billing.currentReading - billing.previousReading;
-  //const freeCubicMeter = 3;
-  //const totalFree = billing.rate * freeCubicMeter;
   const currentBillAmount = parseFloat(billing.amount.replace('₱', ''));
   const totalDue = currentBillAmount + billing.previousUnpaidBill;
 
@@ -153,6 +210,9 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, billing, onPayStatusChan
             <p><strong>Amount this Month:</strong> ₱{currentBillAmount.toFixed(2)}</p>
             <p><strong>Previous Unpaid Bill:</strong> ₱{billing.previousUnpaidBill.toFixed(2)}</p>
             <p><strong>Total Due:</strong> ₱{totalDue.toFixed(2)}</p>
+            {consumerData && consumerData.totalAmountDue > 0 && (
+              <p><strong>Additional Meter Fee:</strong> ₱{consumerData.totalAmountDue.toFixed(2)}</p>
+            )}
           </div>
         </div>
 
@@ -160,6 +220,29 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, billing, onPayStatusChan
           <p><strong>Due Date:</strong> {billing.dueDate}</p>
           <p><strong>Status:</strong> <span className={`px-3 py-1 rounded-full ${getStatusClasses(billing.status)}`}>{billing.status}</span></p>
         </div>
+
+        {consumerData && consumerData.totalAmountDue > 0 && (
+          <div className="bg-gray-50 p-4 rounded-lg shadow-inner space-y-4">
+            <div className="flex justify-between items-center">
+              <label htmlFor="meterPayment" className="font-bold text-lg">Meter Payment Amount:</label>
+              <input
+                id="meterPayment"
+                type="number"
+                value={meterPaymentAmount}
+                onChange={(e) => setMeterPaymentAmount(e.target.value)}
+                className="border border-gray-300 rounded-lg px-4 py-2 w-40 text-right shadow-sm focus:ring-2 focus:ring-blue-400"
+                placeholder="₱0.00"
+              />
+            </div>
+            <button
+              onClick={handleMeterPayment}
+              className="w-full bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold transition-transform duration-200 transform active:scale-95"
+              disabled={!meterPaymentAmount || parseFloat(meterPaymentAmount) <= 0 || parseFloat(meterPaymentAmount) > consumerData.totalAmountDue}
+            >
+              Process Meter Payment
+            </button>
+          </div>
+        )}
 
         {billing.status !== 'Paid' && (
           <div className="bg-gray-50 p-4 rounded-lg shadow-inner space-y-4">

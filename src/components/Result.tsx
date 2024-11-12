@@ -11,6 +11,7 @@ interface Consumer {
     rate: number;
     uid: string;
     docId: string;
+    totalAmountDue: number;
 }
 
 interface Billing {
@@ -99,6 +100,10 @@ const BillPreview: React.FC<BillPreviewProps> = ({ billing, consumer, onConfirm,
                             <span>Rate:</span>
                             <span>₱{consumer.rate}/cu.m</span>
                         </div>
+                        <div className='flex justify-between'>
+                            <span>Aditional Meter Fee:</span>
+                            <span>{consumer.totalAmountDue.toFixed(2)}</span>
+                        </div>
                     </div>
 
                     <div className="border-t pt-2">
@@ -106,10 +111,7 @@ const BillPreview: React.FC<BillPreviewProps> = ({ billing, consumer, onConfirm,
                             <span>Amount Due:</span>
                             <span>₱{billing.amount.toFixed(2)}</span>
                         </div>
-                        <div className="flex justify-between">
-                            <span>Status:</span>
-                            <span>{billing.status}</span>
-                        </div>
+                        
                     </div>
 
                     <div className="text-center text-sm space-y-1 text-gray-600 dark:text-gray-400">
