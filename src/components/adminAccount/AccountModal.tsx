@@ -22,8 +22,8 @@ const AddNewConsumerModal: React.FC<AddNewConsumerModalProps> = ({ isOpen, onClo
         buildingOwnerAddress: '',
         buildingOwnerCellphone: '',
         installationFee: 2000,
-        meterDeposit: 800,
-        guarantyDeposit: 0,
+        meterDeposit: 0,
+        guarantyDeposit: 800,
         totalAmountDue: 2000,
         paidUnderOR: 0,
         serviceConnectionNo: 0,
@@ -41,12 +41,33 @@ const AddNewConsumerModal: React.FC<AddNewConsumerModalProps> = ({ isOpen, onClo
 
     const [isLoading, setIsLoading] = useState(false);
 
+    const calculateTotalAmountDue = (installationFee: number, meterDeposit: number) => {
+        return installationFee - meterDeposit;
+    };
+
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
-        setFormData(prevState => ({
-            ...prevState,
-            [name]: value
-        }));
+        
+        setFormData(prevState => {
+            const newState = {
+                ...prevState,
+                [name]: value
+            };
+
+            // Recalculate total amount due when installation fee or meter deposit changes
+            if (name === 'installationFee' || name === 'meterDeposit') {
+                const installationFee = name === 'installationFee' 
+                    ? parseFloat(value) || 0 
+                    : prevState.installationFee;
+                const meterDeposit = name === 'meterDeposit' 
+                    ? parseFloat(value) || 0 
+                    : prevState.meterDeposit;
+                
+                newState.totalAmountDue = calculateTotalAmountDue(installationFee, meterDeposit);
+            }
+
+            return newState;
+        });
     };
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
