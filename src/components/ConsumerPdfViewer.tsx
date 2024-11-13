@@ -10,6 +10,10 @@ import { db } from '../../firebase';
 const FIELD_COORDINATES = {
     address: { x: 155, y: 69 },
     systemName: { x: 155, y: 84 },
+    autorizedName: { x: 120, y: 685 },
+    authorizedPosition: { x: 95, y: 700 },
+    authorizedName2: { x: 355, y: 685 },
+    authorizedPosition2: { x: 375, y: 700 },
 
     applicantName: { x: 135, y: 163 },
     cellphoneNo: { x: 350, y: 163 },
@@ -48,6 +52,10 @@ interface ConsumerPDFViewerProps {
 interface Settings {
     systemName: string;
     address: string;
+    authorizedName: string;
+    authorizedName2: string;
+    authorizedPosition: string;
+    authorizedPosition2: string;
 }
 
 export default function ConsumerPDFViewer({ isOpen, onClose, consumer }: ConsumerPDFViewerProps) {
@@ -70,9 +78,21 @@ export default function ConsumerPDFViewer({ isOpen, onClose, consumer }: Consume
                 // Fetch address document
                 const addressDoc = await getDoc(doc(db, 'settings', 'address'));
 
+                const autorizedNameDoc = await getDoc(doc(db, 'settings', 'authorizedName'));
+
+                const authorizedName2Doc = await getDoc(doc(db, 'settings', 'authorizedName2'));
+
+                const authorizedPositionDoc = await getDoc(doc(db, 'settings', 'authorizedPosition'));
+
+                const authorizedPosition2Doc = await getDoc(doc(db, 'settings', 'authorizedPosition2'));
+
                 setSettings({
                     systemName: systemNameDoc.exists() ? systemNameDoc.data().value : '',
-                    address: addressDoc.exists() ? addressDoc.data().value : ''
+                    address: addressDoc.exists() ? addressDoc.data().value : '',
+                    authorizedName: autorizedNameDoc.exists() ? autorizedNameDoc.data().value : '',
+                    authorizedName2: authorizedName2Doc.exists() ? authorizedName2Doc.data().value : '',
+                    authorizedPosition: authorizedPositionDoc.exists() ? authorizedPositionDoc.data().value : '',
+                    authorizedPosition2: authorizedPosition2Doc.exists() ? authorizedPosition2Doc.data().value : '',
                 });
             } catch (error) {
                 console.error('Error fetching settings:', error);
@@ -118,6 +138,39 @@ export default function ConsumerPDFViewer({ isOpen, onClose, consumer }: Consume
                 font,
                 color: rgb(0, 0, 0),
             });
+
+            firstPage.drawText(settings.authorizedName, {
+                x: FIELD_COORDINATES.autorizedName.x,
+                y: height - FIELD_COORDINATES.autorizedName.y,
+                size: 9,
+                font,
+                color: rgb(0, 0, 0),
+            });
+
+            firstPage.drawText(settings.authorizedName2, {
+                x: FIELD_COORDINATES.authorizedName2.x,
+                y: height - FIELD_COORDINATES.authorizedName2.y,
+                size: 9,
+                font,
+                color: rgb(0, 0, 0),
+            });
+
+            firstPage.drawText(settings.authorizedPosition, {
+                x: FIELD_COORDINATES.authorizedPosition.x,
+                y: height - FIELD_COORDINATES.authorizedPosition.y,
+                size: 9,
+                font,
+                color: rgb(0, 0, 0),
+            });
+
+            firstPage.drawText(settings.authorizedPosition2, {
+                x: FIELD_COORDINATES.authorizedPosition2.x,
+                y: height - FIELD_COORDINATES.authorizedPosition2.y,
+                size: 9,
+                font,
+                color: rgb(0, 0, 0),
+            });
+
 
             // Draw all fields except serviceConnectionType and serviceConnectionSize
             Object.entries(consumer).forEach(([field, value]) => {
