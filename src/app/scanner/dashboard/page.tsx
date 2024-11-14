@@ -5,11 +5,11 @@ import { IconCheck, IconClock } from '@tabler/icons-react';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../../../../firebase';
 
-
 interface Reading {
   consumerSerialNo: string;
   consumerName: string;
-  barangay: string; // Using barangay as address
+  barangay: string;
+  status?: string;
 }
 
 const Dashboard: React.FC = () => {
@@ -25,7 +25,7 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     fetchReadings();
-  }, [monthKey])
+  }, [monthKey]);
 
   const fetchReadings = async () => {
     const consumersRef = collection(db, 'consumers');
@@ -39,18 +39,26 @@ const Dashboard: React.FC = () => {
     const allConsumers = consumersSnapshot.docs.map(doc => ({
       consumerSerialNo: doc.data().waterMeterSerialNo,
       consumerName: doc.data().applicantName,
-      barangay: doc.data().barangay
+      barangay: doc.data().barangay,
+      status: doc.data().status
     }));
 
     const billedConsumerSerials = new Set(billingsSnapshot.docs.map(doc => doc.data().consumerSerialNo));
 
-    const completed = allConsumers.filter(consumer => billedConsumerSerials.has(consumer.consumerSerialNo));
-    const remaining = allConsumers.filter(consumer => !billedConsumerSerials.has(consumer.consumerSerialNo));
+    // Filter completed readings (status doesn't matter for completed ones)
+    const completed = allConsumers.filter(consumer => 
+      billedConsumerSerials.has(consumer.consumerSerialNo)
+    );
+
+    // Filter remaining readings - exclude inactive consumers
+    const remaining = allConsumers.filter(consumer => 
+      !billedConsumerSerials.has(consumer.consumerSerialNo) && 
+      consumer.status !== 'inactive'
+    );
 
     setCompletedReadings(completed);
     setRemainingReadings(remaining);
   };
-
 
   // Function to filter readings based on search term
   const filteredReadings = (readings: Reading[]) =>
@@ -124,7 +132,6 @@ const Dashboard: React.FC = () => {
           </table>
         </div>
       </div>
-
     </Layout>
   );
 };
