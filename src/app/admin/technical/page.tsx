@@ -10,6 +10,7 @@ import "slick-carousel/slick/slick-theme.css";
 import { useLogs } from "@/hooks/useLogs";
 import { currentTime } from "@/helper/time";
 import { useNotification } from "@/hooks/useNotification";
+import useUserData from "@/hooks/useUserData";
 
 interface Report {
   id: string;
@@ -37,8 +38,9 @@ const Technical = () => {
   const [isUpdating, setIsUpdating] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const { addLog } = useLogs();
+  const { userData } = useUserData();
   const { addNotification } = useNotification();
-
+  console.log("userData", userData);
   const sliderSettings = {
     infinite: true,
     speed: 500,
@@ -103,19 +105,22 @@ const Technical = () => {
         if (report) {
           await addLog({
             date: currentTime,
-            name: `You updated ${report.submittedBy}'s report status to ${newStatus
+            name: `${userData?.name} updated ${
+              report.submittedBy
+            }'s report status to ${newStatus
               .replace(/([A-Z])/g, " $1")
               .toLowerCase()}`,
           });
           await addNotification({
             date: currentTime,
-            name: newStatus === "inProgress"
-              ? `Update: We’re currently working to resolve your reported issue. Our technical team is actively addressing it, and we’ll notify you once the issue is resolved. Thank you for your continued patience.`
-              : newStatus === "resolved"
-              ? `Good news! Your reported issue has been resolved. Thank you for allowing us the opportunity to assist. If you experience any further issues, please don’t hesitate to report them.`
-              : newStatus === "declined"
-              ? `We regret to inform you that we could not address your reported issue as submitted. Please review the issue details and re-submit if necessary. Contact our support team if you need assistance.`
-              : `Thank you for reporting your issue on ${report.date}. Our team is reviewing it, and we'll update you on the progress soon. Thank you for your patience.`,
+            name:
+              newStatus === "inProgress"
+                ? `Update: We’re currently working to resolve your reported issue. Our technical team is actively addressing it, and we’ll notify you once the issue is resolved. Thank you for your continued patience.`
+                : newStatus === "resolved"
+                ? `Good news! Your reported issue has been resolved. Thank you for allowing us the opportunity to assist. If you experience any further issues, please don’t hesitate to report them.`
+                : newStatus === "declined"
+                ? `We regret to inform you that we could not address your reported issue as submitted. Please review the issue details and re-submit if necessary. Contact our support team if you need assistance.`
+                : `Thank you for reporting your issue on ${report.date}. Our team is reviewing it, and we'll update you on the progress soon. Thank you for your patience.`,
             read: false,
             consumerId: report.consumerID,
           });
@@ -220,11 +225,7 @@ const Technical = () => {
                 <Slider {...sliderSettings}>
                   {report.imageUrls.map((url, imageIndex) => (
                     <div key={imageIndex} className="">
-                      <a
-                        href={url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
+                      <a href={url} target="_blank" rel="noopener noreferrer">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={url}
