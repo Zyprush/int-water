@@ -77,7 +77,7 @@ const History: React.FC = () => {
                             <p className="text-gray-600 mb-2">Due Date: {item.dueDate}</p>
                             <p className="text-gray-600 mb-2">Current Reading: {item.currentReading}</p>
                             <p className="text-gray-600 mb-2">Previous Reading: {item.previousReading}</p>
-                            <p className="text-gray-600 mb-2">Previous Unpaid: ₱{item.previousUnpaidBill.toFixed(2)}</p>
+                            <p className="text-gray-600 mb-2">Previous Unpaid: ₱{item.previousUnpaidBill}</p>
                             <span className="text-sm text-gray-400">Reading Date: {item.readingDate}</span>
                         </div>
                     ))}

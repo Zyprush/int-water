@@ -44,11 +44,13 @@ interface CurrentBill {
     amount: number;
     previousUnpaidBill: number;
     dueDate: string;
+    status: string;
 }
 
 interface ConsumerData {
     uid: string;
     initialReading: number;
+    totalAmountDue: number;
 }
 
 // Helper function to format month-year
@@ -64,6 +66,19 @@ const Dashboard: React.FC = () => {
         billingHistory: BillingRecord[];
         currentBill: CurrentBill | null;
     };
+
+    // Calculate total due amount considering payment status
+    const totalDueAmount = useMemo(() => {
+        if (!currentBill) return 0;
+        
+        // If current bill is paid, don't include its amount
+        const currentAmount = currentBill.status === 'Paid' ? 0 : currentBill.amount;
+        
+        // Only include previous unpaid amount if current bill is unpaid
+        const previousUnpaid = currentBill.status === 'Paid' ? 0 : (currentBill.previousUnpaidBill || 0);
+        
+        return currentAmount + previousUnpaid;
+    }, [currentBill]);
 
     // Process billing history for chart data
     const chartData: ChartData<'bar'> = useMemo(() => {
@@ -127,11 +142,6 @@ const Dashboard: React.FC = () => {
         }
     };
 
-    // Calculate total due amount
-    const totalDueAmount = currentBill
-        ? currentBill.amount + (currentBill.previousUnpaidBill || 0)
-        : 0;
-
     return (
         <Layout>
             <div className="mt-16 p-4">
@@ -147,8 +157,16 @@ const Dashboard: React.FC = () => {
                                 <p className="text-2xl font-bold">
                                     Php {totalDueAmount.toFixed(2)}
                                 </p>
-                                <p className="text-sm text-zinc-300">
-                                    Due on {currentBill ? new Date(currentBill.dueDate).toLocaleDateString() : 'N/A'}
+                                {currentBill && currentBill.status !== 'paid' && (
+                                    <p className="text-sm text-zinc-300">
+                                        Due on {new Date(currentBill.dueDate).toLocaleDateString()}
+                                    </p>
+                                )}
+                                {currentBill?.status === 'paid' && (
+                                    <p className="text-sm text-green-300">Paid</p>
+                                )}
+                                <p className='text-sm text-zinc-300'>
+                                    Meter Fee: Php {consumerData?.totalAmountDue || 0}
                                 </p>
                             </div>
                         </div>
