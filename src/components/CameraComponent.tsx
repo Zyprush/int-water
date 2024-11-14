@@ -87,13 +87,6 @@ const CameraComponent: React.FC<CameraComponentProps> = ({ isCameraOpen, closeCa
     }
   };
 
-  const retakePicture = () => {
-    setImage(null);
-    setRecognizedText(null);
-    //closeCamera();
-    //TODO: Reopen camera after retake
-  };
-
   return (
     <>
       {isCameraOpen && (
@@ -134,7 +127,7 @@ const CameraComponent: React.FC<CameraComponentProps> = ({ isCameraOpen, closeCa
                     </div>
                   )}
                   <button
-                    onClick={retakePicture}
+                    onClick={closeCamera}
                     className="absolute top-2 right-1 px-4  py-2  bg-red-500 text-white rounded"
                   >
                     Cancel
