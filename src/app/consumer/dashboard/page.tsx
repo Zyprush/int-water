@@ -157,13 +157,13 @@ const Dashboard: React.FC = () => {
                                 <p className="text-2xl font-bold">
                                     Php {totalDueAmount.toFixed(2)}
                                 </p>
-                                {currentBill && currentBill.status !== 'paid' && (
+                                {currentBill && currentBill.status !== 'Paid' && (
                                     <p className="text-sm text-zinc-300">
                                         Due on {new Date(currentBill.dueDate).toLocaleDateString()}
                                     </p>
                                 )}
-                                {currentBill?.status === 'paid' && (
-                                    <p className="text-sm text-green-300">Paid</p>
+                                {currentBill?.status === 'Paid' && (
+                                    <p className="text-sm text-green-300">Paid for this Month</p>
                                 )}
                                 <p className='text-sm text-zinc-300'>
                                     Meter Fee: Php {consumerData?.totalAmountDue || 0}
