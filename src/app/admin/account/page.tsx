@@ -15,6 +15,8 @@ import { Consumer } from "@/components/adminAccount/types";
 import CAlertDialog from "@/components/ConfirmDialog";
 import ConsumerPDFViewer from "@/components/ConsumerPdfViewer";
 import ImportConsumersModal from "@/components/ImportExcel";
+import { useNotification } from "@/hooks/useNotification";
+import { currentTime } from "@/helper/time";
 
 
 const Account = () => {
@@ -35,6 +37,8 @@ const Account = () => {
   const [selectedConsumerForPdf, setSelectedConsumerForPdf] = useState<Consumer | null>(null);
 
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+
+  const { addNotification } = useNotification();
 
   const openModal = () => setIsImportModalOpen(true);
   const closeModal = () => {
@@ -71,6 +75,12 @@ const Account = () => {
       await updateDoc(consumerRef, {
         status: hasThreeOverdueBills ? 'inactive' : 'active'
       });
+      await addNotification({
+        consumerId: consumerId,
+        date: currentTime,
+        read: false,
+        name: `Your water service has been disconnected due to non-payment. Please settle your overdue balance to have the service restored. Thank you!`,
+      })
     } catch (error) {
       console.error("Error updating consumer status:", error);
     }

@@ -10,6 +10,8 @@ import { FaPesoSign } from "react-icons/fa6";
 import { FaEye } from "react-icons/fa";
 import Loading from "@/components/Loading";
 import StaffNav from "@/components/StaffNav";
+import { useNotification } from "@/hooks/useNotification";
+import { currentTime } from "@/helper/time";
 
 interface BillingItem {
   id: string;
@@ -41,6 +43,8 @@ const Billings: React.FC = () => {
   const [selectedBilling, setSelectedBilling] = useState<BillingItem | null>(null);
 
   const [loading, setLoading] = useState(true);
+
+  const { addNotification} = useNotification();
 
   const itemsPerPage = 10;
 
@@ -78,6 +82,12 @@ const Billings: React.FC = () => {
         if (dueDatePassed && status !== "Paid") {
           status = "Overdue";
           await setDoc(doc.ref, { status: "Overdue" }, { merge: true });
+          await addNotification({
+            consumerId: data.consumerId,
+            date: currentTime,
+            read: false,
+            name: `You have failed to pay for the ${data.currentReading} cubic meters of water usage from the previous months. Water service disconnection may occur at any time.`
+          })
         }
 
         // Fetch consumer rate

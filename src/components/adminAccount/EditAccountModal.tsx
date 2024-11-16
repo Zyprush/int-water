@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../../firebase';
 import { Consumer } from './types';
+import { useNotification } from '@/hooks/useNotification';
+import { currentTime } from '@/helper/time';
 
 interface EditConsumerModalProps {
   isOpen: boolean;
@@ -12,6 +14,7 @@ interface EditConsumerModalProps {
 
 const EditConsumerModal: React.FC<EditConsumerModalProps> = ({ isOpen, onClose, consumer, onUpdate }) => {
   const [formData, setFormData] = useState<Consumer | null>(null);
+  const {addNotification} = useNotification();
 
   useEffect(() => {
     if (consumer) {
@@ -29,6 +32,16 @@ const EditConsumerModal: React.FC<EditConsumerModalProps> = ({ isOpen, onClose, 
   
     if (formData && consumer) {
       try {
+        // Check if status is being changed from inactive to active
+        if (consumer.status === 'inactive' && formData.status === 'active') {
+          // Add notification for status change
+          await addNotification({
+            consumerId: consumer.uid,
+            date: currentTime,
+            read: false,
+            name: `Your water service has been restored. Thank you for settling your account. We appreciate your cooperation!`
+          });
+        }
         // Destructure the fields that should be updated
         const { 
           applicantName, 

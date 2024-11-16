@@ -26,6 +26,7 @@ export interface Consumer {
   role: string;
   status: string;
   rate: number;
+  uid: string;
 }
 
 export interface FormData {
