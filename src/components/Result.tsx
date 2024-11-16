@@ -259,16 +259,25 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
     const handleConfirmBill = async () => {
         if (!selectedConsumer || !previewBilling) return;
 
+        
+
         try {
             const billingsRef = collection(db, 'billings');
             await addDoc(billingsRef, previewBilling);
+
+            addNotification({
+                consumerId: selectedConsumer.uid,
+                date: currentTime,
+                read: false,
+                name: `Your water consumption reading for this month is ${previewBilling.currentReading} cubic meters. You may now visit our office to settle your bill. Thank you!`,            
+            })
 
             const consumerRef = doc(db, 'consumers', selectedConsumer.docId);
             await updateDoc(consumerRef, {
                 initialReading: previewBilling.currentReading
             });
 
-            await handlePrint(previewBilling, selectedConsumer);
+            //await handlePrint(previewBilling, selectedConsumer);
 
             await fetchConsumers();
             setSelectedConsumer(null);
@@ -281,148 +290,6 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
             console.error("Error processing billing: ", error);
             alert('Failed to process billing. Please try again.');
         }
-    };
-
-    const handlePrint = async (billingData: Billing, consumer: Consumer) => {
-        const printWindow = window.open('', '_blank');
-        if (!printWindow) return;
-
-        const consumption = billingData.currentReading - billingData.previousReading;
-
-        const printContent = `
-            <html>
-                <head>
-                    <title>Water Billing Receipt</title>
-                    <style>
-                        @page {
-                            size: 58mm auto;
-                            margin: 2mm;
-                        }
-                        body { 
-                            font-family: 'Courier New', monospace;
-                            width: 54mm;
-                            padding: 0;
-                            margin: 0;
-                            font-size: 8pt;
-                        }
-                        .header {
-                            text-align: center;
-                            margin-bottom: 5mm;
-                        }
-                        .header h1 {
-                            font-size: 10pt;
-                            margin: 0;
-                            padding: 0;
-                        }
-                        .header p {
-                            font-size: 8pt;
-                            margin: 2mm 0;
-                        }
-                        .detail-line {
-                            display: flex;
-                            justify-content: space-between;
-                            margin: 1mm 0;
-                        }
-                        .divider {
-                            border-top: 1px dashed #000;
-                            margin: 2mm 0;
-                        }
-                        .readings {
-                            margin: 2mm 0;
-                        }
-                        .footer {
-                            text-align: center;
-                            font-size: 7pt;
-                            margin-top: 3mm;
-                        }
-                        @media print {
-                            body { width: 100%; }
-                        }
-                    </style>
-                </head>
-                <body>
-                    <div class="header">
-                        <h1>Water Billing Receipt</h1>
-                        <p>Municipal Water System</p>
-                    </div>
-                    
-                    <div class="detail-line">
-                        <span>Receipt#:</span>
-                        <span>${billingData.month}-${billingData.consumerSerialNo}</span>
-                    </div>
-                    <div class="detail-line">
-                        <span>Date:</span>
-                        <span>${billingData.readingDate}</span>
-                    </div>
-                    <div class="detail-line">
-                        <span>Due Date:</span>
-                        <span>${billingData.dueDate}</span>
-                    </div>
-    
-                    <div class="divider"></div>
-    
-                    <div class="detail-line">
-                        <span>Consumer#:</span>
-                        <span>${billingData.consumerSerialNo}</span>
-                    </div>
-                    <div class="detail-line">
-                        <span>Name:</span>
-                        <span>${billingData.consumerName}</span>
-                    </div>
-                    <div class="detail-line">
-                        <span>Brgy:</span>
-                        <span>${consumer.barangay}</span>
-                    </div>
-    
-                    <div class="divider"></div>
-    
-                    <div class="readings">
-                        <div class="detail-line">
-                            <span>Prev Reading:</span>
-                            <span>${billingData.previousReading}</span>
-                        </div>
-                        <div class="detail-line">
-                            <span>Curr Reading:</span>
-                            <span>${billingData.currentReading}</span>
-                        </div>
-                        <div class="detail-line">
-                            <span>Consumption:</span>
-                            <span>${consumption} cu.m</span>
-                        </div>
-                        <div class="detail-line">
-                            <span>Rate:</span>
-                            <span>₱${consumer.rate}/cu.m</span>
-                        </div>
-                    </div>
-    
-                    <div class="divider"></div>
-    
-                    <div class="detail-line" style="font-weight: bold;">
-                        <span>Amount Due:</span>
-                        <span>₱${billingData.amount.toFixed(2)}</span>
-                    </div>
-                    <div class="detail-line">
-                        <span>Status:</span>
-                        <span>${billingData.status}</span>
-                    </div>
-    
-                    <div class="divider"></div>
-                    
-                    <div class="footer">
-                        <p>Please present this receipt when making payment</p>
-                        <p>For inquiries, contact Municipal Water Office</p>
-                    </div>
-                </body>
-            </html>
-        `;
-
-        printWindow.document.write(printContent);
-        printWindow.document.close();
-
-        setTimeout(() => {
-            printWindow.print();
-            printWindow.close();
-        }, 500);
     };
 
     const {addNotification} = useNotification();
