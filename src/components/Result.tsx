@@ -2,6 +2,8 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { collection, addDoc, getDocs, query, where, Timestamp, doc, updateDoc, orderBy, limit } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { Check, X } from 'lucide-react';
+import { useNotification } from '@/hooks/useNotification';
+import { currentTime } from '@/helper/time';
 
 interface Consumer {
     waterMeterSerialNo: string;
@@ -423,6 +425,7 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
         }, 500);
     };
 
+    const {addNotification} = useNotification();
     const handleUpload = async () => {
         if (!selectedConsumer) return;
 
@@ -435,6 +438,12 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
         dueDate.setDate(dueDate.getDate() - 5);
 
         const newReading = parseInt(waterConsumption.replace(/^0+/, ''));
+        addNotification({
+            consumerId: selectedConsumer.uid,
+            date: currentTime,
+            read: false,
+            name: `Your water consumption reading for this month is ${newReading} cubic meters. You may now visit our office to settle your bill. Thank you!`,            
+        })
 
         const billingData: Billing = {
             month: monthKey,
