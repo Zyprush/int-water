@@ -58,6 +58,15 @@ const ImportConsumersModal: React.FC<ImportConsumersModalProps> = ({ isOpen, onC
         setError('');
     };
 
+    const handleDownloadTemplate = () => {
+        const link = document.createElement('a');
+        link.href = '/template/sample.xlsx';
+        link.download = 'consumer_import_template.xlsx';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
     const handleImport = async (): Promise<void> => {
         if (file) {
             setIsLoading(true);
@@ -79,12 +88,12 @@ const ImportConsumersModal: React.FC<ImportConsumersModalProps> = ({ isOpen, onC
         try {
             const currentUser = auth.currentUser;
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-            
+
             // Restore the previous user's session
             if (currentUser) {
                 await auth.updateCurrentUser(currentUser);
             }
-            
+
             return userCredential.user.uid;
         } catch (err) {
             const error = err as FirebaseError;
@@ -139,13 +148,13 @@ const ImportConsumersModal: React.FC<ImportConsumersModalProps> = ({ isOpen, onC
                 try {
                     // Create user account using email and water meter serial as password
                     const uid = await createUserAccount(consumer.email, consumer.waterMeterSerialNo);
-                    
+
                     // Add the UID to the consumer data
                     consumer.uid = uid;
 
                     // Add consumer to Firestore
                     await addDoc(collection(db, 'consumers'), consumer);
-                    
+
                     console.log(`Successfully imported consumer: ${consumer.applicantName}`);
                 } catch (err) {
                     const error = err as ImportError;
@@ -186,33 +195,55 @@ const ImportConsumersModal: React.FC<ImportConsumersModalProps> = ({ isOpen, onC
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
             <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-                <h2 className="text-lg font-bold mb-4">Import Consumers from Excel</h2>
+                <h2 className="text-lg font-bold mb-4 text-center">Import Consumers from Excel</h2>
+                {/* File input */}
+                <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Choose File</label>
+                    <input
+                        type="file"
+                        onChange={handleFileChange}
+                        accept=".xlsx,.xls"
+                        disabled={isLoading}
+                        className="block w-full text-sm text-gray-900 border border-gray-300 rounded-md cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                </div>
+                {/* Note section */}
+                <p className="text-sm text-gray-600 mb-4">
+                    NOTE: To successfully import multiple consumers, ensure each row has a unique email, a 6-digit serial number, and correct headers.
+                </p>
+                {/* Download link */}
+                <div className="mb-6">
+                    <a
+                        onClick={handleDownloadTemplate}
+                        className="text-sm text-blue-600 underline cursor-pointer"
+                    >
+                        Click here to download the file.
+                    </a>
+                </div>
+                {/* Error message */}
                 {error && (
                     <div className="mb-4 p-2 bg-red-100 border border-red-400 text-red-700 rounded">
                         {error}
                     </div>
                 )}
-                <input
-                    type="file"
-                    onChange={handleFileChange}
-                    accept=".xlsx,.xls"
-                    disabled={isLoading}
-                    className="w-full mb-4 p-2 border border-gray-300 rounded-md"
-                />
+                {/* Import button */}
                 <button
                     onClick={handleImport}
                     disabled={!file || isLoading}
-                    className="bg-blue-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-600 w-full disabled:bg-gray-400"
+                    className={`w-full px-4 py-2 rounded-md text-white shadow-md ${isLoading
+                            ? "bg-gray-400"
+                            : "bg-blue-500 hover:bg-blue-600 transition-colors"
+                        }`}
                 >
-                    {isLoading ? 'Importing...' : 'Import'}
+                    {isLoading ? "Importing..." : "Import"}
                 </button>
+                {/* Cancel button */}
                 <button
                     onClick={onClose}
-                    className="text-gray-500 mt-4 underline w-full text-center"
+                    className="text-sm text-gray-500 underline mt-4 w-full text-center"
                 >
                     Cancel
                 </button>
-                {isLoading && <p className="mt-4 text-center">Importing data...</p>}
             </div>
         </div>
     );
