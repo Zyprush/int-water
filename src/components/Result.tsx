@@ -4,6 +4,8 @@ import { db } from '../../firebase';
 import { Check, X } from 'lucide-react';
 import { useNotification } from '@/hooks/useNotification';
 import { currentTime } from '@/helper/time';
+import { useLogs } from '@/hooks/useLogs';
+import useUserData from '@/hooks/useUserData';
 
 interface Consumer {
     waterMeterSerialNo: string;
@@ -156,6 +158,9 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
     const [showPreview, setShowPreview] = useState<boolean>(false);
     const [previewBilling, setPreviewBilling] = useState<Billing | null>(null);
 
+    const {addLog} = useLogs();
+    const {userData} = useUserData();
+
     useEffect(() => {
         fetchConsumers();
     }, []);
@@ -265,11 +270,16 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
             const billingsRef = collection(db, 'billings');
             await addDoc(billingsRef, previewBilling);
 
-            addNotification({
+            await addNotification({
                 consumerId: selectedConsumer.uid,
                 date: currentTime,
                 read: false,
                 name: `Your water consumption reading for this month is ${previewBilling.currentReading} cubic meters. You may now visit our office to settle your bill. Thank you!`,            
+            })
+
+            await addLog({
+                date: currentTime,
+                name: `${userData?.name} uploaded a meter reading for a ${selectedConsumer.applicantName}.`,
             })
 
             const consumerRef = doc(db, 'consumers', selectedConsumer.docId);
@@ -305,11 +315,16 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
         dueDate.setDate(dueDate.getDate() - 5);
 
         const newReading = parseInt(waterConsumption.replace(/^0+/, ''));
-        addNotification({
+        await addNotification({
             consumerId: selectedConsumer.uid,
             date: currentTime,
             read: false,
             name: `Your water consumption reading for this month is ${newReading} cubic meters. You may now visit our office to settle your bill. Thank you!`,            
+        })
+        
+        await addLog({
+            date: currentTime,
+            name: `${userData?.name} uploaded a meter reading for a ${selectedConsumer.applicantName}.`,
         })
 
         const billingData: Billing = {

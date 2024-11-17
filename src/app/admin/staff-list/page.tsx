@@ -14,6 +14,9 @@ import EditUserModal from "@/components/adminUserlist/EditAccountModal";
 import { deleteObject, ref } from "firebase/storage";
 import { Users } from "@/components/adminUserlist/types";
 import CAlertDialog from "@/components/ConfirmDialog";
+import { useLogs } from "@/hooks/useLogs";
+import useUserData from "@/hooks/useUserData";
+import { currentTime } from "@/helper/time";
 
 const UserList = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -31,6 +34,9 @@ const UserList = () => {
 
   const [isScanAlertOpen, setIsScanAlertOpen] = useState(false);
   const [userToScan, setUserToScan] = useState<Users | null>(null);
+  
+  const {addLog} = useLogs();
+  const {userData} = useUserData();
 
 
   const fetchUsers = async () => {
@@ -146,6 +152,12 @@ const UserList = () => {
 
       // Delete user document from Firestore
       await deleteDoc(doc(db, 'users', user.id));
+
+      //add log
+      await addLog({
+        date: currentTime,
+        name: `${userData?.name} deleted ${user.name} to the staff/admin list.`,
+      });
 
       // Update local state
       setUsers(users.filter(u => u.id !== user.id));

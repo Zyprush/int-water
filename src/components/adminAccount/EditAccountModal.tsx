@@ -4,6 +4,8 @@ import { db } from '../../../firebase';
 import { Consumer } from './types';
 import { useNotification } from '@/hooks/useNotification';
 import { currentTime } from '@/helper/time';
+import { useLogs } from '@/hooks/useLogs';
+import useUserData from '@/hooks/useUserData';
 
 interface EditConsumerModalProps {
   isOpen: boolean;
@@ -15,6 +17,8 @@ interface EditConsumerModalProps {
 const EditConsumerModal: React.FC<EditConsumerModalProps> = ({ isOpen, onClose, consumer, onUpdate }) => {
   const [formData, setFormData] = useState<Consumer | null>(null);
   const {addNotification} = useNotification();
+  const {addLog} = useLogs();
+  const {userData} = useUserData();
 
   useEffect(() => {
     if (consumer) {
@@ -100,7 +104,13 @@ const EditConsumerModal: React.FC<EditConsumerModalProps> = ({ isOpen, onClose, 
   
         const consumerRef = doc(db, 'consumers', consumer.id);
         await updateDoc(consumerRef, updatedData);
-        
+
+        // Add log
+        addLog({
+          date: currentTime,
+          name: `${userData?.name} edited ${formData.applicantName} in the system.`,
+        })
+
         onUpdate();
         onClose();
       } catch (error) {

@@ -3,6 +3,8 @@ import { auth, db, storage } from '../../../firebase';
 import { collection, doc, setDoc } from 'firebase/firestore';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
+import { useLogs } from '@/hooks/useLogs';
+import { currentTime } from '@/helper/time';
 
 interface AddNewUserModal {
     isOpen: boolean;
@@ -40,6 +42,8 @@ const AddNewConsumerModal: React.FC<AddNewUserModal> = ({ isOpen, onClose }) => 
     const [isLoading, setIsLoading] = useState(false);
     const [passwordError, setPasswordError] = useState('');
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const {addLog} = useLogs();
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -120,6 +124,12 @@ const AddNewConsumerModal: React.FC<AddNewUserModal> = ({ isOpen, onClose }) => 
     
             // Save user data to Firestore with the explicit ID
             await setDoc(docRef, userData);
+
+            //add logs
+            await addLog({
+                date: currentTime,
+                name: `${userData?.name} added ${formData.name} to the personnel list.`,
+            });
     
             console.log("Document written with ID: ", docRef.id);
             onClose();

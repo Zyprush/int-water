@@ -17,6 +17,9 @@ import ConsumerPDFViewer from "@/components/ConsumerPdfViewer";
 import ImportConsumersModal from "@/components/ImportExcel";
 import { useNotification } from "@/hooks/useNotification";
 import { currentTime } from "@/helper/time";
+import { useLogs } from "@/hooks/useLogs";
+import useUserData from "@/hooks/useUserData";
+
 
 
 const Account = () => {
@@ -39,6 +42,8 @@ const Account = () => {
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
   const { addNotification } = useNotification();
+  const {addLog} = useLogs();
+  const {userData} = useUserData();
 
   const openModal = () => setIsImportModalOpen(true);
   const closeModal = () => {
@@ -219,6 +224,11 @@ const Account = () => {
       link.click();
       document.body.removeChild(link);
     }
+    
+    addLog({
+      date: currentTime,
+      name: `${userData?.name} exported consumers’ data.`
+    })
     setIsExportCSVAlertOpen(false);
   };
 

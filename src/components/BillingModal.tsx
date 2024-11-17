@@ -2,6 +2,9 @@ import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { db } from '../../firebase';
 import { collection, doc, getDocs, updateDoc } from 'firebase/firestore';
+import useUserData from '@/hooks/useUserData';
+import { currentTime } from '@/helper/time';
+import { useLogs } from '@/hooks/useLogs';
 
 interface BillingItem {
   id: string;
@@ -38,13 +41,16 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, billing, onPayStatusChan
   const [isPaymentValid, setIsPaymentValid] = useState<boolean>(false);
   const [consumerData, setConsumerData] = useState<ConsumerData | null>(null);
 
+  const { addLog } = useLogs();
+  const { userData } = useUserData();
+
   useEffect(() => {
     const fetchConsumerData = async () => {
       try {
         const consumersRef = collection(db, 'consumers');
         const querySnapshot = await getDocs(consumersRef);
         const consumer = querySnapshot.docs.find(doc => doc.data().uid === billing.consumerId);
-        
+
         if (consumer) {
           setConsumerData({
             totalAmountDue: consumer.data().totalAmountDue || 0,
@@ -109,12 +115,12 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, billing, onPayStatusChan
     }
 
     const confirmMessage = `Confirm meter payment of ₱${paymentAmount.toFixed(2)}?`;
-    
+
     if (window.confirm(confirmMessage)) {
       try {
         const consumerRef = doc(db, 'consumers', consumerData.uid);
         const newTotalAmountDue = consumerData.totalAmountDue - paymentAmount;
-        
+
         await updateDoc(consumerRef, {
           totalAmountDue: newTotalAmountDue
         });
@@ -123,7 +129,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, billing, onPayStatusChan
           ...consumerData,
           totalAmountDue: newTotalAmountDue
         });
-        
+
         setMeterPaymentAmount('');
         alert('Meter payment successful!');
       } catch (error) {
@@ -134,23 +140,21 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, billing, onPayStatusChan
   };
 
   const handlePayStatusChange = async () => {
-    const confirmMessage = billing.status === 'Paid'
+    const isPaidToBecomeUnpaid = billing.status === 'Paid';
+    const confirmMessage = isPaidToBecomeUnpaid
       ? `Are you sure you want to mark this bill as unpaid for ${billing.consumer}?`
       : `Confirm payment of ₱${totalDue.toFixed(2)} for ${billing.consumer}?`;
 
     if (window.confirm(confirmMessage)) {
       try {
-        if (billing.status !== 'Paid') {
+        if (!isPaidToBecomeUnpaid) {  // If currently unpaid, going to be paid
           const billingsRef = collection(db, 'billings');
           const querySnapshot = await getDocs(billingsRef);
-
           querySnapshot.forEach(async (document) => {
             const billingData = document.data();
-
             if (billingData.consumerId === billing.consumerId &&
               billingData.status === 'Overdue' &&
               billingData.readingDate < billing.readingDate) {
-
               const billingRef = doc(db, 'billings', document.id);
               await updateDoc(billingRef, {
                 status: 'Paid',
@@ -159,6 +163,13 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, billing, onPayStatusChan
             }
           });
         }
+
+        // Updated log message to reflect the action taken
+        const actionType = isPaidToBecomeUnpaid ? 'unpaid' : 'paid';
+        await addLog({
+          date: currentTime,
+          name: `${userData?.name} updated ${billing.consumer} billings on ${billing.readingDate} to ${actionType}.`,
+        });
 
         onPayStatusChange(billing.id);
         setAmountGiven('');

@@ -3,6 +3,9 @@ import { auth, db } from '../../../firebase';
 import { addDoc, collection } from 'firebase/firestore';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { FormData } from './types';
+import { useLogs } from '@/hooks/useLogs';
+import useUserData from '@/hooks/useUserData';
+import { currentTime } from '@/helper/time';
 
 interface AddNewConsumerModalProps {
     isOpen: boolean;
@@ -40,6 +43,9 @@ const AddNewConsumerModal: React.FC<AddNewConsumerModalProps> = ({ isOpen, onClo
     });
 
     const [isLoading, setIsLoading] = useState(false);
+
+    const {addLog} = useLogs();
+    const {userData} = useUserData();
 
     const calculateTotalAmountDue = (installationFee: number, meterDeposit: number) => {
         return installationFee - meterDeposit;
@@ -89,6 +95,12 @@ const AddNewConsumerModal: React.FC<AddNewConsumerModalProps> = ({ isOpen, onClo
             const docRef = await addDoc(collection(db, 'consumers'), {
                 ...formData,
                 uid: user.uid // Add the user's UID to the consumer document
+            });
+
+            // Add log
+            await addLog({
+                date: currentTime,
+                name: `${userData?.name} added ${formData.applicantName} to the system.`,
             });
 
             console.log("Document written with ID: ", docRef.id);
