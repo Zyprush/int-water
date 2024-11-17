@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import ReactPaginate from "react-paginate";
 import { useLogs } from "@/hooks/useLogs"; // Adjust the path based on your structure
+import { format } from "date-fns";
 
 const ActivityLog = () => {
   const [activityLogsOpen, setActivityLogsOpen] = useState(false);
@@ -41,9 +42,9 @@ const ActivityLog = () => {
             <>
               <ul className="space-y-2">
                 {logs.slice(offset, offset + logsPerPage).map((log) => (
-                  <li key={log.id} className="bg-gray-100 dark:bg-gray-700 p-2 rounded-lg">
+                  <li key={log.id} className="bg-gray-100 dark:bg-gray-700 p-2 text-sm rounded-lg">
                     <p>
-                      <strong>{log.name}</strong> - {new Date(log.date).toLocaleString()}
+                      <strong>{log.name}</strong> - {format(new Date(log.date), "MM/dd/yyyy : hh:mm a")}
                     </p>
                   </li>
                 ))}

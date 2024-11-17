@@ -10,10 +10,17 @@ import {
   IconChevronUp,
 } from "@tabler/icons-react";
 import { useRouter } from "next/navigation";
-import { signOut, updatePassword, EmailAuthProvider, reauthenticateWithCredential} from "firebase/auth";
+import {
+  signOut,
+  updatePassword,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
+} from "firebase/auth";
 import { auth } from "../../../../firebase";
 import useConsumerData from "@/hooks/useConsumerData";
 import { FirebaseError } from "firebase/app";
+import { useLogs } from "@/hooks/useLogs";
+import { currentTime } from "@/helper/time";
 
 const Profile: React.FC = () => {
   const [isAccountOpen, setIsAccountOpen] = useState(false);
@@ -23,14 +30,19 @@ const Profile: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const { consumerData } = useConsumerData();
+  const { addLog } = useLogs();
 
   const userImage = "/img/profile-male.png"; // Replace with actual image path
-
+  console.log("consumerData", consumerData);
   // Handle logout functionality
   const handleLogout = async () => {
     if (window.confirm("Are you sure you want to log out?")) {
       try {
         await signOut(auth);
+        addLog({
+          name: `${consumerData?.applicantName} logged out of the system.`,
+          date: currentTime,
+        });
         router.push("/");
       } catch (error) {
         console.error("Error signing out:", error);
@@ -69,14 +81,20 @@ const Profile: React.FC = () => {
         setOldPassword("");
         setNewPassword("");
         setConfirmPassword("");
-      } catch (error) { // Changed from 'error: any' to 'error'
+      } catch (error) {
+        // Changed from 'error: any' to 'error'
         if (error instanceof FirebaseError) {
           const errorMessages: { [key: string]: string } = {
             "auth/invalid-credential": "Please enter the correct old password!",
-            "auth/user-disabled": "This account has been disabled. Please contact support.",
-            "auth/too-many-requests": "Too many failed login attempts. Please try again later."
+            "auth/user-disabled":
+              "This account has been disabled. Please contact support.",
+            "auth/too-many-requests":
+              "Too many failed login attempts. Please try again later.",
           };
-          alert(errorMessages[error.code as string] || "An unexpected error occurred. Please try again.");
+          alert(
+            errorMessages[error.code as string] ||
+              "An unexpected error occurred. Please try again."
+          );
         } else {
           alert("An unexpected error occurred. Please try again.");
         }

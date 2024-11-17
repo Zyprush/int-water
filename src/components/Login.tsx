@@ -8,6 +8,8 @@ import { useRouter } from "next/navigation";
 import { auth, db } from "../../firebase";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { FirebaseError } from "firebase/app";
+import { useLogs } from "@/hooks/useLogs";
+import { currentTime } from "@/helper/time";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -15,6 +17,7 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const {addLog} = useLogs();
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -54,6 +57,10 @@ const Login = () => {
         else {
           router.push("/admin/dashboard");
         }
+        addLog({
+          date: currentTime,
+          name: `${userData.name} logged into the system`,
+        })
       } else {
         // If user not found in 'users', check 'consumers' collection
         const consumerQuery = query(collection(db, 'consumers'), where('uid', '==', user.uid));
@@ -62,7 +69,10 @@ const Login = () => {
         if (!consumerQuerySnapshot.empty) {
           const consumerDocSnap = consumerQuerySnapshot.docs[0];
           console.log("Consumer document found:", consumerDocSnap.data());
-      
+          addLog({
+            date: currentTime,
+            name: `${consumerDocSnap.data()?.applicantName} logged into the system`,
+          })
           // If user found in 'consumers', route to consumer dashboard
           router.push("/consumer/dashboard");
         } else {

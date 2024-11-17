@@ -12,20 +12,28 @@ import { auth } from "../../../../firebase";
 import CAlertDialog from "@/components/ConfirmDialog";
 import UserProfile from "@/components/AccSettings";
 import ActivityLog from "./ActivityLog";
-// import ActivityLog from "./ActivityLog";
+import { useLogs } from "@/hooks/useLogs";
+import { currentTime } from "@/helper/time";
+import useUserData from "@/hooks/useUserData";
 
 const Settings = () => {
   const { theme, setTheme } = useTheme(); // Access theme and setTheme from next-themes
   const [accountSettingsOpen, setAccountSettingsOpen] = useState(false);
   const [systemInfoOpen, setSystemInfoOpen] = useState(false);
   const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
+  const { addLog } = useLogs();
+  const { userData } = useUserData();
   const router = useRouter(); // Initialize useRouter for navigation
 
   // Handle logout functionality
   const handleLogout = async () => {
     try {
       await signOut(auth); // Sign out the user from Firebase Authentication
-      router.push('/'); // Redirect to homepage or login page after logout
+      addLog({
+        name: `${userData?.name} logged out of the system.`,
+        date: currentTime,
+      });
+      router.push("/"); // Redirect to homepage or login page after logout
     } catch (error) {
       console.error("Error during sign out:", error);
       alert("Failed to log out. Please try again.");
@@ -64,12 +72,12 @@ const Settings = () => {
         <div className="mb-6">
           <div className="flex justify-between items-center bg-gray-200 bg-opacity-80 dark:bg-gray-800 p-4 rounded-lg">
             <h2 className="font-semibold">Logout</h2>
-            <button 
-              className="flex items-center" 
+            <button
+              className="flex items-center"
               onClick={() => setIsLogoutDialogOpen(true)} // Open the dialog instead of logging out directly
             >
               <span className="mr-3 text-sm">Sign out</span>
-              <IconArrowBigRightLines/>
+              <IconArrowBigRightLines />
             </button>
           </div>
         </div>
