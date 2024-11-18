@@ -54,7 +54,7 @@ const BillPreview: React.FC<BillPreviewProps> = ({ billing, consumer, onConfirm,
                 <div className="p-4 space-y-4">
                     <div className="text-center space-y-2">
                         <h1 className="text-xl font-bold">Water Billing Receipt</h1>
-                        <p className="text-sm">Balao Water System</p>
+                        <p className="text-sm">Waterworks System</p>
                     </div>
 
                     <div className="space-y-2">
