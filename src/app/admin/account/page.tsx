@@ -25,6 +25,7 @@ import ToastProvider from "@/components/ToastProvider";
 
 const Account = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all"); 
   const [currentPage, setCurrentPage] = useState(0);
   const [isAddNewModalOpen, setIsAddNewModalOpen] = useState(false);
   const [consumers, setConsumers] = useState<Consumer[]>([]);
@@ -123,10 +124,11 @@ const Account = () => {
   }, []);
 
   const itemsPerPage = 8;
-  const filteredData = consumers.filter(item =>
-    item.applicantName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.status.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredData = consumers.filter(item => {
+    const matchesSearch = item.applicantName.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === "all" || item.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
 
   const pageCount = Math.ceil(filteredData.length / itemsPerPage);
   const displayedData = filteredData.slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage);
@@ -335,6 +337,15 @@ const Account = () => {
               placeholder="Search..."
               className="w-1/3 p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring focus:border-blue-500 dark:border-zinc-600 dark:bg-zinc-600 text-sm dark:text-white"
             />
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="ml-2 p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring focus:border-blue-500 dark:border-zinc-600 dark:bg-zinc-600 text-sm dark:text-white"
+            >
+              <option value="all">All Status</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
           </div>
           <table className="min-w-full bg-white rounded-lg border-t mt-2 dark:bg-gray-800 dark:text-white">
             <thead className="bg-gray-100 dark:bg-gray-800">

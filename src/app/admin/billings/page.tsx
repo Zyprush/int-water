@@ -41,6 +41,7 @@ const Billings: React.FC = () => {
   const [selectedYear, setSelectedYear] = useState(dayjs().format("YYYY"));
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedBilling, setSelectedBilling] = useState<BillingItem | null>(null);
+  const [statusFilter, setStatusFilter] = useState("all");
 
   const [loading, setLoading] = useState(true);
 
@@ -138,10 +139,11 @@ const Billings: React.FC = () => {
     fetchBillings();
   }, [selectedMonth, selectedYear]);
 
-  const filteredBillings = billings.filter((item) =>
-    item.consumer.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.status.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredBillings = billings.filter(item => {
+    const matchesSearch = item.consumer.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === "all" || item.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
 
   const pageCount = Math.ceil(filteredBillings.length / itemsPerPage);
   const displayedBillings = filteredBillings.slice(
@@ -257,6 +259,15 @@ const Billings: React.FC = () => {
               placeholder="Search by consumer name..."
               className="w-1/3 p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring focus:border-blue-500 dark:bg-gray-700 dark:text-white"
             />
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="ml-2 p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring focus:border-blue-500 dark:border-zinc-600 dark:bg-zinc-600 text-sm dark:text-white"
+            >
+              <option value="all">All Status</option>
+              <option value="Paid">Paid</option>
+              <option value="Unpaid">Unpaid</option>
+            </select>
           </div>
           <table className="min-w-full bg-white rounded-lg border-t mt-2 dark:bg-gray-800">
             <thead className="bg-gray-100 dark:bg-gray-700">
