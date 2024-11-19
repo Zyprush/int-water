@@ -8,7 +8,7 @@ const navItems = [
     { href: "/staff/dashboard", icon: MdSpaceDashboard, label: "Dashboard" },
     { href: "/staff/account", icon: FaUserAlt, label: "Account" },
     { href: "/staff/billings", icon: FaMoneyCheckDollar, label: "Billings" },
-    { href: "/staff/technical", icon: RiFileWarningFill, label: "Technical Issues" },
+    { href: "/staff/technical", icon: RiFileWarningFill, label: "Request Issues" },
     { href: "/staff/settings", icon: IoMdSettings, label: "Settings" },
 ];
 

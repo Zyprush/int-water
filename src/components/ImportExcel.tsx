@@ -4,6 +4,7 @@ import { addDoc, collection } from 'firebase/firestore';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth, db } from '../../firebase';
 import { FirebaseError } from 'firebase/app';
+import { toast } from 'react-toastify';
 
 interface ConsumerData {
     applicantName: string;
@@ -78,6 +79,7 @@ const ImportConsumersModal: React.FC<ImportConsumersModalProps> = ({ isOpen, onC
                 const error = err as ImportError;
                 setError(`Error importing data: ${error.message}`);
                 console.error(error);
+                toast.error(error.message);
             } finally {
                 setIsLoading(false);
             }
@@ -98,6 +100,7 @@ const ImportConsumersModal: React.FC<ImportConsumersModalProps> = ({ isOpen, onC
         } catch (err) {
             const error = err as FirebaseError;
             throw new Error(`Failed to create account for ${email}: ${error.message}`);
+            toast.error(`Failed to create account for ${email}: ${error.message}`);
         }
     };
 
@@ -156,10 +159,12 @@ const ImportConsumersModal: React.FC<ImportConsumersModalProps> = ({ isOpen, onC
                     await addDoc(collection(db, 'consumers'), consumer);
 
                     console.log(`Successfully imported consumer: ${consumer.applicantName}`);
+                    toast.success(`Successfully imported consumer: ${consumer.applicantName}`);
                 } catch (err) {
                     const error = err as ImportError;
                     console.error(`Error processing row ${i + 1}:`, error.message);
                     // Continue with next row even if one fails
+                    toast.error(`Error processing row ${i + 1}: ${error.message}`);
                 }
             }
 
@@ -169,9 +174,11 @@ const ImportConsumersModal: React.FC<ImportConsumersModalProps> = ({ isOpen, onC
             }
 
             console.log('Import completed successfully!');
+            toast.success('Import completed successfully!');
         } catch (err) {
             const error = err as ImportError;
             console.error('Error importing data:', error.message);
+            toast.error(error.message);
             throw error;
         }
     };

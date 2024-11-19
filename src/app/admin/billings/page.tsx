@@ -139,7 +139,8 @@ const Billings: React.FC = () => {
   }, [selectedMonth, selectedYear]);
 
   const filteredBillings = billings.filter((item) =>
-    item.consumer.toLowerCase().includes(searchTerm.toLowerCase())
+    item.consumer.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.status.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const pageCount = Math.ceil(filteredBillings.length / itemsPerPage);

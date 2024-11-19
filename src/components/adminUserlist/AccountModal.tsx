@@ -1,10 +1,11 @@
 import React, { useRef, useState } from 'react';
 import { auth, db, storage } from '../../../firebase';
 import { collection, doc, setDoc } from 'firebase/firestore';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { AuthError, createUserWithEmailAndPassword } from 'firebase/auth';
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { useLogs } from '@/hooks/useLogs';
 import { currentTime } from '@/helper/time';
+import { toast } from 'react-toastify';
 
 interface AddNewUserModal {
     isOpen: boolean;
@@ -73,6 +74,22 @@ const AddNewConsumerModal: React.FC<AddNewUserModal> = ({ isOpen, onClose }) => 
         setRepeatPassword(e.target.value);
     };
 
+    const handleFirebaseError = (error: AuthError) => {
+        switch (error.code) {
+            case 'auth/email-already-in-use':
+                toast.error('This email is already registered in the system.');
+                break;
+            case 'auth/invalid-email':
+                toast.error('Please enter a valid email address.');
+                break;
+            case 'auth/weak-password':
+                toast.error('Password should be at least 6 characters long.');
+                break;
+            default:
+                toast.error('An error occurred while creating the account. Please try again.');
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (formData.password !== repeatPassword) {
@@ -133,8 +150,13 @@ const AddNewConsumerModal: React.FC<AddNewUserModal> = ({ isOpen, onClose }) => 
     
             console.log("Document written with ID: ", docRef.id);
             onClose();
-        } catch (e) {
-            console.error("Error adding document or creating user: ", e);
+        } catch (error) {
+            if (error instanceof Error) {
+                handleFirebaseError(error as AuthError);
+            } else {
+                toast.error('An unexpected error occurred. Please try again.');
+            }
+            console.error("Error adding document or creating user: ", error);
         } finally {
             if (currentUser) {
                 await auth.updateCurrentUser(currentUser);
@@ -217,7 +239,7 @@ const AddNewConsumerModal: React.FC<AddNewUserModal> = ({ isOpen, onClose }) => 
                                 <option value="Office Staff">Office Staff</option>
                                 <option value="admin">Admin</option>
                                 <option value="Meter Reader">Meter Reader</option>
-                                <option value="Technical Staff">Technical Staff</option>
+                                <option value="Maintenance Staff">Maintenance Staff</option>
                             </select>
                         </div>
                         <div>

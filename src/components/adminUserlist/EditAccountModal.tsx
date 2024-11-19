@@ -4,6 +4,7 @@ import { db, storage } from '../../../firebase';
 import { deleteObject, getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { PencilIcon } from 'lucide-react';
 import { EditUserModalProps, UsersEdit } from './types';
+import { toast } from 'react-toastify';
 
 const EditUserModal: React.FC<EditUserModalProps> = ({ isOpen, onClose, user, onUpdate }) => {
   const [formData, setFormData] = useState<UsersEdit | null>(null);
@@ -63,6 +64,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ isOpen, onClose, user, on
             updatedFields.password = newPassword;
           } else {
             throw new Error('New password and confirm password do not match');
+            toast.error('New password and confirm password do not match');
           }
         } else {
           delete updatedFields.password;
@@ -77,6 +79,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ isOpen, onClose, user, on
         onClose();
       } catch (error) {
         console.error('Error updating user:', error);
+        toast.error('Error updating user');
       }
     }
   };
@@ -188,7 +191,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ isOpen, onClose, user, on
                   <option value="Office Staff">Office Staff</option>
                   <option value="admin">Admin</option>
                   <option value="Meter Reader">Meter Reader</option>
-                  <option value="Technical Staff">Technical Staff</option>
+                  <option value="Maintenance Staff">Maintenance Staff</option>
                 </select>
               </div>
             </div>

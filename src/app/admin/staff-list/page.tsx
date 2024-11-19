@@ -2,7 +2,7 @@
 
 import NavLayout from "@/components/NavLayout";
 import React, { useEffect, useState } from "react";
-import { IconEye, IconPlus, IconPrinter, IconTrash } from "@tabler/icons-react";
+import { IconDownload, IconEye, IconPlus, IconTrash } from "@tabler/icons-react";
 import ReactPaginate from "react-paginate";
 
 import { collection, deleteDoc, doc, getDocs, query, updateDoc, where } from "firebase/firestore";
@@ -17,6 +17,7 @@ import CAlertDialog from "@/components/ConfirmDialog";
 import { useLogs } from "@/hooks/useLogs";
 import useUserData from "@/hooks/useUserData";
 import { currentTime } from "@/helper/time";
+import ToastProvider from "@/components/ToastProvider";
 
 const UserList = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -239,8 +240,8 @@ const UserList = () => {
               onClick={handleExportCSV}
               className="bg-blue-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-600 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
             >
-              Export CSV
-              <IconPrinter className="inline-block ml-2" />
+              Export
+              <IconDownload className="inline-block ml-2" />
             </button>
             <button
               onClick={handleAddNew}
@@ -363,7 +364,7 @@ const UserList = () => {
         title="Toggle Scanner Status"
         message={`Are you sure you want to ${userToScan?.scanner ? 'remove' : 'assign'} scanner for ${userToScan?.name}?`}
       />
-
+      <ToastProvider />
     </NavLayout>
   );
 };

@@ -64,7 +64,7 @@ const SideNavbar: React.FC = () => {
             <NavLink
               href="/maintenance/technical"
               icon={IconMessageReport}
-              label="Technical Issues"
+              label="Request Issues"
               isActive={pathname === "/maintenance/technical"}
               isMinimized={false}
             />

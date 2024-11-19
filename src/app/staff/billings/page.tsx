@@ -44,7 +44,7 @@ const Billings: React.FC = () => {
 
   const [loading, setLoading] = useState(true);
 
-  const { addNotification} = useNotification();
+  const { addNotification } = useNotification();
 
   const itemsPerPage = 10;
 
@@ -54,7 +54,7 @@ const Billings: React.FC = () => {
       const consumersRef = collection(db, "consumers");
       const q = query(consumersRef, where("uid", "==", consumerId));
       const querySnapshot = await getDocs(q);
-      
+
       // If we found a matching consumer, return their rate
       if (!querySnapshot.empty) {
         const consumerData = querySnapshot.docs[0].data() as ConsumerItem;
@@ -78,7 +78,7 @@ const Billings: React.FC = () => {
         const data = doc.data();
         const dueDatePassed = dayjs().isAfter(data.dueDate);
         let status = data.status;
-        
+
         if (dueDatePassed && status !== "Paid") {
           status = "Overdue";
           await setDoc(doc.ref, { status: "Overdue" }, { merge: true });
@@ -102,7 +102,7 @@ const Billings: React.FC = () => {
           where("consumerSerialNo", "==", data.consumerSerialNo)
         );
         const previousBillingSnapshot = await getDocs(previousBillingQuery);
-        
+
         let previousUnpaidBill = 0;
         if (!previousBillingSnapshot.empty) {
           const previousBillingData = previousBillingSnapshot.docs[0].data();
@@ -134,12 +134,13 @@ const Billings: React.FC = () => {
       setBillings(fetchedBillings);
       setLoading(false);
     };
-    
+
     fetchBillings();
   }, [selectedMonth, selectedYear]);
 
   const filteredBillings = billings.filter((item) =>
-    item.consumer.toLowerCase().includes(searchTerm.toLowerCase())
+    item.consumer.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.status.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const pageCount = Math.ceil(filteredBillings.length / itemsPerPage);
@@ -221,7 +222,7 @@ const Billings: React.FC = () => {
 
   if (loading) {
     return (
-      <Loading/>
+      <Loading />
     );
   }
 

@@ -2,7 +2,7 @@
 
 import NavLayout from "@/components/NavLayout";
 import React, { useEffect, useState } from "react";
-import { IconEdit, IconEye, IconPlus, IconPrinter, IconTrash, IconUpload } from "@tabler/icons-react";
+import { IconDownload, IconEdit, IconEye, IconPlus, IconTrash, IconUpload } from "@tabler/icons-react";
 import ReactPaginate from "react-paginate";
 
 import { collection, deleteDoc, doc, getDocs, query, updateDoc, where } from "firebase/firestore";
@@ -19,6 +19,7 @@ import { useNotification } from "@/hooks/useNotification";
 import { currentTime } from "@/helper/time";
 import { useLogs } from "@/hooks/useLogs";
 import useUserData from "@/hooks/useUserData";
+import ToastProvider from "@/components/ToastProvider";
 
 
 
@@ -124,7 +125,7 @@ const Account = () => {
   const itemsPerPage = 8;
   const filteredData = consumers.filter(item =>
     item.applicantName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.waterMeterSerialNo.toLowerCase().includes(searchTerm.toLowerCase())
+    item.status.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const pageCount = Math.ceil(filteredData.length / itemsPerPage);
@@ -306,8 +307,8 @@ const Account = () => {
               onClick={handleExportCSV}
               className="bg-blue-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-600"
             >
-              Export CSV
-              <IconPrinter className="inline-block ml-2" />
+              Export
+              <IconDownload className="inline-block ml-2" />
             </button>
             <button
               onClick={openModal}
@@ -436,6 +437,7 @@ const Account = () => {
         consumer={selectedConsumerForPdf}
       />
       <ImportConsumersModal isOpen={isImportModalOpen} onClose={closeModal} />
+      <ToastProvider/>
     </NavLayout>
   );
 };

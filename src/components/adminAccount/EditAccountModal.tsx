@@ -6,6 +6,8 @@ import { useNotification } from '@/hooks/useNotification';
 import { currentTime } from '@/helper/time';
 import { useLogs } from '@/hooks/useLogs';
 import useUserData from '@/hooks/useUserData';
+import { toast } from 'react-toastify';
+import { FirebaseError } from 'firebase/app';
 
 interface EditConsumerModalProps {
   isOpen: boolean;
@@ -16,9 +18,9 @@ interface EditConsumerModalProps {
 
 const EditConsumerModal: React.FC<EditConsumerModalProps> = ({ isOpen, onClose, consumer, onUpdate }) => {
   const [formData, setFormData] = useState<Consumer | null>(null);
-  const {addNotification} = useNotification();
-  const {addLog} = useLogs();
-  const {userData} = useUserData();
+  const { addNotification } = useNotification();
+  const { addLog } = useLogs();
+  const { userData } = useUserData();
 
   useEffect(() => {
     if (consumer) {
@@ -33,92 +35,154 @@ const EditConsumerModal: React.FC<EditConsumerModalProps> = ({ isOpen, onClose, 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-  
-    if (formData && consumer) {
-      try {
-        // Check if status is being changed from inactive to active
-        if (consumer.status === 'inactive' && formData.status === 'active') {
-          // Add notification for status change
+
+    if (!formData || !consumer) {
+      toast.error('Missing required data to update consumer');
+      return;
+    }
+
+    try {
+      // Check if status is being changed from inactive to active
+      if (consumer.status === 'inactive' && formData.status === 'active') {
+        try {
           await addNotification({
             consumerId: consumer.uid,
             date: currentTime,
             read: false,
             name: `Your water service has been restored. Thank you for settling your account. We appreciate your cooperation!`
           });
+        } catch (notifError) {
+          console.error("Error adding notification:", notifError);
+          toast.warning('Consumer updated but notification failed to send');
         }
-        // Destructure the fields that should be updated
-        const { 
-          applicantName, 
-          cellphoneNo, 
-          currentAddress, 
-          barangay, 
-          installationAddress, 
-          serviceConnectionType, 
-          serviceConnectionSize, 
-          email, 
-          buildingOwnerName, 
-          buildingOwnerAddress, 
-          buildingOwnerCellphone,
-          installationFee, 
-          meterDeposit, 
-          guarantyDeposit, 
-          totalAmountDue, 
-          paidUnderOR, 
-          serviceConnectionNo, 
-          customerAccountNo, 
-          waterMeterSerialNo, 
-          waterMeterBrand, 
-          waterMeterSize, 
-          initialReading, 
-          role, 
-          status 
-        } = formData;
-  
-        // Create a new object containing only updatable fields
-        const updatedData = {
-          applicantName, 
-          cellphoneNo, 
-          currentAddress, 
-          barangay, 
-          installationAddress, 
-          serviceConnectionType, 
-          serviceConnectionSize, 
-          email, 
-          buildingOwnerName, 
-          buildingOwnerAddress, 
-          buildingOwnerCellphone, 
-          installationFee, 
-          meterDeposit, 
-          guarantyDeposit, 
-          totalAmountDue, 
-          paidUnderOR, 
-          serviceConnectionNo, 
-          customerAccountNo, 
-          waterMeterSerialNo, 
-          waterMeterBrand, 
-          waterMeterSize, 
-          initialReading, 
-          role, 
-          status 
-        };
-  
-        const consumerRef = doc(db, 'consumers', consumer.id);
-        await updateDoc(consumerRef, updatedData);
+      }
 
-        // Add log
-        addLog({
+      // Validate required fields before update
+      const requiredFields = [
+        'applicantName',
+        'cellphoneNo',
+        'email',
+        'currentAddress',
+        'serviceConnectionType'
+      ];
+
+      const missingFields = requiredFields.filter(field => !formData[field as keyof typeof formData]);
+
+      if (missingFields.length > 0) {
+        toast.error(`Missing required fields: ${missingFields.join(', ')}`);
+        return;
+      }
+
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.email)) {
+        toast.error('Please enter a valid email address');
+        return;
+      }
+
+      // Validate phone number (assuming Philippines format)
+      if (formData.cellphoneNo.length < 10) {
+        toast.error('Please enter a valid phone number');
+        return;
+      }
+
+      // Destructure and create updated data object
+      const {
+        applicantName,
+        cellphoneNo,
+        currentAddress,
+        barangay,
+        installationAddress,
+        serviceConnectionType,
+        serviceConnectionSize,
+        email,
+        buildingOwnerName,
+        buildingOwnerAddress,
+        buildingOwnerCellphone,
+        installationFee,
+        meterDeposit,
+        guarantyDeposit,
+        totalAmountDue,
+        paidUnderOR,
+        serviceConnectionNo,
+        customerAccountNo,
+        waterMeterSerialNo,
+        waterMeterBrand,
+        waterMeterSize,
+        initialReading,
+        role,
+        status
+      } = formData;
+
+      const updatedData = {
+        applicantName,
+        cellphoneNo,
+        currentAddress,
+        barangay,
+        installationAddress,
+        serviceConnectionType,
+        serviceConnectionSize,
+        email,
+        buildingOwnerName,
+        buildingOwnerAddress,
+        buildingOwnerCellphone,
+        installationFee,
+        meterDeposit,
+        guarantyDeposit,
+        totalAmountDue,
+        paidUnderOR,
+        serviceConnectionNo,
+        customerAccountNo,
+        waterMeterSerialNo,
+        waterMeterBrand,
+        waterMeterSize,
+        initialReading,
+        role,
+        status
+      };
+
+      const consumerRef = doc(db, 'consumers', consumer.id);
+      await updateDoc(consumerRef, updatedData);
+
+      // Add log entry
+      try {
+        await addLog({
           date: currentTime,
           name: `${userData?.name} edited ${formData.applicantName} in the system.`,
-        })
+        });
+      } catch (logError) {
+        console.error("Error adding log:", logError);
+        toast.warning('Consumer updated but log entry failed');
+      }
 
-        onUpdate();
-        onClose();
-      } catch (error) {
-        console.error("Error updating consumer:", error);
+      toast.success('Consumer updated successfully!');
+      onUpdate();
+      onClose();
+
+    } catch (error) {
+      console.error("Error updating consumer:", error);
+
+      // Handle specific Firestore errors
+      if (error instanceof FirebaseError) {
+        switch (error.code) {
+          case 'permission-denied':
+            toast.error('You do not have permission to update this consumer');
+            break;
+          case 'not-found':
+            toast.error('Consumer record not found');
+            break;
+          case 'invalid-argument':
+            toast.error('Invalid data provided for update');
+            break;
+          default:
+            toast.error(`Update failed: ${error.message}`);
+        }
+      } else {
+        toast.error('An unexpected error occurred while updating the consumer');
       }
     }
   };
-  
+
 
   if (!isOpen || !formData) return null;
 

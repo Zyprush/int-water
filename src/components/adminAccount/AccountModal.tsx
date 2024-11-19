@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { auth, db } from '../../../firebase';
 import { addDoc, collection } from 'firebase/firestore';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { AuthError, createUserWithEmailAndPassword } from 'firebase/auth';
 import { FormData } from './types';
 import { useLogs } from '@/hooks/useLogs';
 import useUserData from '@/hooks/useUserData';
 import { currentTime } from '@/helper/time';
+import { toast } from 'react-toastify';
 
 interface AddNewConsumerModalProps {
     isOpen: boolean;
@@ -13,6 +14,23 @@ interface AddNewConsumerModalProps {
 }
 
 const AddNewConsumerModal: React.FC<AddNewConsumerModalProps> = ({ isOpen, onClose }) => {
+
+    const handleFirebaseError = (error: AuthError) => {
+        switch (error.code) {
+            case 'auth/email-already-in-use':
+                toast.error('This email is already registered in the system.');
+                break;
+            case 'auth/invalid-email':
+                toast.error('Please enter a valid email address.');
+                break;
+            case 'auth/weak-password':
+                toast.error('Serial Meter should be at least 6 characters long.');
+                break;
+            default:
+                toast.error('An error occurred while creating the account. Please try again.');
+        }
+    };
+    
     const [formData, setFormData] = useState<FormData>({
         applicantName: '',
         cellphoneNo: '',
@@ -104,9 +122,15 @@ const AddNewConsumerModal: React.FC<AddNewConsumerModalProps> = ({ isOpen, onClo
             });
 
             console.log("Document written with ID: ", docRef.id);
+            toast.success('Consumer added successfully!');
             onClose();
-        } catch (e) {
-            console.error("Error adding document or creating user: ", e);
+        } catch (error) {
+            if (error instanceof Error) {
+                handleFirebaseError(error as AuthError);
+            } else {
+                toast.error('An unexpected error occurred. Please try again.');
+            }
+            console.error("Error adding document or creating user: ", error);
         } finally {
             if (currentUser) {
                 await auth.updateCurrentUser(currentUser);
@@ -114,6 +138,7 @@ const AddNewConsumerModal: React.FC<AddNewConsumerModalProps> = ({ isOpen, onClo
             setIsLoading(false);
         }
     };
+    
 
     if (!isOpen) return null;
 
@@ -139,7 +164,7 @@ const AddNewConsumerModal: React.FC<AddNewConsumerModalProps> = ({ isOpen, onClo
                         <div>
                             <label htmlFor="cellphoneNo" className="block text-sm font-medium text-gray-700">Cellphone No.</label>
                             <input
-                                type="text"
+                                type="number"
                                 id="cellphoneNo"
                                 name="cellphoneNo"
                                 value={formData.cellphoneNo}
@@ -294,7 +319,7 @@ const AddNewConsumerModal: React.FC<AddNewConsumerModalProps> = ({ isOpen, onClo
                             <div>
                                 <label htmlFor="buildingOwnerCellphone" className="block text-sm font-medium text-gray-700">Cellphone No. of the building/property owner</label>
                                 <input
-                                    type="text"
+                                    type="number"
                                     id="buildingOwnerCellphone"
                                     name="buildingOwnerCellphone"
                                     value={formData.buildingOwnerCellphone}
@@ -303,25 +328,6 @@ const AddNewConsumerModal: React.FC<AddNewConsumerModalProps> = ({ isOpen, onClo
 
                                 />
                             </div>
-                            {
-                                /**
-                            <div>
-                                <label htmlFor="status" className="block text-sm font-medium text-gray-700">Status</label>
-                                <select
-                                    id="status"
-                                    name="status"
-                                    value={formData.status}
-                                    onChange={handleInputChange}
-                                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
-                                >
-                                    <option value="">Select Status</option>
-                                    <option value="active">Active</option>
-                                    <option value="pending">Pending</option>
-                                    <option value="inactive">Inactive</option>
-                                </select>
-                            </div>
-                                 */
-                            }
                         </div>
                     </div>
 
@@ -329,18 +335,6 @@ const AddNewConsumerModal: React.FC<AddNewConsumerModalProps> = ({ isOpen, onClo
                         <div>
                             <h3 className="text-lg font-medium text-gray-900 mb-2">Amount of Charges Due</h3>
                             <div className="space-y-2">
-                                {/* <div className='flex justify-between items-center'>
-                                    <label htmlFor="date" className="text-sm font-medium text-gray-700">Created Date</label>
-                                    <input
-                                        type="date"
-                                        id="createdAt"
-                                        name="createdAt"
-                                        value={formData.createdAt}
-                                        onChange={handleInputChange}
-                                        className="w-40 border border-gray-300 rounded-md shadow-sm p-2"
-                                        required
-                                    />
-                                </div>*/}
                                 {[
                                     { label: 'Rate per Cubic Meter', name: 'rate' },
                                     { label: 'Installation Fee', name: 'installationFee' },

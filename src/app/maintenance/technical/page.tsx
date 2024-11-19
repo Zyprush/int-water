@@ -350,7 +350,7 @@ const Technical = () => {
                 : "bg-gray-100 dark:bg-gray-700 text-primary text-sm"
             }`}
           >
-            Unresolved
+            Request
           </button>
           <button
             onClick={() => handleTabClick("inProgress")}
