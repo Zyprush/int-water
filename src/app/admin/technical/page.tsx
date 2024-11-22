@@ -314,6 +314,14 @@ const Technical = () => {
                       >
                         Declined
                       </li>
+                      <li
+                        className="px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
+                        onClick={() =>
+                          handleStatusChange(report.id, "resolved")
+                        }
+                      >
+                        Mark as Resolved
+                      </li>
                     </>
                   )}
                   {report.status === "inProgress" && (
