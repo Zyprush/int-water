@@ -1,6 +1,7 @@
 // src/app/page.tsx
 import Login from "@/components/Login";
 import GetText from "./admin/settings/GetText";
+import ToastProvider from "@/components/ToastProvider";
 
 export default function Home() {
   return (
@@ -20,6 +21,7 @@ export default function Home() {
             </p>
           </div>
           <Login />
+          <ToastProvider />
         </div>
       </div>
     </div>

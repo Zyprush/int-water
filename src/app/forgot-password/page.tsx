@@ -1,28 +1,63 @@
 "use client";
 import React, { useState } from "react";
-import { sendPasswordResetEmail } from "firebase/auth";
+import { sendPasswordResetEmail, fetchSignInMethodsForEmail } from "firebase/auth";
 import { auth } from "../../../firebase";
 import Link from "next/link";
+import { toast } from "react-toastify";
+import { FirebaseError } from "firebase/app";
+import ToastProvider from "@/components/ToastProvider";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
-  const [error, setError] = useState("");
-  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handlePasswordReset = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
-    setMessage("");
+    
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      toast.error("Please enter a valid email address.");
+      return;
+    }
 
+    setLoading(true);
     try {
-      await sendPasswordResetEmail(auth, email);
-      setMessage("Password reset email sent! Check your inbox.");
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        setError(error.message || "Failed to send reset email");
-      } else {
-        setError("Failed to send reset email");
+      // Check if email is registered
+      const signInMethods = await fetchSignInMethodsForEmail(auth, email);
+      
+      if (signInMethods.length === 0) {
+        toast.error("No account found with this email address.");
+        setLoading(false);
+        return;
       }
+
+      // Send password reset email
+      await sendPasswordResetEmail(auth, email);
+      toast.success("Password reset email sent! Check your inbox.");
+      setEmail(""); // Clear email input after successful send
+    } catch (error) {
+      const firebaseError = error as FirebaseError;
+      
+      switch (firebaseError.code) {
+        case "auth/invalid-email":
+          toast.error("Invalid email address format.");
+          break;
+        case "auth/user-not-found":
+          toast.error("No user found with this email address.");
+          break;
+        case "auth/too-many-requests":
+          toast.error("Too many reset attempts. Please try again later.");
+          break;
+        case "auth/network-request-failed":
+          toast.error("Network error. Please check your connection.");
+          break;
+        default:
+          toast.error("Failed to send password reset email. Please try again.");
+          console.error("Password reset error:", error);
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -46,10 +81,9 @@ const ForgotPassword = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 className="dark-input w-full p-2 rounded-lg bg-zinc-800 text-white focus:ring-2 focus:ring-teal-500"
                 required
+                placeholder="Enter your email"
               />
             </div>
-            {error && <p className="text-red-500 text-sm">{error}</p>}
-            {message && <p className="text-white text-sm">{message}</p>}
             <div className="flex justify-between gap-5">
               <Link
                 className="btn btn-primary"
@@ -59,14 +93,18 @@ const ForgotPassword = () => {
               </Link>
               <button
                 type="submit"
-                className="w-full py-3 font-semibold text-white bg-teal-600 rounded-md hover:bg-teal-700"
+                className={`w-full py-3 font-semibold text-white bg-teal-600 rounded-md hover:bg-teal-700 ${
+                  loading ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+                disabled={loading}
               >
-                Reset Password
+                {loading ? "Sending..." : "Reset Password"}
               </button>
             </div>
           </form>
         </div>
       </div>
+      <ToastProvider />
     </div>
   );
 };

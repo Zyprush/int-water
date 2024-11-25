@@ -1,4 +1,3 @@
-// src/components/Login.tsx
 "use client";
 import React, { useState } from "react";
 import { FaEyeSlash, FaEye } from "react-icons/fa";
@@ -10,6 +9,7 @@ import { collection, getDocs, query, where } from "firebase/firestore";
 import { FirebaseError } from "firebase/app";
 import { useLogs } from "@/hooks/useLogs";
 import { currentTime } from "@/helper/time";
+import { toast } from "react-toastify";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -17,7 +17,13 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const {addLog} = useLogs();
+  const { addLog } = useLogs();
+
+  // Enhanced email validation
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -25,72 +31,85 @@ const Login = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate email format before attempting login
+    if (!validateEmail(email)) {
+      toast.error("Please enter a valid email address.");
+      return;
+    }
+
+    // Validate password length
+    if (password.length < 6) {
+      toast.error("Password must be at least 6 characters long.");
+      return;
+    }
+
     setLoading(true);
 
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
   
-      // Check for user in 'users' collection first
-      const userQuery = query(collection(db, 'users'), where('uid', '==', user.uid));
-      const userQuerySnapshot = await getDocs(userQuery);
-      const userDocSnap = userQuerySnapshot.docs[0];
-  
-      if (userDocSnap?.exists()) {
-        const userData = userDocSnap.data();
-        console.log('role', userData.role);
-  
-        // Check user role and route accordingly
-        if (userData.role === "admin") {
-          router.push("/admin/dashboard");
-        } else if (userData.role === "Maintenance Staff") {
-          router.push("/maintenance/technical");
-        } else if (userData.role === "Office Staff") {
-          if (userData.scanner === true) {
-            router.push("/scanner/dashboard");
-          } else {
-            router.push("/staff/dashboard");
-          }
-        } else if (userData.role === "Meter Reader") {
-          router.push("/scanner/dashboard");
-        }
-        else {
-          router.push("/admin/dashboard");
-        }
-        addLog({
-          date: currentTime,
-          name: `${userData.name} logged into the system`,
-        })
-      } else {
-        // If user not found in 'users', check 'consumers' collection
-        const consumerQuery = query(collection(db, 'consumers'), where('uid', '==', user.uid));
-        const consumerQuerySnapshot = await getDocs(consumerQuery);
-      
-        if (!consumerQuerySnapshot.empty) {
-          const consumerDocSnap = consumerQuerySnapshot.docs[0];
-          console.log("Consumer document found:", consumerDocSnap.data());
+      // Consolidated user lookup across collections
+      const collections = ['users', 'consumers'];
+      let userFound = false;
+
+      for (const collectionName of collections) {
+        const userQuery = query(
+          collection(db, collectionName), 
+          where('uid', '==', user.uid)
+        );
+        const querySnapshot = await getDocs(userQuery);
+        
+        if (!querySnapshot.empty) {
+          userFound = true;
+          const docSnap = querySnapshot.docs[0];
+          const userData = docSnap.data();
+
+          // Routing logic
+          const routingMap: { [key: string]: string } = {
+            "admin": "/admin/dashboard",
+            "Maintenance Staff": "/maintenance/technical",
+            "Office Staff": userData.scanner ? "/scanner/dashboard" : "/staff/dashboard",
+            "Meter Reader": "/scanner/dashboard",
+            "Consumer": "/consumer/dashboard"
+          };
+
+          const route = routingMap[userData.role] || "/admin/dashboard";
+          
+          // Logging
           addLog({
             date: currentTime,
-            name: `${consumerDocSnap.data()?.applicantName} logged into the system`,
-          })
-          // If user found in 'consumers', route to consumer dashboard
-          router.push("/consumer/dashboard");
-        } else {
-          // If user is not found in either 'users' or 'consumers'
-          console.log("User not found in 'users' or 'consumers' collections");
-          router.push("/");
+            name: `${userData.name || userData.applicantName || 'User'} logged into the system`,
+          });
+
+          router.push(route);
+          toast.success("Login successful!");
+          return;
         }
+      }
+
+      // If no user found in any collection
+      if (!userFound) {
+        toast.error("User account not found in the system.");
+        router.push("/");
       }
       
     } catch (error) {
       const firebaseError = error as FirebaseError;
-      if (firebaseError.code === "auth/wrong-password") {
-        alert("Incorrect password. Please try again.");
-      } else if (firebaseError.code === "auth/user-not-found") {
-        alert("No user found with this email.");
-      } else {
-        alert("Login failed. Please try again.");
-      }
+      
+      const errorMap: { [key: string]: string } = {
+        "auth/wrong-password": "Incorrect password. Please try again.",
+        "auth/user-not-found": "No user found with this email address.",
+        "auth/invalid-email": "Invalid email format. Please check your email.",
+        "auth/too-many-requests": "Too many login attempts. Please try again later.",
+      };
+
+      const errorMessage = errorMap[firebaseError.code] || 
+        "Login failed. Please check your credentials.";
+      
+      toast.error(errorMessage);
+      console.error("Login error:", error);
     } finally {
       setLoading(false);
     }
