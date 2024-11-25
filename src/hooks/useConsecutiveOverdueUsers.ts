@@ -1,6 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
 import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
-
 import dayjs from 'dayjs';
 import { db } from '../../firebase';
 
@@ -11,26 +10,25 @@ interface ConsecutiveOverdueUser {
 }
 
 export const useConsecutiveOverdueUsers = () => {
-  const [overdueUsers, setOverdueUsers] = useState<Array<ConsecutiveOverdueUser> | null>(null);
+  const [overdueUsers, setOverdueUsers] = useState<ConsecutiveOverdueUser[] | null>(null);
 
   const fetchConsecutiveOverdueUsers = useCallback(async () => {
     try {
+      // 1. Fetch overdue billings
       const billingsRef = collection(db, 'billings');
-
       const q = query(
-        billingsRef, 
-        where('status', '==', 'Overdue'), 
+        billingsRef,
+        where('status', '==', 'Overdue'),
         orderBy('month', 'desc')
       );
-
       const snapshot = await getDocs(q);
-      const overdueData: Record<string, string[]> = {};
 
+      // 2. Group overdue months by consumerId
+      const overdueData: Record<string, string[]> = {};
       snapshot.docs.forEach(doc => {
         const data = doc.data();
         const consumerId = data.consumerId;
         const month = data.month;
-
         if (!overdueData[consumerId]) {
           overdueData[consumerId] = [];
         }
@@ -39,14 +37,19 @@ export const useConsecutiveOverdueUsers = () => {
 
       const consecutiveOverdueUsers: ConsecutiveOverdueUser[] = [];
 
+      // 3. Process each consumer with overdue payments
       for (const [consumerId, months] of Object.entries(overdueData)) {
         const sortedMonths = months.sort((a, b) => dayjs(b).diff(dayjs(a)));
-
+        
+        // Only process if there are 3 or more overdue months
         if (sortedMonths.length >= 3) {
+          // Query consumers where uid field equals consumerId
+          const consumersRef = collection(db, 'consumers');
           const consumerQuery = query(
-            collection(db, 'consumers'), 
+            consumersRef,
             where('uid', '==', consumerId)
           );
+          
           const consumerSnapshot = await getDocs(consumerQuery);
           
           if (!consumerSnapshot.empty) {
@@ -54,7 +57,7 @@ export const useConsecutiveOverdueUsers = () => {
             
             consecutiveOverdueUsers.push({
               consumerId,
-              consumerName: consumerData.name || 'Unknown',
+              consumerName: consumerData.applicantName || 'Unknown',
               overdueMonths: sortedMonths
             });
           }
@@ -63,7 +66,7 @@ export const useConsecutiveOverdueUsers = () => {
 
       setOverdueUsers(consecutiveOverdueUsers);
     } catch (error) {
-      console.log("Error fetching overdue users:", error);
+      console.error("Error fetching overdue users:", error);
       setOverdueUsers(null);
     }
   }, []);

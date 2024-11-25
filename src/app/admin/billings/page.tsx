@@ -12,6 +12,7 @@ import { FaEye } from "react-icons/fa";
 import Loading from "@/components/Loading";
 import { useNotification } from "@/hooks/useNotification";
 import { currentTime } from "@/helper/time";
+import { useConsecutiveOverdueUsers } from "@/hooks/useConsecutiveOverdueUsers";
 
 interface BillingItem {
   id: string;
@@ -43,6 +44,8 @@ const Billings: React.FC = () => {
   const [selectedBilling, setSelectedBilling] = useState<BillingItem | null>(null);
   const [statusFilter, setStatusFilter] = useState("all");
 
+  const { overdueUsers } = useConsecutiveOverdueUsers();
+
   const [loading, setLoading] = useState(true);
 
   const itemsPerPage = 10;
@@ -55,7 +58,7 @@ const Billings: React.FC = () => {
       const consumersRef = collection(db, "consumers");
       const q = query(consumersRef, where("uid", "==", consumerId));
       const querySnapshot = await getDocs(q);
-      
+
       // If we found a matching consumer, return their rate
       if (!querySnapshot.empty) {
         const consumerData = querySnapshot.docs[0].data() as ConsumerItem;
@@ -79,7 +82,7 @@ const Billings: React.FC = () => {
         const data = doc.data();
         const dueDatePassed = dayjs().isAfter(data.dueDate);
         let status = data.status;
-        
+
         if (dueDatePassed && status !== "Paid") {
           status = "Overdue";
           await setDoc(doc.ref, { status: "Overdue" }, { merge: true });
@@ -103,7 +106,7 @@ const Billings: React.FC = () => {
           where("consumerSerialNo", "==", data.consumerSerialNo)
         );
         const previousBillingSnapshot = await getDocs(previousBillingQuery);
-        
+
         let previousUnpaidBill = 0;
         if (!previousBillingSnapshot.empty) {
           const previousBillingData = previousBillingSnapshot.docs[0].data();
@@ -135,7 +138,7 @@ const Billings: React.FC = () => {
       setBillings(fetchedBillings);
       setLoading(false);
     };
-    
+
     fetchBillings();
   }, [selectedMonth, selectedYear]);
 
@@ -224,7 +227,7 @@ const Billings: React.FC = () => {
 
   if (loading) {
     return (
-      <Loading/>
+      <Loading />
     );
   }
 
@@ -268,7 +271,7 @@ const Billings: React.FC = () => {
               placeholder="Search by consumer name..."
               className="w-1/3 p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring focus:border-blue-500 dark:bg-gray-700 dark:text-white"
             />
-            
+
           </div>
           <table className="min-w-full bg-white rounded-lg border-t mt-2 dark:bg-gray-800">
             <thead className="bg-gray-100 dark:bg-gray-700">
@@ -341,6 +344,16 @@ const Billings: React.FC = () => {
           billing={selectedBilling}
           onPayStatusChange={handlePayStatusChange}
         />
+      )}
+      {overdueUsers && overdueUsers.length > 0 ? (
+        overdueUsers.map(user => (
+          <div key={user.consumerId}>
+            <p>Name: {user.consumerName || 'N/A'}</p>
+            <p>Overdue Months: {user.overdueMonths?.join(', ') || 'No overdue months'}</p>
+          </div>
+        ))
+      ) : (
+        <div>No overdue users found</div>
       )}
     </NavLayout>
   );
