@@ -27,7 +27,7 @@ const AddNewConsumerModal: React.FC<AddNewConsumerModalProps> = ({ isOpen, onClo
                 toast.error('Serial Meter should be at least 6 characters long.');
                 break;
             default:
-                toast.error('An error occurred while creating the account. Please try again.');
+                toast.error('An error occurred while creating the account. Please check for empty fields.');
         }
     };
     

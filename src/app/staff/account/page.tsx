@@ -17,6 +17,7 @@ import ImportConsumersModal from "@/components/ImportExcel";
 import StaffNav from "@/components/StaffNav";
 import { useNotification } from "@/hooks/useNotification";
 import { currentTime } from "@/helper/time";
+import ToastProvider from "@/components/ToastProvider";
 
 
 const Account = () => {
@@ -426,6 +427,7 @@ const Account = () => {
         consumer={selectedConsumerForPdf}
       />
       <ImportConsumersModal isOpen={isImportModalOpen} onClose={closeModal} />
+      <ToastProvider/>
     </StaffNav>
   );
 };
