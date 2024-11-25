@@ -12,7 +12,6 @@ import { FaEye } from "react-icons/fa";
 import Loading from "@/components/Loading";
 import { useNotification } from "@/hooks/useNotification";
 import { currentTime } from "@/helper/time";
-import { useConsecutiveOverdueUsers } from "@/hooks/useConsecutiveOverdueUsers";
 
 interface BillingItem {
   id: string;
@@ -43,8 +42,6 @@ const Billings: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedBilling, setSelectedBilling] = useState<BillingItem | null>(null);
   const [statusFilter, setStatusFilter] = useState("all");
-
-  const { overdueUsers } = useConsecutiveOverdueUsers();
 
   const [loading, setLoading] = useState(true);
 
@@ -344,16 +341,6 @@ const Billings: React.FC = () => {
           billing={selectedBilling}
           onPayStatusChange={handlePayStatusChange}
         />
-      )}
-      {overdueUsers && overdueUsers.length > 0 ? (
-        overdueUsers.map(user => (
-          <div key={user.consumerId}>
-            <p>Name: {user.consumerName || 'N/A'}</p>
-            <p>Overdue Months: {user.overdueMonths?.join(', ') || 'No overdue months'}</p>
-          </div>
-        ))
-      ) : (
-        <div>No overdue users found</div>
       )}
     </NavLayout>
   );
