@@ -11,6 +11,7 @@ import { auth } from "../../../../firebase";
 import StaffNav from "@/components/StaffNav";
 import SystemInfo from "@/app/admin/settings/SystemInfo";
 import UserProfile from "@/components/AccSettings";
+import ActivityLog from "./ActivityLog";
 
 const Settings = () => {
   const { theme, setTheme } = useTheme(); // Access theme and setTheme from next-themes
@@ -95,6 +96,9 @@ const Settings = () => {
           </div>
           {systemInfoOpen && <SystemInfo />}
         </div>
+
+        {/* Activity Log */}
+        <ActivityLog />
 
       </div>
     </StaffNav>

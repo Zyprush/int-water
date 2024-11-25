@@ -19,9 +19,10 @@ const ActivityLog: React.FC = () => {
   const { logs, loadingLogs, fetchLogsByAdmin } = useLogs();
   const { userData } = useUserData();
   const [currentPage, setCurrentPage] = useState<number>(0);
+  const [filteredLogs, setFilteredLogs] = useState<Log[]>([]);
 
   const logsPerPage = 10;
-  const pageCount = logs ? Math.ceil(logs.length / logsPerPage) : 0;
+  const pageCount = filteredLogs ? Math.ceil(filteredLogs.length / logsPerPage) : 0;
   const offset = currentPage * logsPerPage;
 
   useEffect(() => {
@@ -29,6 +30,16 @@ const ActivityLog: React.FC = () => {
       fetchLogsByAdmin();
     }
   }, [activityLogsOpen, fetchLogsByAdmin]);
+
+  useEffect(() => {
+    if (logs && userData?.name) {
+      const filtered = logs.filter((log: Log) => 
+        log.name.toLowerCase().startsWith(userData.name.toLowerCase())
+      );
+      setFilteredLogs(filtered);
+      setCurrentPage(0);
+    }
+  }, [logs, userData]);
 
   const handlePageClick = (event: PageClickEvent) => {
     setCurrentPage(event.selected);
@@ -52,17 +63,17 @@ const ActivityLog: React.FC = () => {
         className="cursor-pointer flex justify-between items-center bg-gray-200 bg-opacity-80 dark:bg-gray-800 p-4 rounded-lg"
         onClick={() => setActivityLogsOpen(!activityLogsOpen)}
       >
-        <h2 className="font-semibold">Activity Logs</h2>
+        <h2 className="font-semibold">My Activity Logs</h2>
         <span>{activityLogsOpen ? "-" : "+"}</span>
       </div>
       {activityLogsOpen && (
         <div className="mt-2 flex flex-col items-start justify-start p-8 border-t border-gray-200 bg-opacity-35 bg-zinc-200 dark:bg-gray-800 dark:border-gray-600">
           {loadingLogs ? (
             <p className="text-gray-500 text-xs border-2 p-2 mr-auto border-gray-400">Loading...</p>
-          ) : logs && logs.length > 0 ? (
+          ) : filteredLogs && filteredLogs.length > 0 ? (
             <>
               <ul className="space-y-2 w-full">
-                {logs
+                {filteredLogs
                   .slice(offset, offset + logsPerPage)
                   .map((log: Log) => (
                     <li key={log.id} className="bg-gray-100 dark:bg-gray-700 p-2 text-sm rounded-lg">
@@ -94,7 +105,7 @@ const ActivityLog: React.FC = () => {
             </>
           ) : (
             <p className="text-gray-500 text-xs border-2 p-2 mr-auto border-gray-400">
-              {userData ? "No logs available" : "Loading user data..."}
+              {userData ? "No logs available for your account" : "Loading user data..."}
             </p>
           )}
         </div>
