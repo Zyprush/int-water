@@ -306,7 +306,7 @@ const Technical = () => {
                           handleStatusChange(report.id, "inProgress")
                         }
                       >
-                        Mark as In Progress
+                        In Progress
                       </li>
                       <li
                         className="px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
@@ -320,7 +320,7 @@ const Technical = () => {
                           handleStatusChange(report.id, "resolved")
                         }
                       >
-                        Mark as Resolved
+                        Resolved
                       </li>
                     </>
                   )}
@@ -329,7 +329,7 @@ const Technical = () => {
                       className="px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
                       onClick={() => handleStatusChange(report.id, "resolved")}
                     >
-                      Mark as Resolved
+                      Resolved
                     </li>
                   )}
                 </ul>
