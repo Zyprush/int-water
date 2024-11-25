@@ -198,7 +198,7 @@ const EditConsumerModal: React.FC<EditConsumerModalProps> = ({ isOpen, onClose, 
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">Cellphone No.</label>
-              <input type="text" name="cellphoneNo" value={formData.cellphoneNo} onChange={handleChange} className="mt-1 px-4 border py-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" />
+              <input type="number" name="cellphoneNo" value={formData.cellphoneNo} onChange={handleChange} className="mt-1 px-4 border py-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">Current Address</label>

@@ -145,7 +145,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ isOpen, onClose, user, on
               <div>
                 <label className="block text-sm font-medium text-gray-700" htmlFor="cellphoneNo">Cellphone No</label>
                 <input
-                  type="text"
+                  type="number"
                   id="cellphoneNo"
                   name="cellphoneNo"
                   value={formData.cellphoneNo}

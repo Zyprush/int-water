@@ -202,7 +202,7 @@ const AddNewConsumerModal: React.FC<AddNewUserModal> = ({ isOpen, onClose }) => 
                         <div>
                             <label htmlFor="cellphoneNo" className="block text-sm font-medium text-gray-700">Cellphone No</label>
                             <input
-                                type="text"
+                                type="number"
                                 id="cellphoneNo"
                                 name="cellphoneNo"
                                 value={formData.cellphoneNo}
