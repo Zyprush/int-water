@@ -256,6 +256,7 @@ const Billings: React.FC = () => {
               <option value="all">All</option>
               <option value="Paid">Paid</option>
               <option value="Unpaid">Unpaid</option>
+              <option value="Overdue">Overdue</option>
             </select>
           </div>
         </div>
