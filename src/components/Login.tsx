@@ -65,6 +65,7 @@ const Login = () => {
           userFound = true;
           const docSnap = querySnapshot.docs[0];
           const userData = docSnap.data();
+          console.log('userData', userData)
 
           // Routing logic
           const routingMap: { [key: string]: string } = {
@@ -72,7 +73,7 @@ const Login = () => {
             "Maintenance Staff": "/maintenance/technical",
             "Office Staff": userData.scanner ? "/scanner/dashboard" : "/staff/dashboard",
             "Meter Reader": "/scanner/dashboard",
-            "Consumer": "/consumer/dashboard"
+            "consumer": "/consumer/dashboard"
           };
 
           const route = routingMap[userData.role] || "/admin/dashboard";
