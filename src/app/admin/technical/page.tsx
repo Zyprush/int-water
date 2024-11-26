@@ -284,14 +284,14 @@ const Technical = () => {
           <div className="dropdown-container relative ml-auto">
             {report.status !== "resolved" && report.status !== "declined" && (
               <button
-                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
+                className="p-1 flex  flex-row hover:bg-gray-100 dark:hover:bg-gray-700 rounded-none"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleDropdownToggle(report.id);
                 }}
                 disabled={isUpdating}
               >
-                <IconDotsVertical className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+                Mark as<IconDotsVertical className="w-6 h-6 text-gray-600 dark:text-gray-400" />
               </button>
             )}
 

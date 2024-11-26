@@ -21,7 +21,7 @@ const Header = () => {
       )}
 
       {unresolvedCount > 0 && (
-        <Link href="/admin/technical" className="indicator tooltip tooltip-left " data-tip="Number of Unresolved Reports">
+        <Link href="/admin/technical" className="indicator tooltip tooltip-left " data-tip="Number of Request Issues">
           <span className="indicator-item badge badge-sm text-xs badge-error text-white">
             <b>{unresolvedCount}</b>
           </span>
