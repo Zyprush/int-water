@@ -115,7 +115,7 @@ const BillPreview: React.FC<BillPreviewProps> = ({ billing, consumer, onConfirm,
                             <span>Amount Due:</span>
                             <span>₱{billing.amount.toFixed(2)}</span>
                         </div>
-                        
+
                     </div>
 
                     <div className="text-center text-sm space-y-1 text-gray-600 dark:text-gray-400">
@@ -158,8 +158,8 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
     const [showPreview, setShowPreview] = useState<boolean>(false);
     const [previewBilling, setPreviewBilling] = useState<Billing | null>(null);
 
-    const {addLog} = useLogs();
-    const {userData} = useUserData();
+    const { addLog } = useLogs();
+    const { userData } = useUserData();
 
     useEffect(() => {
         fetchConsumers();
@@ -264,7 +264,7 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
     const handleConfirmBill = async () => {
         if (!selectedConsumer || !previewBilling) return;
 
-        
+
 
         try {
             const billingsRef = collection(db, 'billings');
@@ -274,7 +274,7 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
                 consumerId: selectedConsumer.uid,
                 date: currentTime,
                 read: false,
-                name: `Your water consumption reading for this month is ${previewBilling.currentReading} cubic meters. You may now visit our office to settle your bill. Thank you!`,            
+                name: `Your water consumption reading for this month is ${previewBilling.currentReading} cubic meters. You may now visit our office to settle your bill. Thank you!`,
             })
 
             await addLog({
@@ -302,7 +302,7 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
         }
     };
 
-    const {addNotification} = useNotification();
+    const { addNotification } = useNotification();
     const handleUpload = async () => {
         if (!selectedConsumer) return;
 
@@ -311,17 +311,21 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
         const currentMonth = currentDate.getMonth() + 1;
         const monthKey = `${currentYear}-${String(currentMonth).padStart(2, '0')}`;
         const readingDate = currentDate.toISOString().split('T')[0];
-        const dueDate = new Date(currentYear, currentMonth, 0);
-        dueDate.setDate(dueDate.getDate() - 5);
+        // New code
+        const dueDate = new Date(
+            currentDate.getFullYear(),
+            currentDate.getMonth() + 1,
+            currentDate.getDate()
+        );
 
         const newReading = parseInt(waterConsumption.replace(/^0+/, ''));
         await addNotification({
             consumerId: selectedConsumer.uid,
             date: currentTime,
             read: false,
-            name: `Your water consumption reading for this month is ${newReading} cubic meters. You may now visit our office to settle your bill. Thank you!`,            
+            name: `Your water consumption reading for this month is ${newReading} cubic meters. You may now visit our office to settle your bill. Thank you!`,
         })
-        
+
         await addLog({
             date: currentTime,
             name: `${userData?.name} uploaded a meter reading for a ${selectedConsumer.applicantName}.`,
@@ -362,7 +366,7 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
             alert('Failed to upload billing data.');
         }
     };
-    
+
     /*
     const handleUploadAndPrint = async () => {
         if (!selectedConsumer) return;
