@@ -1,17 +1,40 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 import React, { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { NavLink } from "./NavLink";
 import { doc, getDoc } from "firebase/firestore"; // Firestore functions
-import { auth, db } from "../../../firebase";
-import {IconMessageReport, IconSettings } from "@tabler/icons-react";
+import { auth, db, signOut } from "../../../firebase";
+import {IconArrowBigRightLines, IconMessageReport, IconSettings } from "@tabler/icons-react";
+import CAlertDialog from "../ConfirmDialog";
+import { useLogs } from "@/hooks/useLogs";
+import useUserData from "@/hooks/useUserData";
+import { currentTime } from "@/helper/time";
 
 const SideNavbar: React.FC = () => {
   const pathname = usePathname();
   const [profilePicUrl, setProfilePicUrl] = useState<string | null>(null);
   const [name, setName] = useState<string | null>(null);
   const [role, setRole] = useState<string | null>(null);
+
+  const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
+  const { addLog } = useLogs();
+  const { userData } = useUserData();
+  const router = useRouter(); 
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth); // Sign out the user from Firebase Authentication
+      addLog({
+        name: `${userData?.name} logged out of the system.`,
+        date: currentTime,
+      });
+      router.push("/"); // Redirect to homepage or login page after logout
+    } catch (error) {
+      console.error("Error during sign out:", error);
+      alert("Failed to log out. Please try again.");
+    }
+  };
 
   // Fetch profile picture URL from Firestore
   useEffect(() => {
@@ -78,6 +101,24 @@ const SideNavbar: React.FC = () => {
           />
         </nav>
       </div>
+      {/* Logout */}
+      <div className="w-full bg-neutral items-center justify-start flex gap-3 text-xs font-[500] p-3 px-5 hover:bg-red-500 text-red-400 hover:text-white transition-all duration-300 hover:dark:text-white hover:shadow-inner">
+          <IconArrowBigRightLines className="text-lg" />
+          <button
+            className="flex items-center"
+            onClick={() => setIsLogoutDialogOpen(true)} // Open the dialog instead of logging out directly
+          >
+            <span className="mr-3 text-sm">Sign out</span>
+          </button>
+      </div>
+
+      <CAlertDialog
+        isOpen={isLogoutDialogOpen}
+        onClose={() => setIsLogoutDialogOpen(false)}
+        onConfirm={handleLogout}
+        title="Confirm Logout"
+        message="Are you sure you want to log out?"
+      />
     </div>
   );
 };

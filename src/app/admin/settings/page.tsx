@@ -69,7 +69,7 @@ const Settings = () => {
         </div>
 
         {/* Logout */}
-        <div className="mb-6">
+        <div className="mb-6" hidden>
           <div className="flex justify-between items-center bg-gray-200 bg-opacity-80 dark:bg-gray-800 p-4 rounded-lg">
             <h2 className="font-semibold">Logout</h2>
             <button
