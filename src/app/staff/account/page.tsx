@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { IconEdit, IconEye, IconPlus, IconPrinter, IconTrash, IconUpload } from "@tabler/icons-react";
+import { IconDownload, IconEdit, IconEye, IconPlus, IconTrash, IconUpload } from "@tabler/icons-react";
 import ReactPaginate from "react-paginate";
 
 import { collection, deleteDoc, doc, getDocs, query, updateDoc, where } from "firebase/firestore";
@@ -14,14 +14,18 @@ import { Consumer } from "@/components/adminAccount/types";
 import CAlertDialog from "@/components/ConfirmDialog";
 import ConsumerPDFViewer from "@/components/ConsumerPdfViewer";
 import ImportConsumersModal from "@/components/ImportExcel";
-import StaffNav from "@/components/StaffNav";
 import { useNotification } from "@/hooks/useNotification";
 import { currentTime } from "@/helper/time";
+import { useLogs } from "@/hooks/useLogs";
+import useUserData from "@/hooks/useUserData";
 import ToastProvider from "@/components/ToastProvider";
+import StaffNav from "@/components/StaffNav";
+
 
 
 const Account = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all"); 
   const [currentPage, setCurrentPage] = useState(0);
   const [isAddNewModalOpen, setIsAddNewModalOpen] = useState(false);
   const [consumers, setConsumers] = useState<Consumer[]>([]);
@@ -40,6 +44,8 @@ const Account = () => {
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
   const { addNotification } = useNotification();
+  const {addLog} = useLogs();
+  const {userData} = useUserData();
 
   const openModal = () => setIsImportModalOpen(true);
   const closeModal = () => {
@@ -118,10 +124,11 @@ const Account = () => {
   }, []);
 
   const itemsPerPage = 8;
-  const filteredData = consumers.filter(item =>
-    item.applicantName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.waterMeterSerialNo.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredData = consumers.filter(item => {
+    const matchesSearch = item.applicantName.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === "all" || item.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
 
   const pageCount = Math.ceil(filteredData.length / itemsPerPage);
   const displayedData = filteredData.slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage);
@@ -220,6 +227,11 @@ const Account = () => {
       link.click();
       document.body.removeChild(link);
     }
+    
+    addLog({
+      date: currentTime,
+      name: `${userData?.name} exported consumers’ data.`
+    })
     setIsExportCSVAlertOpen(false);
   };
 
@@ -295,21 +307,21 @@ const Account = () => {
           <div className="space-x-2">
             <button
               onClick={handleExportCSV}
-              className="bg-blue-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-600"
+              className="bg-blue-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-600 dark:bg-zinc-800 dark:text-blue-500 dark:hover:bg-zinc-700"
             >
-              Export CSV
-              <IconPrinter className="inline-block ml-2" />
+              Export
+              <IconDownload className="inline-block ml-2" />
             </button>
             <button
               onClick={openModal}
-              className="bg-blue-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-600"
+              className="bg-blue-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-600 dark:bg-zinc-800 dark:text-blue-500 dark:hover:bg-zinc-700"
             >
               Import
               <IconUpload className="inline-block ml-2" />
             </button>
             <button
               onClick={handleAddNew}
-              className="bg-green-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-green-600"
+              className="bg-green-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-green-600 dark:bg-zinc-800 dark:text-green-500 dark:hover:bg-zinc-700"
             >
               Add New
               <IconPlus className="inline-block ml-2" />
@@ -323,8 +335,17 @@ const Account = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search..."
-              className="w-1/3 p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring focus:border-blue-500 dark:border-zinc-600 dark:bg-zinc-600 text-sm dark:text-white"
+              className="w-1/3 p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring focus:border-blue-500 dark:border-zinc-600 dark:bg-zinc-900 text-sm dark:text-white"
             />
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="ml-2 p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring focus:border-blue-500 dark:border-zinc-600 dark:bg-zinc-900 text-sm dark:text-white"
+            >
+              <option value="all">All</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
           </div>
           <table className="min-w-full bg-white rounded-lg border-t mt-2 dark:bg-gray-800 dark:text-white">
             <thead className="bg-gray-100 dark:bg-gray-800">

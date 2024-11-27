@@ -238,14 +238,14 @@ const UserList = () => {
           <div className="space-x-2">
             <button
               onClick={handleExportCSV}
-              className="bg-blue-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-600 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
+              className="bg-blue-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-600 dark:bg-gray-700 dark:text-blue-500 dark:hover:bg-gray-600"
             >
               Export
               <IconDownload className="inline-block ml-2" />
             </button>
             <button
               onClick={handleAddNew}
-              className="bg-green-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-green-600 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
+              className="bg-green-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-green-600 dark:bg-gray-700 dark:text-green-500 dark:hover:bg-gray-600"
             >
               Add New
               <IconPlus className="inline-block ml-2" />
