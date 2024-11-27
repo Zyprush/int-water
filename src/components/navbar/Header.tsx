@@ -21,11 +21,11 @@ const Header = () => {
       )}
 
       {unresolvedCount > 0 && (
-        <Link href="/admin/technical" className="indicator tooltip tooltip-left " data-tip="Number of Request Issues">
+        <Link href="/admin/technical" className="indicator tooltip tooltip-left bg-white dark:bg-gray-800" data-tip="Number of Request Issues">
           <span className="indicator-item badge badge-sm text-xs badge-error text-white">
             <b>{unresolvedCount}</b>
           </span>
-          <div className="grid place-items-center border bg-white border-zinc-300 dark:border-zinc-700 p-1 rounded-md">
+          <div className="grid place-items-center border bg-white border-zinc-300 dark:bg-gray-800 dark:border-zinc-700/50 p-1 rounded-md">
             <IconMessageReport className="text-blue-600" />
           </div>
         </Link>

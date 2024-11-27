@@ -201,28 +201,28 @@ const ImportConsumersModal: React.FC<ImportConsumersModalProps> = ({ isOpen, onC
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-            <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-                <h2 className="text-lg font-bold mb-4 text-center">Import Consumers from Excel</h2>
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-96">
+                <h2 className="text-lg font-bold mb-4 text-center dark:text-white">Import Consumers from Excel</h2>
                 {/* File input */}
                 <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Choose File</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2 dark:text-gray-300">Choose File</label>
                     <input
                         type="file"
                         onChange={handleFileChange}
                         accept=".xlsx,.xls"
                         disabled={isLoading}
-                        className="block w-full text-sm text-gray-900 border border-gray-300 rounded-md cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="block w-full text-sm text-gray-900 dark:text-gray-300 border border-gray-300 rounded-md cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
                 </div>
                 {/* Note section */}
-                <p className="text-sm text-gray-600 mb-4">
+                <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
                     NOTE: To successfully import multiple consumers, ensure each row has a unique email, a 6-digit serial number, and correct headers.
                 </p>
                 {/* Download link */}
                 <div className="mb-6">
                     <a
                         onClick={handleDownloadTemplate}
-                        className="text-sm text-blue-600 underline cursor-pointer"
+                        className="text-sm text-blue-600 dark:text-gray-300 underline cursor-pointer"
                     >
                         Click here to download the file.
                     </a>
@@ -239,7 +239,7 @@ const ImportConsumersModal: React.FC<ImportConsumersModalProps> = ({ isOpen, onC
                     disabled={!file || isLoading}
                     className={`w-full px-4 py-2 rounded-md text-white shadow-md ${isLoading
                             ? "bg-gray-400"
-                            : "bg-blue-500 hover:bg-blue-600 transition-colors"
+                            : "bg-blue-500 hover:bg-blue-600 dark:bg-gray-500 dark:hover:bg-gray-600 transition-colors"
                         }`}
                 >
                     {isLoading ? "Importing..." : "Import"}

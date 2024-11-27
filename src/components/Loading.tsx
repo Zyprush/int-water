@@ -13,7 +13,7 @@ const Loading: React.FC = () => {
   }, []);
 
   return (
-    <div className="flex items-center justify-center h-screen bg-slate-50">
+    <div className="flex items-center justify-center h-screen bg-slate-50 dark:bg-gray-900">
       <div className="relative w-32 h-32 rounded-full border-4 border-sky-500 overflow-hidden">
         {/* Water fill effect */}
         <div 

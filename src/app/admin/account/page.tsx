@@ -307,21 +307,21 @@ const Account = () => {
           <div className="space-x-2">
             <button
               onClick={handleExportCSV}
-              className="bg-blue-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-600"
+              className="bg-blue-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-600 dark:bg-zinc-800 dark:text-blue-500 dark:hover:bg-zinc-700"
             >
               Export
               <IconDownload className="inline-block ml-2" />
             </button>
             <button
               onClick={openModal}
-              className="bg-blue-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-600"
+              className="bg-blue-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-600 dark:bg-zinc-800 dark:text-blue-500 dark:hover:bg-zinc-700"
             >
               Import
               <IconUpload className="inline-block ml-2" />
             </button>
             <button
               onClick={handleAddNew}
-              className="bg-green-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-green-600"
+              className="bg-green-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-green-600 dark:bg-zinc-800 dark:text-green-500 dark:hover:bg-zinc-700"
             >
               Add New
               <IconPlus className="inline-block ml-2" />
@@ -335,12 +335,12 @@ const Account = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search..."
-              className="w-1/3 p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring focus:border-blue-500 dark:border-zinc-600 dark:bg-zinc-600 text-sm dark:text-white"
+              className="w-1/3 p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring focus:border-blue-500 dark:border-zinc-600 dark:bg-zinc-900 text-sm dark:text-white"
             />
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="ml-2 p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring focus:border-blue-500 dark:border-zinc-600 dark:bg-zinc-600 text-sm dark:text-white"
+              className="ml-2 p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring focus:border-blue-500 dark:border-zinc-600 dark:bg-zinc-900 text-sm dark:text-white"
             >
               <option value="all">All</option>
               <option value="active">Active</option>

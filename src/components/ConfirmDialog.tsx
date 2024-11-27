@@ -13,7 +13,7 @@ const CAlertDialog: React.FC<AlertDialogProps> = ({ isOpen, onClose, onConfirm, 
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white dark:bg-gray-600 rounded-lg p-6 max-w-sm w-full">
+      <div className="bg-white dark:bg-gray-800 dark:text-white rounded-lg p-6 max-w-sm w-full">
         <h2 className="text-xl font-bold mb-4">{title}</h2>
         <p className="mb-6">{message}</p>
         <div className="flex justify-end space-x-4">
@@ -28,7 +28,7 @@ const CAlertDialog: React.FC<AlertDialogProps> = ({ isOpen, onClose, onConfirm, 
               onConfirm();
               onClose();
             }}
-            className="px-4 py-2 bg-primary text-white rounded hover:bg-primary/90 transition-colors"
+            className="px-4 py-2 bg-primary text-white dark:bg-gray-500 dark:text-white dark:hover:bg-gray-600 rounded hover:bg-primary/90 transition-colors"
           >
             Confirm
           </button>

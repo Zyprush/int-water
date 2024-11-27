@@ -294,91 +294,109 @@ const Dashboard: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-4">
         {/* Left: Statistics Cards (2x3 grid) */}
         <div className="grid grid-cols-2 gap-4">
-          <div className="bg-white shadow-lg rounded-xl p-6 flex flex-col justify-between">
+          <div className="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6 flex flex-col justify-between">
             <div className="flex items-center space-x-4">
               <IconUsers className="text-blue-500" size={32} />
-              <h2 className="text-xl font-bold">Total Clients</h2>
+              <h2 className="text-xl font-bold dark:text-white">Total Clients</h2>
             </div>
-            <p className="text-4xl font-semibold text-gray-800">{totalClients}</p>
-            <p className="text-sm text-gray-500"></p>
+            <p className="text-4xl font-semibold text-gray-800 dark:text-gray-200">{totalClients}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400"></p>
           </div>
 
-          <div className="bg-white shadow-lg rounded-xl p-6 flex flex-col justify-between">
+          <div className="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6 flex flex-col justify-between">
             <div className="flex items-center space-x-4">
               <IconCalendarCheck className="text-green-500" size={32} />
-              <h2 className="text-xl font-bold">Paid</h2>
+              <h2 className="text-xl font-bold dark:text-white">Paid</h2>
             </div>
-            <p className="text-4xl font-semibold text-gray-800">{paidCount}</p>
-            <p className="text-sm text-gray-500">{dateRange}</p>
-            <a href="#" className="text-sm text-blue-500 mt-2" onClick={async (e) => {
-              e.preventDefault();
-              const content = await fetchBillings("Paid");
-              openModal("Paid Billings", content);
-            }}>View</a>
+            <p className="text-4xl font-semibold text-gray-800 dark:text-gray-200">{paidCount}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{dateRange}</p>
+            <a
+              href="#"
+              className="text-sm text-blue-500 dark:text-blue-400 mt-2"
+              onClick={async (e) => {
+                e.preventDefault();
+                const content = await fetchBillings("Paid");
+                openModal("Paid Billings", content);
+              }}
+            >
+              View
+            </a>
           </div>
 
-          <div className="bg-white shadow-lg rounded-xl p-6 flex flex-col justify-between">
+          <div className="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6 flex flex-col justify-between">
             <div className="flex items-center space-x-4">
               <IconUser className="text-green-500" size={32} />
-              <h2 className="text-xl font-bold">Total Staff</h2>
+              <h2 className="text-xl font-bold dark:text-white">Total Staff</h2>
             </div>
-            <p className="text-4xl font-semibold text-gray-800">{totalStaff}</p>
-            <p className="text-sm text-gray-500"></p>
+            <p className="text-4xl font-semibold text-gray-800 dark:text-gray-200">{totalStaff}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400"></p>
           </div>
 
-          <div className="bg-white shadow-lg rounded-xl p-6 flex flex-col justify-between">
+          <div className="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6 flex flex-col justify-between">
             <div className="flex items-center space-x-4">
               <IconCalendarX className="text-red-500" size={32} />
-              <h2 className="text-xl font-bold">Unpaid</h2>
+              <h2 className="text-xl font-bold dark:text-white">Unpaid</h2>
             </div>
-            <p className="text-4xl font-semibold text-gray-800">{unpaidCount}</p>
-            <p className="text-sm text-gray-500">{unpaidDateRange}</p>
-            <a href="#" className="text-sm text-blue-500 mt-2" onClick={async (e) => {
-              e.preventDefault();
-              const content = await fetchBillings("Unpaid");
-              openModal("Unpaid Billings", content);
-            }}>View</a>
+            <p className="text-4xl font-semibold text-gray-800 dark:text-gray-200">{unpaidCount}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{unpaidDateRange}</p>
+            <a
+              href="#"
+              className="text-sm text-blue-500 dark:text-blue-400 mt-2"
+              onClick={async (e) => {
+                e.preventDefault();
+                const content = await fetchBillings("Unpaid");
+                openModal("Unpaid Billings", content);
+              }}
+            >
+              View
+            </a>
           </div>
 
-          <div className="bg-white shadow-lg rounded-xl p-6 flex flex-col justify-between">
+          <div className="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6 flex flex-col justify-between">
             <div className="flex items-center space-x-4">
               <IconCash className="text-yellow-500" size={32} />
-              <h2 className="text-xl font-bold">Total Revenue</h2>
+              <h2 className="text-xl font-bold dark:text-white">Total Revenue</h2>
             </div>
-            <p className="text-4xl font-semibold text-gray-800">
+            <p className="text-4xl font-semibold text-gray-800 dark:text-gray-200">
               ₱{totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </p>
-            <p className="text-sm text-gray-500">{dateRange}</p>
-            <p className="text-sm text-gray-500"></p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{dateRange}</p>
           </div>
-          
-          <div className="bg-white shadow-lg rounded-xl p-6 flex flex-col justify-between">
+
+          <div className="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6 flex flex-col justify-between">
             <div className="flex items-center space-x-4">
-              <IconCalendar className="text-gray-500" size={32} />
-              <h2 className="text-xl font-bold">Overdue</h2>
+              <IconCalendar className="text-gray-500 dark:text-gray-300" size={32} />
+              <h2 className="text-xl font-bold dark:text-white">Overdue</h2>
             </div>
-            <p className="text-4xl font-semibold text-gray-800">{overdueCount}</p>
-            <p className="text-sm text-gray-500">{overdueDateRange}</p>
-            <a href="#" className="text-sm text-blue-500 mt-2" onClick={async (e) => {
-              e.preventDefault();
-              const content = await fetchBillings("Overdue");
-              openModal("Overdue Billings", content);
-            }}>View</a>
+            <p className="text-4xl font-semibold text-gray-800 dark:text-gray-200">{overdueCount}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{overdueDateRange}</p>
+            <a
+              href="#"
+              className="text-sm text-blue-500 dark:text-blue-400 mt-2"
+              onClick={async (e) => {
+                e.preventDefault();
+                const content = await fetchBillings("Overdue");
+                openModal("Overdue Billings", content);
+              }}
+            >
+              View
+            </a>
           </div>
         </div>
 
+
         {/* Right: Graphs stacked on top of each other */}
         <div className="flex flex-col space-y-6">
-          <div className="bg-white shadow-lg rounded-xl p-6">
-            <h3 className="text-lg font-bold mb-4">Total Revenue Per Month</h3>
+          <div className="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6">
+            <h3 className="text-lg font-bold mb-4 text-black dark:text-white">Total Revenue Per Month</h3>
             <Bar
               data={dataRevenue}
               options={chartOptions}
             />
           </div>
 
-          <div className="bg-white shadow-lg rounded-xl p-6">
-            <h3 className="text-lg font-bold mb-4">Water Consumption Per Month</h3>
+          <div className="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6">
+            <h3 className="text-lg font-bold mb-4 text-black dark:text-white">Water Consumption Per Month</h3>
             <Bar
               data={dataWaterConsumption}
               options={chartOptions}
