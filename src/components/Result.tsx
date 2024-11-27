@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { collection, addDoc, getDocs, query, where, Timestamp, doc, updateDoc, orderBy, limit } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, where, Timestamp, doc, updateDoc, orderBy, limit, runTransaction } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { Check, X } from 'lucide-react';
 import { useNotification } from '@/hooks/useNotification';
@@ -305,65 +305,101 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
     const { addNotification } = useNotification();
     const handleUpload = async () => {
         if (!selectedConsumer) return;
-
-        const currentDate = new Date();
-        const currentYear = currentDate.getFullYear();
-        const currentMonth = currentDate.getMonth() + 1;
-        const monthKey = `${currentYear}-${String(currentMonth).padStart(2, '0')}`;
-        const readingDate = currentDate.toISOString().split('T')[0];
-        // New code
-        const dueDate = new Date(
-            currentDate.getFullYear(),
-            currentDate.getMonth() + 1,
-            currentDate.getDate()
-        );
-
-        const newReading = parseInt(waterConsumption.replace(/^0+/, ''));
-        await addNotification({
-            consumerId: selectedConsumer.uid,
-            date: currentTime,
-            read: false,
-            name: `Your water consumption reading for this month is ${newReading} cubic meters. You may now visit our office to settle your bill. Thank you!`,
-        })
-
-        await addLog({
-            date: currentTime,
-            name: `${userData?.name} uploaded a meter reading for a ${selectedConsumer.applicantName}.`,
-        })
-
-        const billingData: Billing = {
-            month: monthKey,
-            readingDate,
-            consumerId: selectedConsumer.uid,
-            consumerSerialNo: selectedConsumer.waterMeterSerialNo,
-            consumerName: selectedConsumer.applicantName,
-            amount: currentBill,
-            dueDate: dueDate.toISOString().split('T')[0],
-            status: 'Unpaid',
-            createdAt: Timestamp.now(),
-            previousReading: lastBilling ? lastBilling.currentReading : selectedConsumer.initialReading,
-            currentReading: newReading
-        };
-
+    
+        // Prevent upload if no water consumption is entered
+        if (!waterConsumption) {
+            alert('Please enter water consumption reading');
+            return;
+        }
+    
         try {
-            const billingsRef = collection(db, 'billings');
-            await addDoc(billingsRef, billingData);
-
-            const consumerRef = doc(db, 'consumers', selectedConsumer.docId);
-            await updateDoc(consumerRef, {
-                initialReading: newReading
+            await runTransaction(db, async (transaction) => {
+                const currentDate = new Date();
+                const currentYear = currentDate.getFullYear();
+                const currentMonth = currentDate.getMonth() + 1;
+                const monthKey = `${currentYear}-${String(currentMonth).padStart(2, '0')}`;
+                const readingDate = currentDate.toISOString().split('T')[0];
+                
+                // Due date set to the last day of the current month
+                const dueDate = new Date(
+                    currentDate.getFullYear(), 
+                    currentDate.getMonth() + 1, 
+                    0
+                ).toISOString().split('T')[0];
+    
+                const newReading = parseInt(waterConsumption.replace(/^0+/, ''));
+    
+                // Check for existing billing for this consumer in the current month
+                const billingsRef = collection(db, 'billings');
+                const billingQuery = query(
+                    billingsRef, 
+                    where('consumerSerialNo', '==', selectedConsumer.waterMeterSerialNo),
+                    where('month', '==', monthKey)
+                );
+    
+                const existingBillingsSnapshot = await getDocs(billingQuery);
+    
+                // If billing already exists for this month, throw an error
+                if (!existingBillingsSnapshot.empty) {
+                    throw new Error('Billing for this consumer this month already exists');
+                }
+    
+                // Prepare billing data
+                const billingData: Billing = {
+                    month: monthKey,
+                    readingDate,
+                    consumerId: selectedConsumer.uid,
+                    consumerSerialNo: selectedConsumer.waterMeterSerialNo,
+                    consumerName: selectedConsumer.applicantName,
+                    amount: currentBill,
+                    dueDate: dueDate,
+                    status: 'Unpaid',
+                    createdAt: Timestamp.now(),
+                    previousReading: lastBilling ? lastBilling.currentReading : selectedConsumer.initialReading,
+                    currentReading: newReading
+                };
+    
+                // Add the new billing document
+                const newBillingRef = doc(billingsRef);
+                transaction.set(newBillingRef, billingData);
+    
+                // Update consumer's initial reading
+                const consumerRef = doc(db, 'consumers', selectedConsumer.docId);
+                transaction.update(consumerRef, {
+                    initialReading: newReading
+                });
+    
+                // Add notification
+                const notificationRef = doc(collection(db, 'notifications'));
+                transaction.set(notificationRef, {
+                    consumerId: selectedConsumer.uid,
+                    date: currentTime,
+                    read: false,
+                    name: `Your water consumption reading for this month is ${newReading} cubic meters. You may now visit our office to settle your bill. Thank you!`,
+                });
+    
+                // Add log
+                const logRef = doc(collection(db, 'logs'));
+                transaction.set(logRef, {
+                    date: currentTime,
+                    name: `${userData?.name} uploaded a meter reading for ${selectedConsumer.applicantName}.`,
+                });
             });
-
+    
+            // If transaction succeeds
             alert('Billing data uploaded successfully!');
             await fetchConsumers();
+            
+            // Reset states
             setSelectedConsumer(null);
             setWaterConsumption('');
             setCurrentBill(0);
             setLastBilling(null);
             closeCamera();
+    
         } catch (error) {
-            console.error("Error updating documents: ", error);
-            alert('Failed to upload billing data.');
+            console.error("Error processing billing: ", error);
+            alert(error instanceof Error ? error.message : 'Failed to process billing');
         }
     };
 
