@@ -201,10 +201,10 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, billing, onPayStatusChan
 
   return createPortal(
     <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50 overflow-auto">
-      <div ref={modalRef} className="bg-white p-6 rounded-2xl shadow-lg max-w-2xl w-full space-y-6 transform transition-transform duration-300 scale-100">
+      <div ref={modalRef} className="bg-white dark:bg-gray-800 text-black dark:text-white p-6 rounded-2xl shadow-lg max-w-2xl w-full space-y-6 transform transition-transform duration-300 scale-100">
         <div className="border-b pb-4">
-          <h2 className="text-3xl font-extrabold text-gray-800 mb-2">Billing Summary</h2>
-          <div className="flex justify-between items-center text-gray-600">
+          <h2 className="text-3xl font-extrabold mb-2">Billing Summary</h2>
+          <div className="flex justify-between items-center text-gray-600 dark:text-zinc-300">
             <p><strong>Name:</strong> {billing.consumer}</p>
             <p><strong>Serial:</strong> {billing.consumerSerialNo}</p>
           </div>

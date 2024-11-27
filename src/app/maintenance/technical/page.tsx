@@ -291,7 +291,7 @@ const Technical = () => {
                 }}
                 disabled={isUpdating}
               >
-                Mark as<IconDotsVertical className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+                <p className="text-black dark:text-white">Mark as</p><IconDotsVertical className="w-6 h-6 text-gray-600 dark:text-gray-300" />
               </button>
             )}
 
@@ -350,7 +350,7 @@ const Technical = () => {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search by Consumer Name "
-            className="px-4 py-2 border text-sm w-80 border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none"
+            className="px-4 py-2 border text-sm w-80 border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none dark:bg-gray-800 dark:text-white"
           />
         </div>
 
