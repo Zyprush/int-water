@@ -8,6 +8,8 @@ import {
   IconArrowBigRightLine,
   IconChevronDown,
   IconChevronUp,
+  IconEye,
+  IconEyeOff,
 } from "@tabler/icons-react";
 import { useRouter } from "next/navigation";
 import {
@@ -28,12 +30,19 @@ const Profile: React.FC = () => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  
+  // New state for password visibility
+  const [showOldPassword, setShowOldPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  
   const router = useRouter();
   const { consumerData } = useConsumerData();
   const { addLog } = useLogs();
 
   const userImage = "/img/profile-male.png"; // Replace with actual image path
   console.log("consumerData", consumerData);
+
   // Handle logout functionality
   const handleLogout = async () => {
     if (window.confirm("Are you sure you want to log out?")) {
@@ -81,8 +90,12 @@ const Profile: React.FC = () => {
         setOldPassword("");
         setNewPassword("");
         setConfirmPassword("");
+        
+        // Reset visibility states
+        setShowOldPassword(false);
+        setShowNewPassword(false);
+        setShowConfirmPassword(false);
       } catch (error) {
-        // Changed from 'error: any' to 'error'
         if (error instanceof FirebaseError) {
           const errorMessages: { [key: string]: string } = {
             "auth/invalid-credential": "Please enter the correct old password!",
@@ -153,34 +166,80 @@ const Profile: React.FC = () => {
             <input
               type="text"
               placeholder="Full Name"
-              className="w-full p-2 mb-4 border rounded-md"
+              className="w-full p-2 mb-4 border rounded-md bg-white"
               defaultValue={consumerData?.applicantName}
               disabled
             />
             <h3 className="text-lg font-medium mt-3 text-gray-700 mb-2">
               Change Password
             </h3>
-            <input
-              type="password"
-              placeholder="Enter old password"
-              className="w-full p-2 mb-4 border rounded-md"
-              value={oldPassword}
-              onChange={(e) => setOldPassword(e.target.value)}
-            />
-            <input
-              type="password"
-              placeholder="Enter new password"
-              className="w-full p-2 mb-4 border rounded-md"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-            />
-            <input
-              type="password"
-              placeholder="Confirm new password"
-              className="w-full p-2 mb-4 border rounded-md"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-            />
+            
+            {/* Old Password with Visibility Toggle */}
+            <div className="relative w-full mb-4">
+              <input
+                type={showOldPassword ? "text" : "password"}
+                placeholder="Enter old password"
+                className="w-full p-2 border rounded-md bg-white pr-10"
+                value={oldPassword}
+                onChange={(e) => setOldPassword(e.target.value)}
+              />
+              <button 
+                type="button"
+                className="absolute right-2 top-1/2 transform -translate-y-1/2"
+                onClick={() => setShowOldPassword(!showOldPassword)}
+              >
+                {showOldPassword ? (
+                  <IconEye className="text-gray-500" size={20} />
+                ) : (
+                  <IconEyeOff className="text-gray-500" size={20} />
+                )}
+              </button>
+            </div>
+            
+            {/* New Password with Visibility Toggle */}
+            <div className="relative w-full mb-4">
+              <input
+                type={showNewPassword ? "text" : "password"}
+                placeholder="Enter new password"
+                className="w-full p-2 border rounded-md bg-white pr-10"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+              />
+              <button 
+                type="button"
+                className="absolute right-2 top-1/2 transform -translate-y-1/2"
+                onClick={() => setShowNewPassword(!showNewPassword)}
+              >
+                {showNewPassword ? (
+                  <IconEye className="text-gray-500" size={20} />
+                ) : (
+                  <IconEyeOff className="text-gray-500" size={20} />
+                )}
+              </button>
+            </div>
+            
+            {/* Confirm Password with Visibility Toggle */}
+            <div className="relative w-full mb-4">
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                placeholder="Confirm new password"
+                className="w-full p-2 border rounded-md bg-white pr-10"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+              />
+              <button 
+                type="button"
+                className="absolute right-2 top-1/2 transform -translate-y-1/2"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              >
+                {showConfirmPassword ? (
+                  <IconEye className="text-gray-500" size={20} />
+                ) : (
+                  <IconEyeOff className="text-gray-500" size={20} />
+                )}
+              </button>
+            </div>
+            
             <button
               onClick={handleChangePassword}
               className="btn btn-primary text-white"
