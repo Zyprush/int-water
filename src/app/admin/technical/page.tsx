@@ -175,7 +175,7 @@ const Technical = () => {
         });
         await addNotification({
           date: currentTime,
-          name: `Technical issue dated: ${report.date}, updated to declined. We regret to inform you that we could not address your reported issue as submitted. Please review the issue details and re-submit if necessary. Contact our support team if you need assistance.`,
+          name: `Report Issue dated: ${report.date}, updated to declined. We regret to inform you that we could not address your reported issue as submitted. Please review the issue details and re-submit if necessary. Contact our support team if you need assistance.`,
           read: false,
           consumerId: report.consumerID,
         });
