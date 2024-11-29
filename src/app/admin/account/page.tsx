@@ -5,7 +5,7 @@ import React, { useEffect, useState } from "react";
 import { IconDownload, IconEdit, IconEye, IconPlus, IconTrash, IconUpload } from "@tabler/icons-react";
 import ReactPaginate from "react-paginate";
 
-import { collection, deleteDoc, doc, getDocs, query, updateDoc, where } from "firebase/firestore";
+import { collection, deleteDoc, doc, getDocs} from "firebase/firestore";
 import { db } from "../../../../firebase";
 import Loading from "@/components/Loading";
 import AlertDialog from "@/components/DeleteDialog";
@@ -15,7 +15,6 @@ import { Consumer } from "@/components/adminAccount/types";
 import CAlertDialog from "@/components/ConfirmDialog";
 import ConsumerPDFViewer from "@/components/ConsumerPdfViewer";
 import ImportConsumersModal from "@/components/ImportExcel";
-import { useNotification } from "@/hooks/useNotification";
 import { currentTime } from "@/helper/time";
 import { useLogs } from "@/hooks/useLogs";
 import useUserData from "@/hooks/useUserData";
@@ -43,7 +42,6 @@ const Account = () => {
 
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
-  const { addNotification } = useNotification();
   const {addLog} = useLogs();
   const {userData} = useUserData();
 
@@ -51,46 +49,6 @@ const Account = () => {
   const closeModal = () => {
     setIsImportModalOpen(false);
     fetchConsumers();
-  };
-
-  const checkOverdueBills = async (consumerId: string) => {
-    try {
-      const billingsCollection = collection(db, 'billings');
-      const billingsQuery = query(billingsCollection, where('consumerId', '==', consumerId));
-      const billingsSnapshot = await getDocs(billingsQuery);
-
-      const overdueBills = billingsSnapshot.docs
-        .map(doc => ({
-          month: doc.data().month,
-          status: doc.data().status
-        }))
-        .filter(bill => bill.status === 'overdue');
-
-      // Get unique months with overdue status
-      const uniqueOverdueMonths = new Set(overdueBills.map(bill => bill.month));
-
-      return uniqueOverdueMonths.size >= 3;
-    } catch (error) {
-      console.error("Error checking overdue bills:", error);
-      return false;
-    }
-  };
-
-  const updateConsumerStatus = async (consumerId: string, hasThreeOverdueBills: boolean) => {
-    try {
-      const consumerRef = doc(db, 'consumers', consumerId);
-      await updateDoc(consumerRef, {
-        status: hasThreeOverdueBills ? 'inactive' : 'active'
-      });
-      await addNotification({
-        consumerId: consumerId,
-        date: currentTime,
-        read: false,
-        name: `Your water service has been/needed to be disconnected due to non-payment. Please settle your overdue balance to have the service restored. Thank you!`,
-      })
-    } catch (error) {
-      console.error("Error updating consumer status:", error);
-    }
   };
 
   const fetchConsumers = async () => {
@@ -101,15 +59,6 @@ const Account = () => {
         id: doc.id,
         ...doc.data()
       })) as Consumer[];
-
-      // Check overdue bills for each consumer
-      for (const consumer of consumersList) {
-        const hasThreeOverdueBills = await checkOverdueBills(consumer.id);
-        if (hasThreeOverdueBills && consumer.status !== 'inactive') {
-          await updateConsumerStatus(consumer.id, true);
-          consumer.status = 'inactive';
-        }
-      }
 
       setConsumers(consumersList);
       setLoading(false);
