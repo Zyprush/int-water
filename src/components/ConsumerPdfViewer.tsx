@@ -43,7 +43,6 @@ const FIELD_COORDINATES = {
     waterMeterSize: { x: 415, y: 629 },
     initialReading: { x: 415, y: 642 },
 } as const;
-const currentDate = new Date().toLocaleDateString();
 const dates = new Date();
 
 // Get date (day of the month)
@@ -60,13 +59,13 @@ const month = monthNames[dates.getMonth()];
 const year = dates.getFullYear();
 
 const FIELD_COORDINATES_2 = {
-    authorizedName: { x: 407, y: 608 },
-    authorizedPosition: { x: 388, y: 616 },
-    authorizedName2: { x: 409, y: 72 },
-    authorizedPosition2: { x: 75, y: 83 },
-    applicantName: { x: 76, y: 93 },
+    authorizedName: { x: 407, y: 595 },
+    authorizedPosition: { x: 388, y: 603 },
+    authorizedName2: { x: 409, y: 63 },
+    authorizedPosition2: { x: 75, y: 75 },
+    applicantName: { x: 76, y: 85 },
     currentDate: { x: 293, y: 72 },
-    address: { x: 110, y: 636 },
+    address: { x: 110, y: 627 },
 } as const;
 
 interface ConsumerPDFViewerProps {
@@ -135,7 +134,7 @@ export default function ConsumerPDFViewer({ isOpen, onClose, consumer }: Consume
         setIsLoading(true);
         try {
             // Load the existing PDF from the public folder
-            const existingPdfBytes = await fetch('/pdf/water-connection-form-new.pdf').then(res => res.arrayBuffer());
+            const existingPdfBytes = await fetch('/pdf/water-connection-2pages.pdf').then(res => res.arrayBuffer());
             const pdfDoc = await PDFDocument.load(existingPdfBytes);
 
             // Get the first page
@@ -192,7 +191,7 @@ export default function ConsumerPDFViewer({ isOpen, onClose, consumer }: Consume
 
             secondPage.drawText(month+', '+year, {
                 x: 293,
-                y: height - 72,
+                y: height - 63,
                 size: 8,
                 font,
                 color: rgb(0, 0, 0),
@@ -200,30 +199,30 @@ export default function ConsumerPDFViewer({ isOpen, onClose, consumer }: Consume
 
             secondPage.drawText(date+'', {
                 x: 266,
-                y: height - 72,
+                y: height - 63,
                 size: 8,
                 font,
                 color: rgb(0, 0, 0),
             });
 
-            secondPage.drawText(currentDate, {
+            secondPage.drawText(month+' '+date+', '+year, {
                 x: 110,
-                y: height - 647,
+                y: height - 637,
                 size: 8,
                 font,
                 color: rgb(0, 0, 0),
             });
 
-            secondPage.drawText(currentDate, {
-                x: 440,
-                y: height - 647,
+            secondPage.drawText(month+' '+date+', '+year, {
+                x: 390,
+                y: height - 637,
                 size: 8,
                 font,
                 color: rgb(0, 0, 0),
             });
 
             secondPage.drawText(settings.address, {
-                x: 440,
+                x: 390,
                 y: height - FIELD_COORDINATES_2.address.y,
                 size: 8,
                 font,
@@ -238,9 +237,16 @@ export default function ConsumerPDFViewer({ isOpen, onClose, consumer }: Consume
                 color: rgb(0, 0, 0),
             });
 
-            secondPage.drawText(currentDate, {
+            secondPage.drawText(date+'', {
+                x: 84,
+                y: height - 720,
+                size: 8,
+                font,
+                color: rgb(0, 0, 0),
+            });
+            secondPage.drawText(month+', '+year, {
                 x: 110,
-                y: height - 730,
+                y: height - 720,
                 size: 8,
                 font,
                 color: rgb(0, 0, 0),
