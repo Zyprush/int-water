@@ -86,7 +86,7 @@ const Account = () => {
         consumerId: consumerId,
         date: currentTime,
         read: false,
-        name: `Your water service has been disconnected due to non-payment. Please settle your overdue balance to have the service restored. Thank you!`,
+        name: `Your water service has been/needed to be disconnected due to non-payment. Please settle your overdue balance to have the service restored. Thank you!`,
       })
     } catch (error) {
       console.error("Error updating consumer status:", error);
