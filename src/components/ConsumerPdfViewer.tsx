@@ -44,10 +44,24 @@ const FIELD_COORDINATES = {
     initialReading: { x: 415, y: 642 },
 } as const;
 const currentDate = new Date().toLocaleDateString();
+const dates = new Date();
+
+// Get date (day of the month)
+const date = dates.getDate(); 
+
+// Get month name
+const monthNames = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+];
+const month = monthNames[dates.getMonth()];
+
+// Get year
+const year = dates.getFullYear();
 
 const FIELD_COORDINATES_2 = {
-    authorizedName: { x: 407, y: 588 },
-    authorizedPosition: { x: 388, y: 595 },
+    authorizedName: { x: 407, y: 608 },
+    authorizedPosition: { x: 388, y: 616 },
     authorizedName2: { x: 409, y: 72 },
     authorizedPosition2: { x: 75, y: 83 },
     applicantName: { x: 76, y: 93 },
@@ -136,7 +150,7 @@ export default function ConsumerPDFViewer({ isOpen, onClose, consumer }: Consume
             // Embed font
             const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
-            secondPage.drawText(settings.authorizedName, {
+            secondPage.drawText(settings.authorizedName.toUpperCase(), {
                 x: FIELD_COORDINATES_2.authorizedName.x,
                 y: height - FIELD_COORDINATES_2.authorizedName.y,
                 size: 8,
@@ -176,8 +190,16 @@ export default function ConsumerPDFViewer({ isOpen, onClose, consumer }: Consume
                 color: rgb(0, 0, 0),
             });
 
-            secondPage.drawText(currentDate, {
+            secondPage.drawText(month+', '+year, {
                 x: 293,
+                y: height - 72,
+                size: 8,
+                font,
+                color: rgb(0, 0, 0),
+            });
+
+            secondPage.drawText(date+'', {
+                x: 266,
                 y: height - 72,
                 size: 8,
                 font,
