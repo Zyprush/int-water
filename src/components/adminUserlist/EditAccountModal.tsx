@@ -88,8 +88,8 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ isOpen, onClose, user, on
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white p-8 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-xl">
-        <h2 className="text-3xl font-semibold mb-6 text-gray-900">
+      <div className="bg-white dark:bg-gray-800 dark:text-white p-8 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-xl">
+        <h2 className="text-3xl font-semibold mb-6 text-gray-900 dark:text-white">
           {isEditing ? 'Edit Staff Details' : 'View Staff Details'}
         </h2>
         <form onSubmit={handleSubmit} className="flex flex-col md:flex-row gap-8">

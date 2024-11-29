@@ -233,7 +233,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, billing, onPayStatusChan
         </div>
 
         {consumerData && consumerData.totalAmountDue > 0 && (
-          <div className="bg-gray-50 p-4 rounded-lg shadow-inner space-y-4">
+          <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg shadow-inner space-y-4">
             <div className="flex justify-between items-center">
               <label htmlFor="meterPayment" className="font-bold text-lg">Meter Payment Amount:</label>
               <input
@@ -256,7 +256,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, billing, onPayStatusChan
         )}
 
         {billing.status !== 'Paid' && (
-          <div className="bg-gray-50 p-4 rounded-lg shadow-inner space-y-4">
+          <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg shadow-inner space-y-4">
             <div className="flex justify-between items-center">
               <label htmlFor="amountGiven" className="font-bold text-lg">Amount Given:</label>
               <input
@@ -283,7 +283,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, billing, onPayStatusChan
           {billing.status !== 'Paid' ? (
             <button
               onClick={handlePayStatusChange}
-              className={`px-6 py-3 rounded-lg font-semibold text-white transition-transform duration-200 transform ${isPaymentValid
+              className={`px-6 py-3 rounded-lg font-semibold text-white transition-transform duration-200 transform dark:text-gray-400 ${isPaymentValid
                 ? 'bg-green-500 hover:bg-green-600 active:scale-95'
                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                 }`}
