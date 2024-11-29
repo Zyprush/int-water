@@ -43,6 +43,17 @@ const FIELD_COORDINATES = {
     waterMeterSize: { x: 415, y: 629 },
     initialReading: { x: 415, y: 642 },
 } as const;
+const currentDate = new Date().toLocaleDateString();
+
+const FIELD_COORDINATES_2 = {
+    authorizedName: { x: 407, y: 588 },
+    authorizedPosition: { x: 388, y: 595 },
+    authorizedName2: { x: 409, y: 72 },
+    authorizedPosition2: { x: 75, y: 83 },
+    applicantName: { x: 76, y: 93 },
+    currentDate: { x: 293, y: 72 },
+    address: { x: 110, y: 636 },
+} as const;
 
 interface ConsumerPDFViewerProps {
     isOpen: boolean;
@@ -56,6 +67,7 @@ interface Settings {
     authorizedName2: string;
     authorizedPosition: string;
     authorizedPosition2: string;
+
 }
 
 export default function ConsumerPDFViewer({ isOpen, onClose, consumer }: ConsumerPDFViewerProps) {
@@ -109,12 +121,14 @@ export default function ConsumerPDFViewer({ isOpen, onClose, consumer }: Consume
         setIsLoading(true);
         try {
             // Load the existing PDF from the public folder
-            const existingPdfBytes = await fetch('/pdf/water-connection-form.pdf').then(res => res.arrayBuffer());
+            const existingPdfBytes = await fetch('/pdf/water-connection-form-new.pdf').then(res => res.arrayBuffer());
             const pdfDoc = await PDFDocument.load(existingPdfBytes);
 
             // Get the first page
             const pages = pdfDoc.getPages();
             const firstPage = pages[0];
+
+            const secondPage = pages[1];
 
             // Get page dimensions
             const { height } = firstPage.getSize();
@@ -122,8 +136,96 @@ export default function ConsumerPDFViewer({ isOpen, onClose, consumer }: Consume
             // Embed font
             const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
+            secondPage.drawText(settings.authorizedName, {
+                x: FIELD_COORDINATES_2.authorizedName.x,
+                y: height - FIELD_COORDINATES_2.authorizedName.y,
+                size: 8,
+                font,
+                color: rgb(0, 0, 0),
+            });
+
+            secondPage.drawText(settings.authorizedPosition, {
+                x: FIELD_COORDINATES_2.authorizedPosition.x,
+                y: height - FIELD_COORDINATES_2.authorizedPosition.y,
+                size: 8,
+                font,
+                color: rgb(0, 0, 0),
+            });
+
+            secondPage.drawText(settings.authorizedName2+',', {
+                x: FIELD_COORDINATES_2.authorizedName2.x,
+                y: height - FIELD_COORDINATES_2.authorizedName2.y,
+                size: 8,
+                font,
+                color: rgb(0, 0, 0),
+            });
+
+            secondPage.drawText(settings.authorizedPosition2, {
+                x: FIELD_COORDINATES_2.authorizedPosition2.x,
+                y: height - FIELD_COORDINATES_2.authorizedPosition2.y,
+                size: 8,
+                font,
+                color: rgb(0, 0, 0),
+            });
+
+            secondPage.drawText(consumer.applicantName, {
+                x: FIELD_COORDINATES_2.applicantName.x,
+                y: height - FIELD_COORDINATES_2.applicantName.y,
+                size: 8,
+                font,
+                color: rgb(0, 0, 0),
+            });
+
+            secondPage.drawText(currentDate, {
+                x: 293,
+                y: height - 72,
+                size: 8,
+                font,
+                color: rgb(0, 0, 0),
+            });
+
+            secondPage.drawText(currentDate, {
+                x: 110,
+                y: height - 647,
+                size: 8,
+                font,
+                color: rgb(0, 0, 0),
+            });
+
+            secondPage.drawText(currentDate, {
+                x: 440,
+                y: height - 647,
+                size: 8,
+                font,
+                color: rgb(0, 0, 0),
+            });
+
+            secondPage.drawText(settings.address, {
+                x: 440,
+                y: height - FIELD_COORDINATES_2.address.y,
+                size: 8,
+                font,
+                color: rgb(0, 0, 0),
+            });
+
+            secondPage.drawText(settings.address, {
+                x: FIELD_COORDINATES_2.address.x,
+                y: height - FIELD_COORDINATES_2.address.y,
+                size: 8,
+                font,
+                color: rgb(0, 0, 0),
+            });
+
+            secondPage.drawText(currentDate, {
+                x: 110,
+                y: height - 730,
+                size: 8,
+                font,
+                color: rgb(0, 0, 0),
+            });
+
             // Draw settings headers
-            firstPage.drawText(settings.systemName.toUpperCase(), {
+            firstPage.drawText(settings.systemName, {
                 x: FIELD_COORDINATES.systemName.x,
                 y: height - FIELD_COORDINATES.systemName.y,
                 size: 11,
