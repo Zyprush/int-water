@@ -65,7 +65,7 @@ const SideNavbar: React.FC = () => {
 
   return (
     <div className="h-screen w-56 hidden md:flex md:flex-col z-50">
-      <span className="h-60 bg-neutral px-5 border-r border-zinc-600 dark:border-zinc-700 border-b hidden transition-width duration-300 md:flex flex-col justify-center items-center">
+      <span className="h-60 bg-neutral dark:bg-gray-800 px-5 border-r border-zinc-600 dark:border-zinc-700 border-b hidden transition-width duration-300 md:flex flex-col justify-center items-center">
         <div className="avatar mx-auto">
           <div className="w-24 rounded-full">
             <img
@@ -82,7 +82,7 @@ const SideNavbar: React.FC = () => {
       </span>
 
       <div className="w-full overflow-y-auto h-full flex">
-        <nav className="flex w-56 bg-neutral custom-shadow border-rda border-zinc-600 dark:border-zinc-700 relative h-auto flex-col items-start justify-start pt-5 px-0 gap-2">
+        <nav className="flex w-56 bg-neutral dark:bg-gray-800 custom-shadow border-rda border-zinc-600 dark:border-zinc-700 relative h-auto flex-col items-start justify-start pt-5 px-0 gap-2">
           <span className="w-full">
             <NavLink
               href="/maintenance/technical"
@@ -102,7 +102,7 @@ const SideNavbar: React.FC = () => {
         </nav>
       </div>
       {/* Logout */}
-      <div className="w-full bg-neutral items-center justify-start flex gap-3 text-xs font-[500] p-3 px-5 hover:bg-red-500 text-red-400 hover:text-white transition-all duration-300 hover:dark:text-white hover:shadow-inner">
+      <div className="w-full bg-neutral dark:bg-gray-800 items-center justify-start flex gap-3 text-xs font-[500] p-3 px-5 hover:bg-red-500 text-red-400 hover:text-white transition-all duration-300 hover:dark:text-white hover:shadow-inner">
           <IconArrowBigRightLines className="text-lg" />
           <button
             className="flex items-center"
