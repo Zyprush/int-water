@@ -3,7 +3,7 @@ import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 import dayjs from 'dayjs';
 import { db } from '../../firebase';
 
-interface ConsecutiveOverdueUser {
+export interface ConsecutiveOverdueUser {
   consumerId: string;
   consumerName: string;
   overdueMonths: string[];
@@ -36,14 +36,11 @@ export const useConsecutiveOverdueUsers = () => {
       });
 
       const consecutiveOverdueUsers: ConsecutiveOverdueUser[] = [];
-
-      // 3. Process each consumer with overdue payments
+      
       for (const [consumerId, months] of Object.entries(overdueData)) {
         const sortedMonths = months.sort((a, b) => dayjs(b).diff(dayjs(a)));
         
-        // Only process if there are 3 or more overdue months
         if (sortedMonths.length >= 3) {
-          // Query consumers where uid field equals consumerId
           const consumersRef = collection(db, 'consumers');
           const consumerQuery = query(
             consumersRef,
