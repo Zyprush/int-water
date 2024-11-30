@@ -3,7 +3,7 @@
 import NavLayout from "@/components/NavLayout";
 import React, { useEffect, useState } from "react";
 import ReactPaginate from "react-paginate";
-import { collection, getDocs, doc, setDoc, query, where } from "firebase/firestore";
+import { collection, getDocs, doc, setDoc, query, where, deleteDoc } from "firebase/firestore";
 import dayjs from "dayjs";
 import { db } from "../../../../firebase";
 import Modal from "@/components/BillingModal";
@@ -70,72 +70,117 @@ const Billings: React.FC = () => {
 
   useEffect(() => {
     const fetchBillings = async () => {
-      const billingsRef = collection(db, "billings");
-      const monthYear = `${selectedYear}-${selectedMonth}`;
-      const q = query(billingsRef, where("month", "==", monthYear));
-      const billingsSnapshot = await getDocs(q);
-
-      const fetchedBillings = await Promise.all(billingsSnapshot.docs.map(async (doc) => {
-        const data = doc.data();
-        const dueDatePassed = dayjs().isAfter(data.dueDate);
-        let status = data.status;
-
-        if (dueDatePassed && status !== "Paid") {
-          status = "Overdue";
-          await setDoc(doc.ref, { status: "Overdue" }, { merge: true });
-          await addNotification({
-            consumerId: data.consumerId,
-            date: currentTime,
-            read: false,
-            name: `You have failed to pay for the ${data.currentReading} cubic meters of water usage from the previous months. Water service disconnection may occur at any time.`
-          })
-        }
-
-        // Fetch consumer rate
-        const rate = await getConsumerRate(data.consumerId);
-
-        // Fetch previous month's billing
-        const previousMonth = dayjs(`${selectedYear}-${selectedMonth}-01`).subtract(1, 'month');
-        const previousMonthYear = previousMonth.format("YYYY-MM");
-        const previousBillingQuery = query(
-          billingsRef,
-          where("month", "==", previousMonthYear),
-          where("consumerSerialNo", "==", data.consumerSerialNo)
-        );
-        const previousBillingSnapshot = await getDocs(previousBillingQuery);
-
-        let previousUnpaidBill = 0;
-        if (!previousBillingSnapshot.empty) {
-          const previousBillingData = previousBillingSnapshot.docs[0].data();
-          if (previousBillingData.status !== "Paid") {
-            previousUnpaidBill = parseFloat(previousBillingData.amount);
+      try {
+        const billingsRef = collection(db, "billings");
+        const monthYear = `${selectedYear}-${selectedMonth}`;
+        const q = query(billingsRef, where("month", "==", monthYear));
+        const billingsSnapshot = await getDocs(q);
+  
+        // Create a map to track unique billings
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const uniqueBillings = new Map<string, any>();
+  
+        // First pass: Identify and keep only the most recent billing for each consumer
+        billingsSnapshot.docs.forEach((doc) => {
+          const data = doc.data();
+          const consumerKey = `${data.consumerSerialNo}-${data.month}`;
+  
+          // If no entry exists or this entry is newer, update the map
+          if (!uniqueBillings.has(consumerKey) || 
+              (data.readingDate && 
+               (!uniqueBillings.get(consumerKey).readingDate || 
+                dayjs(data.readingDate).isAfter(dayjs(uniqueBillings.get(consumerKey).readingDate))))) {
+            uniqueBillings.set(consumerKey, { ...data, id: doc.id });
           }
-        }
-
-        // Update the current billing with the previous unpaid amount
-        await setDoc(doc.ref, { previousUnpaidBill }, { merge: true });
-
-        return {
-          id: doc.id,
-          readingDate: data.readingDate,
-          consumer: data.consumerName,
-          consumerSerialNo: data.consumerSerialNo,
-          amount: `₱${data.amount.toFixed(2)}`,
-          dueDate: data.dueDate,
-          status: status,
-          currentReading: data.currentReading,
-          previousReading: data.previousReading,
-          month: data.month,
-          previousUnpaidBill: previousUnpaidBill,
-          consumerId: data.consumerId,
-          rate: rate
-        };
-      }));
-
-      setBillings(fetchedBillings);
-      setLoading(false);
+        });
+  
+        // Delete redundant billing documents
+        await Promise.all(
+          billingsSnapshot.docs.map(async (docToCheck) => {
+            const data = docToCheck.data();
+            const consumerKey = `${data.consumerSerialNo}-${data.month}`;
+            
+            // If this document is not the one we're keeping, delete it
+            if (uniqueBillings.get(consumerKey)?.id !== docToCheck.id) {
+              try {
+                await deleteDoc(docToCheck.ref);
+                console.log(`Deleted redundant billing for ${data.consumerName} in ${data.month}`);
+              } catch (deleteError) {
+                console.error("Error deleting redundant billing:", deleteError);
+              }
+            }
+          })
+        );
+  
+        // Process the unique billings
+        const fetchedBillings = await Promise.all(Array.from(uniqueBillings.values()).map(async (data) => {
+          const dueDatePassed = dayjs().isAfter(data.dueDate);
+          let status = data.status;
+  
+          if (dueDatePassed && status !== "Paid") {
+            status = "Overdue";
+            // Update the document with the new status
+            const billingDoc = doc(db, "billings", data.id);
+            await setDoc(billingDoc, { status: "Overdue" }, { merge: true });
+            
+            await addNotification({
+              consumerId: data.consumerId,
+              date: currentTime,
+              read: false,
+              name: `You have failed to pay for the ${data.currentReading} cubic meters of water usage from the previous months. Water service disconnection may occur at any time.`
+            });
+          }
+  
+          // Rest of the existing processing logic remains the same...
+          const rate = await getConsumerRate(data.consumerId);
+  
+          // Fetch previous month's billing
+          const previousMonth = dayjs(`${selectedYear}-${selectedMonth}-01`).subtract(1, 'month');
+          const previousMonthYear = previousMonth.format("YYYY-MM");
+          const previousBillingQuery = query(
+            billingsRef,
+            where("month", "==", previousMonthYear),
+            where("consumerSerialNo", "==", data.consumerSerialNo)
+          );
+          const previousBillingSnapshot = await getDocs(previousBillingQuery);
+  
+          let previousUnpaidBill = 0;
+          if (!previousBillingSnapshot.empty) {
+            const previousBillingData = previousBillingSnapshot.docs[0].data();
+            if (previousBillingData.status !== "Paid") {
+              previousUnpaidBill = parseFloat(previousBillingData.amount);
+            }
+          }
+  
+          // Update the current billing with the previous unpaid amount
+          const billingDoc = doc(db, "billings", data.id);
+          await setDoc(billingDoc, { previousUnpaidBill }, { merge: true });
+  
+          return {
+            id: data.id,
+            readingDate: data.readingDate,
+            consumer: data.consumerName,
+            consumerSerialNo: data.consumerSerialNo,
+            amount: `₱${data.amount.toFixed(2)}`,
+            dueDate: data.dueDate,
+            status: status,
+            currentReading: data.currentReading,
+            previousReading: data.previousReading,
+            month: data.month,
+            previousUnpaidBill: previousUnpaidBill,
+            consumerId: data.consumerId,
+            rate: rate
+          };
+        }));
+  
+        setBillings(fetchedBillings);
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching and deduplicating billings:", error);
+        setLoading(false);
+      }
     };
-
+  
     fetchBillings();
   }, [selectedMonth, selectedYear]);
 
