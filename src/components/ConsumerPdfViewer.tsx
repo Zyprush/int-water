@@ -9,7 +9,7 @@ import { db } from "../../firebase";
 // Define coordinates for each consumer field in the PDF
 const FIELD_COORDINATES = {
   address: { x: 155, y: 69 },
-  systemName: { x: 155, y: 84 },
+  systemName: { x: 191, y: 80 },
   autorizedName: { x: 120, y: 685 },
   authorizedPosition: { x: 95, y: 700 },
   authorizedName2: { x: 355, y: 685 },
@@ -354,7 +354,7 @@ export default function ConsumerPDFViewer({
       firstPage.drawText(settings.systemName, {
         x: FIELD_COORDINATES.systemName.x,
         y: height - FIELD_COORDINATES.systemName.y,
-        size: 11,
+        size: 9,
         font,
         color: rgb(0, 0, 0),
       });
