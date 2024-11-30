@@ -61,7 +61,10 @@ const Header = () => {
                   <span>Required Disconnection</span>
                 </div>
                 <p className="text-sm text-gray-600 dark:text-zinc-800">
-                  {formatOverdueUserNames(overdueUsers)} requires disconnection
+                  <span className='font-semibold'>{formatOverdueUserNames(overdueUsers)}</span> requires disconnection due to non-payment of their bills
+                  for three consecutive months.
+                  <br />
+                  <span className='text-xs text-gray-600'>To proceed, go to User&apos;s Account, search for the name(s), and update the account status after the water connection has been successfully disconnected.</span>
                 </p>
                 <Link 
                   href="/admin/account" 
