@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { collection, query, where, getDocs, orderBy, updateDoc, doc } from 'firebase/firestore';
+import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 import dayjs from 'dayjs';
 import { db } from '../../firebase';
 import { useNotification } from './useNotification';
@@ -65,13 +65,13 @@ export const useConsecutiveOverdueUsers = () => {
             });
 
             // Update the user's status to 'inactive'
-            const consumerDocRef = doc(db, 'consumers', consumerDoc.id);
-            await updateDoc(consumerDocRef, { status: 'inactive' });
+           // const consumerDocRef = doc(db, 'consumers', consumerDoc.id);
+            //await updateDoc(consumerDocRef, { status: 'inactive' });
             addNotification({
               consumerId: consumerId,
               date: currentTime,
               read: false,
-              name: `Your water service has been disconnected due to non-payment. Please settle your overdue balance to have the service restored. Thank you!`,
+              name: `Your water service has been disconnected or is at risk of disconnection due to non-payment. Please settle your overdue balance to restore the service. Thank you!`,
             })
           }
         }
