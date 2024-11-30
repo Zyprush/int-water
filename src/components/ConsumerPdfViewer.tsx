@@ -44,6 +44,8 @@ const FIELD_COORDINATES = {
 } as const;
 const dates = new Date();
 
+const dateToday = dates.toLocaleDateString();
+
 // Get date (day of the month)
 const date = dates.getDate();
 
@@ -68,11 +70,11 @@ const month = monthNames[dates.getMonth()];
 const year = dates.getFullYear();
 
 const FIELD_COORDINATES_2 = {
-  authorizedName: { x: 338, y: 603 },
-  authorizedPosition: { x: 338, y: 611 },
+  authorizedName: { x: 338, y: 608 },
+  authorizedPosition: { x: 338, y: 616 },
   authorizedName2: { x: 398, y: 72 },
   authorizedPosition2: { x: 75, y: 83 },
-  applicantName: { x: 76, y: 93 },
+  applicantName: { x: 75, y: 93 },
   currentAddress: { x: 318, y: 93 },
   currentDate: { x: 293, y: 72 },
   address: { x: 110, y: 636 },
@@ -335,6 +337,14 @@ export default function ConsumerPDFViewer({
         color: rgb(0, 0, 0),
       });
 
+      secondPage.drawText(settings.address, {
+        x: 144,
+        y: height - 730,
+        size: 7.5,
+        font,
+        color: rgb(0, 0, 0),
+      });
+
       secondPage.drawText(settings.authorizedName2, {
         x: 250,
         y: height - 763,
@@ -354,6 +364,22 @@ export default function ConsumerPDFViewer({
       firstPage.drawText(settings.systemName, {
         x: FIELD_COORDINATES.systemName.x,
         y: height - FIELD_COORDINATES.systemName.y,
+        size: 9,
+        font,
+        color: rgb(0, 0, 0),
+      });
+
+      firstPage.drawText(dateToday, {
+        x: 255,
+        y: height -447.5,
+        size: 9,
+        font,
+        color: rgb(0, 0, 0),
+      });
+
+      firstPage.drawText(dateToday, {
+        x: 460,
+        y: height - 434,
         size: 9,
         font,
         color: rgb(0, 0, 0),
