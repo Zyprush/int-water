@@ -61,7 +61,7 @@ const Header = () => {
                   <span>Required Disconnection</span>
                 </div>
                 <p className="text-sm text-gray-600 dark:text-zinc-800">
-                  <span className='font-semibold'>{formatOverdueUserNames(overdueUsers)}</span> requires disconnection due to non-payment of their bills
+                  <span className='font-semibold'>{formatOverdueUserNames(overdueUsers)}</span> requires disconnection due to non-payment of bills
                   for three consecutive months.
                   <br />
                   <span className='text-xs text-gray-600'>To proceed, go to User&apos;s Account, search for the name(s), and update the account status after the water connection has been successfully disconnected.</span>
@@ -71,7 +71,7 @@ const Header = () => {
                   className="text-sm text-blue-600 hover:underline mt-1 block"
                   onClick={() => setIsDropdownOpen(false)}
                 >
-                  View Details
+                  View users account
                 </Link>
               </div>
             )}

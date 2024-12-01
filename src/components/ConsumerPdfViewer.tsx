@@ -72,7 +72,7 @@ const year = dates.getFullYear();
 const FIELD_COORDINATES_2 = {
   authorizedName: { x: 338, y: 608 },
   authorizedPosition: { x: 338, y: 616 },
-  authorizedName2: { x: 398, y: 72 },
+  authorizedName2: { x: 400, y: 72 },
   authorizedPosition2: { x: 75, y: 83 },
   applicantName: { x: 75, y: 93 },
   currentAddress: { x: 318, y: 93 },
@@ -164,7 +164,7 @@ export default function ConsumerPDFViewer({
     setIsLoading(true);
     try {
       // Load the existing PDF from the public folder
-      const existingPdfBytes = await fetch("/pdf/water-connection.pdf").then(
+      const existingPdfBytes = await fetch("/pdf/connection-form-contract.pdf").then(
         (res) => res.arrayBuffer()
       );
       const pdfDoc = await PDFDocument.load(existingPdfBytes);
