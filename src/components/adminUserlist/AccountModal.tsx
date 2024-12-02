@@ -110,7 +110,7 @@ const AddNewConsumerModal: React.FC<AddNewUserModal> = ({ isOpen, onClose }) => 
             );
             const user = userCredential.user;
     
-            let profilePicUrl = '';
+            let profilePicUrl = '/img/defaultpic.png';
             if (formData.profilePic) {
                 try {
                     const storageRef = ref(storage, `profilePics/${user.uid}`);
