@@ -67,7 +67,7 @@ const Header = () => {
                   <span className='text-xs text-gray-600'>To proceed, go to User&apos;s Account, search for the name(s), and update the account status after the water connection has been successfully disconnected.</span>
                 </p>
                 <Link 
-                  href="/admin/account" 
+                  href="/staff/account" 
                   className="text-sm text-blue-600 hover:underline mt-1 block"
                   onClick={() => setIsDropdownOpen(false)}
                 >
@@ -86,7 +86,7 @@ const Header = () => {
                   {unresolvedCount} technical request issues pending
                 </p>
                 <Link 
-                  href="/admin/technical" 
+                  href="/staff/technical" 
                   className="text-sm text-blue-600 hover:underline mt-1 block"
                   onClick={() => setIsDropdownOpen(false)}
                 >
