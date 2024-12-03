@@ -147,26 +147,30 @@ const UserList = () => {
     try {
       // Delete profile picture from Storage if it exists
       if (user.profilePicUrl) {
-        const picRef = ref(storage, user.profilePicUrl);
-        await deleteObject(picRef);
+        try {
+          const picRef = ref(storage, user.profilePicUrl);
+          await deleteObject(picRef);
+        } catch (error) {
+          // If the image is not found, log the error and continue with deletion
+          console.warn("Profile picture not found or could not be deleted:", error);
+        }
       }
-
+  
       // Delete user document from Firestore
       await deleteDoc(doc(db, 'users', user.id));
-
+  
       //add log
       await addLog({
         date: currentTime,
         name: `${userData?.name} deleted ${user.name} to the staff/admin list.`,
       });
-
+  
       // Update local state
       setUsers(users.filter(u => u.id !== user.id));
-
-      console.log(`User ${user.id} and their profile picture have been deleted successfully.`);
+  
+      console.log(`User ${user.id} has been deleted successfully.`);
     } catch (error) {
       console.error("Error deleting user:", error);
-      // You might want to show an error message to the user here
     }
   };
 
