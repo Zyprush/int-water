@@ -50,7 +50,7 @@ const Header = () => {
                   <span>Unresolved Reports</span>
                 </div>
                 <p className="text-sm text-gray-600 dark:text-zinc-800">
-                  {unresolvedCount} technical request issues pending
+                  {unresolvedCount} request issues pending
                 </p>
                 <Link 
                   href="/maintenance/technical" 
