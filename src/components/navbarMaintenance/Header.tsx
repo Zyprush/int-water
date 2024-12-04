@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useConsecutiveOverdueUsers } from "@/hooks/useConsecutiveOverdueUsers";
 import useUnresolvedReports from "@/hooks/useUnresolvedReports";
 import { 
   IconBell, 
@@ -12,9 +11,8 @@ const Header = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const { unresolvedCount } = useUnresolvedReports();
   const [isHovered, setIsHovered] = useState(false);
-  const { overdueUsers } = useConsecutiveOverdueUsers();
 
-  const totalNotifications = (overdueUsers?.length || 0) + unresolvedCount;
+  const totalNotifications = unresolvedCount;
 
   return (
     <div className="relative">

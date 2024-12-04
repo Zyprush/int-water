@@ -7,7 +7,6 @@ import { GoX } from "react-icons/go";
 import navItems from "./navItems";
 import { NavLink } from "./NavLink";
 import { IoMenuSharp } from "react-icons/io5";
-import { useConsecutiveOverdueUsers } from "@/hooks/useConsecutiveOverdueUsers";
 import useUnresolvedReports from "@/hooks/useUnresolvedReports";
 import {
   IconArrowBigRightLines,
@@ -34,9 +33,8 @@ const MobileHeader: React.FC = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const { unresolvedCount } = useUnresolvedReports();
   const [isHovered, setIsHovered] = useState(false);
-  const { overdueUsers } = useConsecutiveOverdueUsers();
 
-  const totalNotifications = (overdueUsers?.length || 0) + unresolvedCount;
+  const totalNotifications = unresolvedCount;
 
   const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
   const { addLog } = useLogs();
