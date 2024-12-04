@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
+import { collection, query, where, getDocs, orderBy, doc, getDoc } from 'firebase/firestore';
 import dayjs from 'dayjs';
 import { db } from '../../firebase';
 import { useNotification } from './useNotification';
@@ -13,7 +13,6 @@ export interface ConsecutiveOverdueUser {
 
 export const useConsecutiveOverdueUsers = () => {
   const [overdueUsers, setOverdueUsers] = useState<ConsecutiveOverdueUser[] | null>(null);
-
   const {addNotification} = useNotification();
 
   const fetchConsecutiveOverdueUsers = useCallback(async () => {
@@ -26,7 +25,7 @@ export const useConsecutiveOverdueUsers = () => {
         orderBy('month', 'desc')
       );
       const snapshot = await getDocs(q);
-
+      
       // 2. Group overdue months by consumerId
       const overdueData: Record<string, string[]> = {};
       snapshot.docs.forEach(doc => {
@@ -57,26 +56,30 @@ export const useConsecutiveOverdueUsers = () => {
             const consumerDoc = consumerSnapshot.docs[0];
             const consumerData = consumerDoc.data();
             
-            // Push user to the overdue list
-            consecutiveOverdueUsers.push({
-              consumerId,
-              consumerName: consumerData.applicantName || 'Unknown',
-              overdueMonths: sortedMonths
-            });
+            // Check the consumer's status before adding notification
+            const consumerStatusRef = doc(db, 'consumers', consumerDoc.id);
+            const consumerStatusSnapshot = await getDoc(consumerStatusRef);
+            const consumerStatus = consumerStatusSnapshot.data()?.status;
 
-            // Update the user's status to 'inactive'
-           // const consumerDocRef = doc(db, 'consumers', consumerDoc.id);
-            //await updateDoc(consumerDocRef, { status: 'inactive' });
-            addNotification({
-              consumerId: consumerId,
-              date: currentTime,
-              read: false,
-              name: `Your water service has been disconnected or is at risk of disconnection due to non-payment. Please settle your overdue balance to restore the service. Thank you!`,
-            })
+            // Only add notification if status is not 'inactive'
+            if (consumerStatus !== 'inactive') {
+              // Push user to the overdue list
+              consecutiveOverdueUsers.push({
+                consumerId,
+                consumerName: consumerData.applicantName || 'Unknown',
+                overdueMonths: sortedMonths
+              });
+              
+              addNotification({
+                consumerId: consumerId,
+                date: currentTime,
+                read: false,
+                name: `Your water service has been disconnected or is at risk of disconnection due to non-payment. Please settle your overdue balance to restore the service. Thank you!`,
+              });
+            }
           }
         }
       }
-
       setOverdueUsers(consecutiveOverdueUsers);
     } catch (error) {
       console.error("Error fetching overdue users:", error);
