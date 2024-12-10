@@ -106,7 +106,7 @@ const BillPreview: React.FC<BillPreviewProps> = ({ billing, consumer, onConfirm,
                         </div>
                         <div className='flex justify-between'>
                             <span>Aditional Meter Fee:</span>
-                            <span>{consumer.totalAmountDue.toFixed(2)}</span>
+                            <span>{consumer.totalAmountDue}</span>
                         </div>
                     </div>
 
@@ -171,6 +171,15 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
             calculateBill();
         }
     }, [waterConsumption, selectedConsumer]);
+
+    const calculateDueDate = (readingDate: Date): Date => {
+        const dueDate = new Date(readingDate);
+        
+        // Add one month while keeping the same day of the month
+        dueDate.setMonth(dueDate.getMonth() + 1);
+        
+        return dueDate;
+    };
 
     const fetchConsumers = async () => {
         const currentDate = new Date();
@@ -238,8 +247,8 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
         const currentMonth = currentDate.getMonth() + 1;
         const monthKey = `${currentYear}-${String(currentMonth).padStart(2, '0')}`;
         const readingDate = currentDate.toISOString().split('T')[0];
-        const dueDate = new Date(currentYear, currentMonth, 0);
-        dueDate.setDate(dueDate.getDate() - 5);
+
+        const dueDate = calculateDueDate(currentDate);
 
         const newReading = parseInt(waterConsumption.replace(/^0+/, ''));
 
@@ -256,6 +265,8 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
             previousReading: lastBilling ? lastBilling.currentReading : selectedConsumer.initialReading,
             currentReading: newReading
         };
+
+        console.log('dueDate', billingData.dueDate);
 
         setPreviewBilling(billingData);
         setShowPreview(true);
@@ -320,12 +331,7 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
                 const monthKey = `${currentYear}-${String(currentMonth).padStart(2, '0')}`;
                 const readingDate = currentDate.toISOString().split('T')[0];
                 
-                // Due date set to the last day of the current month
-                const dueDate = new Date(
-                    currentDate.getFullYear(), 
-                    currentDate.getMonth() + 1, 
-                    0
-                ).toISOString().split('T')[0];
+                const dueDate = calculateDueDate(currentDate);
     
                 const newReading = parseInt(waterConsumption.replace(/^0+/, ''));
     
@@ -352,7 +358,7 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
                     consumerSerialNo: selectedConsumer.waterMeterSerialNo,
                     consumerName: selectedConsumer.applicantName,
                     amount: currentBill,
-                    dueDate: dueDate,
+                    dueDate: dueDate.toISOString().split('T')[0],
                     status: 'Unpaid',
                     createdAt: Timestamp.now(),
                     previousReading: lastBilling ? lastBilling.currentReading : selectedConsumer.initialReading,
