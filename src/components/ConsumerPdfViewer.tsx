@@ -385,6 +385,14 @@ export default function ConsumerPDFViewer({
         color: rgb(0, 0, 0),
       });
 
+      firstPage.drawText(dateToday, {
+        x: 137,
+        y: height - 640,
+        size: 9,
+        font,
+        color: rgb(0, 0, 0),
+      });
+
       firstPage.drawText(settings.address, {
         x: FIELD_COORDINATES.address.x,
         y: height - FIELD_COORDINATES.address.y,
