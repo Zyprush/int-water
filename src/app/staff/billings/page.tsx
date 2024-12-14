@@ -271,6 +271,8 @@ const Billings: React.FC = () => {
             />
 
           </div>
+          <div className="overflow-x-auto">
+
           <table className="min-w-full bg-white rounded-lg border-t mt-2 dark:bg-gray-800">
             <thead className="bg-gray-100 dark:bg-gray-700">
               <tr>
@@ -313,6 +315,7 @@ const Billings: React.FC = () => {
               ))}
             </tbody>
           </table>
+          </div>
 
           <div className="mt-8 flex justify-end">
             <ReactPaginate

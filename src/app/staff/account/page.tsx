@@ -1,10 +1,25 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { IconDownload, IconEdit, IconEye, IconPlus, IconTrash, IconUpload } from "@tabler/icons-react";
+import {
+  IconDownload,
+  IconEdit,
+  IconEye,
+  IconPlus,
+  IconTrash,
+  IconUpload,
+} from "@tabler/icons-react";
 import ReactPaginate from "react-paginate";
 
-import { collection, deleteDoc, doc, getDocs, query, updateDoc, where } from "firebase/firestore";
+import {
+  collection,
+  deleteDoc,
+  doc,
+  getDocs,
+  query,
+  updateDoc,
+  where,
+} from "firebase/firestore";
 import { db } from "../../../../firebase";
 import Loading from "@/components/Loading";
 import AlertDialog from "@/components/DeleteDialog";
@@ -21,11 +36,9 @@ import useUserData from "@/hooks/useUserData";
 import ToastProvider from "@/components/ToastProvider";
 import StaffNav from "@/components/StaffNav";
 
-
-
 const Account = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all"); 
+  const [statusFilter, setStatusFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(0);
   const [isAddNewModalOpen, setIsAddNewModalOpen] = useState(false);
   const [consumers, setConsumers] = useState<Consumer[]>([]);
@@ -33,19 +46,21 @@ const Account = () => {
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [consumerToDelete, setConsumerToDelete] = useState<string | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [selectedConsumer, setSelectedConsumer] = useState<Consumer | null>(null);
+  const [selectedConsumer, setSelectedConsumer] = useState<Consumer | null>(
+    null
+  );
 
   const [isExportCSVAlertOpen, setIsExportCSVAlertOpen] = useState(false);
 
-
   const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
-  const [selectedConsumerForPdf, setSelectedConsumerForPdf] = useState<Consumer | null>(null);
+  const [selectedConsumerForPdf, setSelectedConsumerForPdf] =
+    useState<Consumer | null>(null);
 
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
   const { addNotification } = useNotification();
-  const {addLog} = useLogs();
-  const {userData} = useUserData();
+  const { addLog } = useLogs();
+  const { userData } = useUserData();
 
   const openModal = () => setIsImportModalOpen(true);
   const closeModal = () => {
@@ -55,19 +70,24 @@ const Account = () => {
 
   const checkOverdueBills = async (consumerId: string) => {
     try {
-      const billingsCollection = collection(db, 'billings');
-      const billingsQuery = query(billingsCollection, where('consumerId', '==', consumerId));
+      const billingsCollection = collection(db, "billings");
+      const billingsQuery = query(
+        billingsCollection,
+        where("consumerId", "==", consumerId)
+      );
       const billingsSnapshot = await getDocs(billingsQuery);
 
       const overdueBills = billingsSnapshot.docs
-        .map(doc => ({
+        .map((doc) => ({
           month: doc.data().month,
-          status: doc.data().status
+          status: doc.data().status,
         }))
-        .filter(bill => bill.status === 'overdue');
+        .filter((bill) => bill.status === "overdue");
 
       // Get unique months with overdue status
-      const uniqueOverdueMonths = new Set(overdueBills.map(bill => bill.month));
+      const uniqueOverdueMonths = new Set(
+        overdueBills.map((bill) => bill.month)
+      );
 
       return uniqueOverdueMonths.size >= 3;
     } catch (error) {
@@ -76,18 +96,21 @@ const Account = () => {
     }
   };
 
-  const updateConsumerStatus = async (consumerId: string, hasThreeOverdueBills: boolean) => {
+  const updateConsumerStatus = async (
+    consumerId: string,
+    hasThreeOverdueBills: boolean
+  ) => {
     try {
-      const consumerRef = doc(db, 'consumers', consumerId);
+      const consumerRef = doc(db, "consumers", consumerId);
       await updateDoc(consumerRef, {
-        status: hasThreeOverdueBills ? 'inactive' : 'active'
+        status: hasThreeOverdueBills ? "inactive" : "active",
       });
       await addNotification({
         consumerId: consumerId,
         date: currentTime,
         read: false,
         name: `Your water service has been disconnected due to non-payment. Please settle your overdue balance to have the service restored. Thank you!`,
-      })
+      });
     } catch (error) {
       console.error("Error updating consumer status:", error);
     }
@@ -95,19 +118,19 @@ const Account = () => {
 
   const fetchConsumers = async () => {
     try {
-      const consumersCollection = collection(db, 'consumers');
+      const consumersCollection = collection(db, "consumers");
       const consumersSnapshot = await getDocs(consumersCollection);
-      const consumersList = consumersSnapshot.docs.map(doc => ({
+      const consumersList = consumersSnapshot.docs.map((doc) => ({
         id: doc.id,
-        ...doc.data()
+        ...doc.data(),
       })) as Consumer[];
 
       // Check overdue bills for each consumer
       for (const consumer of consumersList) {
         const hasThreeOverdueBills = await checkOverdueBills(consumer.id);
-        if (hasThreeOverdueBills && consumer.status !== 'inactive') {
+        if (hasThreeOverdueBills && consumer.status !== "inactive") {
           await updateConsumerStatus(consumer.id, true);
-          consumer.status = 'inactive';
+          consumer.status = "inactive";
         }
       }
 
@@ -124,14 +147,20 @@ const Account = () => {
   }, []);
 
   const itemsPerPage = 8;
-  const filteredData = consumers.filter(item => {
-    const matchesSearch = item.applicantName.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === "all" || item.status === statusFilter;
+  const filteredData = consumers.filter((item) => {
+    const matchesSearch = item.applicantName
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    const matchesStatus =
+      statusFilter === "all" || item.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
   const pageCount = Math.ceil(filteredData.length / itemsPerPage);
-  const displayedData = filteredData.slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage);
+  const displayedData = filteredData.slice(
+    currentPage * itemsPerPage,
+    (currentPage + 1) * itemsPerPage
+  );
 
   const handlePageChange = (selectedItem: { selected: number }) => {
     setCurrentPage(selectedItem.selected);
@@ -170,72 +199,76 @@ const Account = () => {
     ];
 
     // Map each consumer to an array of values in the same order as headers
-    const rows = data.map(consumer => [
-      consumer.applicantName,
-      consumer.cellphoneNo,
-      consumer.barangay,
-      consumer.currentAddress,
-      consumer.installationAddress,
-      consumer.email,
-      consumer.serviceConnectionType,
-      consumer.serviceConnectionSize,
-      consumer.buildingOwnerName,
-      consumer.buildingOwnerAddress,
-      consumer.buildingOwnerCellphone,
-      consumer.rate,
-      consumer.installationFee,
-      consumer.meterDeposit,
-      consumer.guarantyDeposit,
-      consumer.totalAmountDue,
-      consumer.paidUnderOR,
-      consumer.serviceConnectionNo,
-      consumer.customerAccountNo,
-      consumer.waterMeterSerialNo,
-      consumer.initialReading,
-      consumer.waterMeterBrand,
-      consumer.waterMeterSize
-    ].map(value => {
-      // Handle special characters and commas in CSV
-      if (value === null || value === undefined) return '';
-      const stringValue = String(value);
-      if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
-        return `"${stringValue.replace(/"/g, '""')}"`;
-      }
-      return stringValue;
-    }));
+    const rows = data.map((consumer) =>
+      [
+        consumer.applicantName,
+        consumer.cellphoneNo,
+        consumer.barangay,
+        consumer.currentAddress,
+        consumer.installationAddress,
+        consumer.email,
+        consumer.serviceConnectionType,
+        consumer.serviceConnectionSize,
+        consumer.buildingOwnerName,
+        consumer.buildingOwnerAddress,
+        consumer.buildingOwnerCellphone,
+        consumer.rate,
+        consumer.installationFee,
+        consumer.meterDeposit,
+        consumer.guarantyDeposit,
+        consumer.totalAmountDue,
+        consumer.paidUnderOR,
+        consumer.serviceConnectionNo,
+        consumer.customerAccountNo,
+        consumer.waterMeterSerialNo,
+        consumer.initialReading,
+        consumer.waterMeterBrand,
+        consumer.waterMeterSize,
+      ].map((value) => {
+        // Handle special characters and commas in CSV
+        if (value === null || value === undefined) return "";
+        const stringValue = String(value);
+        if (
+          stringValue.includes(",") ||
+          stringValue.includes('"') ||
+          stringValue.includes("\n")
+        ) {
+          return `"${stringValue.replace(/"/g, '""')}"`;
+        }
+        return stringValue;
+      })
+    );
 
     const csvContent = [
-      headers.join(','),
-      ...rows.map(row => row.join(','))
-    ].join('\n');
+      headers.join(","),
+      ...rows.map((row) => row.join(",")),
+    ].join("\n");
 
     return csvContent;
   };
 
   const confirmExportCSV = () => {
     const csvData = convertToCSV(consumers);
-    const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
+    const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");
 
     if (link.download !== undefined) {
       const url = URL.createObjectURL(blob);
-      const date = new Date().toISOString().split('T')[0];
+      const date = new Date().toISOString().split("T")[0];
       link.setAttribute("href", url);
       link.setAttribute("download", `consumers_export_${date}.csv`);
-      link.style.visibility = 'hidden';
+      link.style.visibility = "hidden";
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
     }
-    
+
     addLog({
       date: currentTime,
-      name: `${userData?.name} exported consumers’ data.`
-    })
+      name: `${userData?.name} exported consumers’ data.`,
+    });
     setIsExportCSVAlertOpen(false);
   };
-
-
 
   const handleAddNew = () => {
     setIsAddNewModalOpen(true);
@@ -248,8 +281,8 @@ const Account = () => {
 
   const handleDelete = async (id: string) => {
     try {
-      await deleteDoc(doc(db, 'consumers', id));
-      setConsumers(consumers.filter(consumer => consumer.id !== id));
+      await deleteDoc(doc(db, "consumers", id));
+      setConsumers(consumers.filter((consumer) => consumer.id !== id));
     } catch (error) {
       console.error("Error deleting consumer:", error);
     }
@@ -286,14 +319,12 @@ const Account = () => {
   };
 
   const handleView = (id: string) => {
-    const consumer = consumers.find(c => c.id === id);
+    const consumer = consumers.find((c) => c.id === id);
     if (consumer) {
       setSelectedConsumerForPdf(consumer);
       setIsPdfModalOpen(true); // Open the modal after setting the consumer
     }
   };
-  
-
 
   if (loading) {
     return <Loading />;
@@ -302,26 +333,28 @@ const Account = () => {
   return (
     <StaffNav>
       <div className="p-4 space-y-6">
-        <div className="flex justify-between items-center mb-4">
-          <h1 className="text-2xl font-bold dark:text-white">Account Management</h1>
-          <div className="space-x-2">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 space-y-4 md:space-y-0">
+          <h1 className="text-xl md:text-2xl font-bold dark:text-white w-full text-center md:text-left">
+            Account Management
+          </h1>
+          <div className="flex flex-col md:flex-row w-full md:w-auto space-y-2 md:space-y-0 md:space-x-2">
             <button
               onClick={handleExportCSV}
-              className="bg-blue-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-600 dark:bg-zinc-800 dark:text-blue-500 dark:hover:bg-zinc-700"
+              className="w-full md:w-auto bg-blue-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-600 dark:bg-zinc-800 dark:text-blue-500 dark:hover:bg-zinc-700 flex justify-center items-center"
             >
               Export
               <IconDownload className="inline-block ml-2" />
             </button>
             <button
               onClick={openModal}
-              className="bg-blue-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-600 dark:bg-zinc-800 dark:text-blue-500 dark:hover:bg-zinc-700"
+              className="w-full md:w-auto bg-blue-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-600 dark:bg-zinc-800 dark:text-blue-500 dark:hover:bg-zinc-700 flex justify-center items-center"
             >
               Import
               <IconUpload className="inline-block ml-2" />
             </button>
             <button
               onClick={handleAddNew}
-              className="bg-green-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-green-600 dark:bg-zinc-800 dark:text-green-500 dark:hover:bg-zinc-700"
+              className="w-full md:w-auto bg-green-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-green-600 dark:bg-zinc-800 dark:text-green-500 dark:hover:bg-zinc-700 flex justify-center items-center"
             >
               Add New
               <IconPlus className="inline-block ml-2" />
@@ -347,6 +380,8 @@ const Account = () => {
               <option value="inactive">Inactive</option>
             </select>
           </div>
+          <div className="overflow-x-auto">
+
           <table className="min-w-full bg-white rounded-lg border-t mt-2 dark:bg-gray-800 dark:text-white">
             <thead className="bg-gray-100 dark:bg-gray-800">
               <tr>
@@ -359,11 +394,20 @@ const Account = () => {
             </thead>
             <tbody>
               {displayedData.map((item) => (
-                <tr key={item.id} className="border-t border-b dark:border-zinc-600">
+                <tr
+                  key={item.id}
+                  className="border-t border-b dark:border-zinc-600"
+                >
                   <td className="px-4 py-2">{item.createdAt}</td>
                   <td className="px-4 py-2">{item.waterMeterSerialNo}</td>
                   <td className="px-4 py-2">{item.applicantName}</td>
-                  <td className={`px-4 py-2 ${item.status === 'inactive' ? 'text-red-500' : 'text-green-500'}`}>
+                  <td
+                    className={`px-4 py-2 ${
+                      item.status === "inactive"
+                        ? "text-red-500"
+                        : "text-green-500"
+                    }`}
+                  >
                     {item.status}
                   </td>
                   <td className="px-4 py-2">
@@ -371,9 +415,8 @@ const Account = () => {
                       <button
                         className="text-blue-500 hover:text-blue-700 dark:text-blue-300 dark:hover:text-blue-500"
                         onClick={() => handleView(item.id)}
-                      //href={`/admin/account/${item.id}`}
+                        //href={`/admin/account/${item.id}`}
                       >
-
                         <IconEye size={18} />
                       </button>
                       <button
@@ -395,6 +438,7 @@ const Account = () => {
               ))}
             </tbody>
           </table>
+          </div>
           <div className="mt-8 flex justify-end">
             <ReactPaginate
               previousLabel={"Previous"}
@@ -448,7 +492,7 @@ const Account = () => {
         consumer={selectedConsumerForPdf}
       />
       <ImportConsumersModal isOpen={isImportModalOpen} onClose={closeModal} />
-      <ToastProvider/>
+      <ToastProvider />
     </StaffNav>
   );
 };

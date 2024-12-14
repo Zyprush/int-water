@@ -276,9 +276,9 @@ const Billings: React.FC = () => {
   return (
     <NavLayout>
       <div className="p-4 space-y-6 dark:bg-gray-800">
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex flex-col md:flex-row justify-between items-center mb-4 md:space-x-2">
           <h1 className="text-2xl font-bold dark:text-white">Billings</h1>
-          <div className="flex space-x-2">
+          <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2">
             <select
               value={selectedMonth}
               onChange={(e) => setSelectedMonth(e.target.value)}
@@ -316,6 +316,8 @@ const Billings: React.FC = () => {
             />
 
           </div>
+          <div className="overflow-x-auto">
+
           <table className="min-w-full bg-white rounded-lg border-t mt-2 dark:bg-gray-800">
             <thead className="bg-gray-100 dark:bg-gray-700">
               <tr>
@@ -358,6 +360,7 @@ const Billings: React.FC = () => {
               ))}
             </tbody>
           </table>
+          </div>
 
           <div className="mt-8 flex justify-end">
             <ReactPaginate
