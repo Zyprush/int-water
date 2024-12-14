@@ -9,6 +9,7 @@ import "slick-carousel/slick/slick-theme.css";
 import { useLogs } from "@/hooks/useLogs";
 import { currentTime } from "@/helper/time";
 import { useNotification } from "@/hooks/useNotification";
+import useUserData from "@/hooks/useUserData";
 import StaffNav from "@/components/StaffNav";
 
 interface Report {
@@ -37,8 +38,9 @@ const Technical = () => {
   const [isUpdating, setIsUpdating] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const { addLog } = useLogs();
+  const { userData } = useUserData();
   const { addNotification } = useNotification();
-
+  console.log("userData", userData);
   const sliderSettings = {
     infinite: true,
     speed: 500,
@@ -103,15 +105,22 @@ const Technical = () => {
         if (report) {
           await addLog({
             date: currentTime,
-            name: `Updated ${report.submittedBy}'s report status to ${newStatus
+            name: `${userData?.name} updated ${
+              report.submittedBy
+            }'s report status to ${newStatus
               .replace(/([A-Z])/g, " $1")
               .toLowerCase()}`,
           });
           await addNotification({
             date: currentTime,
-            name: `Report ID: ${report.id}, Dated: ${report.date} updated to ${newStatus
-              .replace(/([A-Z])/g, " $1")
-              .toLowerCase()}`,
+            name:
+              newStatus === "inProgress"
+                ? `Update: We’re currently working to resolve your reported issue. Our technical team is actively addressing it, and we’ll notify you once the issue is resolved. Thank you for your continued patience.`
+                : newStatus === "resolved"
+                ? `Good news! Your reported issue has been resolved. Thank you for allowing us the opportunity to assist. If you experience any further issues, please don’t hesitate to report them.`
+                : newStatus === "declined"
+                ? `We regret to inform you that we could not address your reported issue as submitted. Please review the issue details and re-submit if necessary. Contact our support team if you need assistance.`
+                : `Thank you for reporting your issue on ${report.date}. Our team is reviewing it, and we'll update you on the progress soon. Thank you for your patience.`,
             read: false,
             consumerId: report.consumerID,
           });
@@ -162,11 +171,11 @@ const Technical = () => {
       if (report) {
         await addLog({
           date: currentTime,
-          name: `Declined ${report.submittedBy}'s report: ${declineMessage}`,
+          name: `You updated ${report.submittedBy}'s report to declined: ${declineMessage}`,
         });
         await addNotification({
           date: currentTime,
-          name: `Report ID: ${report.id}, dated: ${report.date}, updated to declined`,
+          name: `Report Issue dated: ${report.date}, updated to declined. We regret to inform you that we could not address your reported issue as submitted. Please review the issue details and re-submit if necessary. Contact our support team if you need assistance.`,
           read: false,
           consumerId: report.consumerID,
         });
@@ -209,18 +218,14 @@ const Technical = () => {
         key={report.id}
         className="relative p-4 bg-white dark:bg-gray-800 shadow rounded-lg mb-4"
       >
-        <div className="flex gap-8 items-start">
+        <div className="flex flex-col md:flex-row gap-4 md:gap-8 items-start">
           {report.imageUrls && report.imageUrls.length > 0 && (
-            <div className="w-48 mb-4">
+            <div className="w-full md:w-48 mb-4 md:mb-0">
               {report.imageUrls.length > 1 ? (
                 <Slider {...sliderSettings}>
                   {report.imageUrls.map((url, imageIndex) => (
-                    <div key={imageIndex} className="">
-                      <a
-                        href={url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
+                    <div key={imageIndex} className="px-1">
+                      <a href={url} target="_blank" rel="noopener noreferrer">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={url}
@@ -247,81 +252,93 @@ const Technical = () => {
               )}
             </div>
           )}
-
-          <div className="flex-1">
-            <h2 className="font-bold text-primary dark:text-white mb-2">
-              {report.submittedBy}{" "}
-              <span className="bg-primary text-white rounded p-1 px-2 text-xs">
+    
+          <div className="flex-1 w-full">
+            <div className="flex justify-between items-start mb-2">
+              <h2 className="font-bold text-primary dark:text-white flex-grow">
+                {report.submittedBy}
+              </h2>
+              <span className="bg-primary text-white rounded p-1 px-2 text-xs ml-2">
                 {report.status}
               </span>
-            </h2>
-            <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
-              Issues: {report.issues.join(", ") || "No Issues"}
-            </p>
-            {report.otherIssue && (
-              <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
-                Other Issue: {report.otherIssue}
+            </div>
+    
+            <div className="space-y-1">
+              <p className="text-gray-600 dark:text-gray-400 text-sm">
+                Issues: {report.issues.join(", ") || "No Issues"}
               </p>
-            )}
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              Reported on: {report.date} at {report.time}
-            </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              Location: {report.location}
-            </p>
-            {report.status === "declined" && report.declineMessage && (
-              <p className="text-xs text-red-500 dark:text-red-400 mt-1">
-                Declined: {report.declineMessage}
-              </p>
-            )}
+              {report.otherIssue && (
+                <p className="text-gray-600 dark:text-gray-400 text-sm">
+                  Other Issue: {report.otherIssue}
+                </p>
+              )}
+              <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
+                <p>Reported on: {report.date} at {report.time}</p>
+                <p>Location: {report.location}</p>
+              </div>
+              {report.status === "declined" && report.declineMessage && (
+                <p className="text-xs text-red-500 dark:text-red-400">
+                  Declined: {report.declineMessage}
+                </p>
+              )}
+            </div>
           </div>
-
-          <div className="dropdown-container relative ml-auto">
+    
+          <div className="w-full md:w-auto md:ml-auto mt-2 md:mt-0">
             {report.status !== "resolved" && report.status !== "declined" && (
-              <button
-                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleDropdownToggle(report.id);
-                }}
-                disabled={isUpdating}
-                hidden
-                //add hidden
-              >
-                <IconDotsVertical className="w-6 h-6 text-gray-600 dark:text-gray-400" />
-              </button>
-            )}
-
-            {dropdownVisible === report.id && (
-              <div className="absolute right-0 top-8 dark:text-white bg-white dark:bg-gray-800 shadow-lg rounded-md w-40 z-10">
-                <ul className="py-2">
-                  {report.status === "unresolved" && (
-                    <>
-                      <li
-                        className="px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
-                        onClick={() =>
-                          handleStatusChange(report.id, "inProgress")
-                        }
-                      >
-                        Mark as In Progress
-                      </li>
-                      <li
-                        className="px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
-                        onClick={() => handleDecline(report.id)}
-                      >
-                        Declined
-                      </li>
-                    </>
-                  )}
-                  {report.status === "inProgress" && (
-                    <li
-                      className="px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
-                      onClick={() => handleStatusChange(report.id, "resolved")}
-                    >
-                      Mark as Resolved
-                    </li>
-                  )}
-                </ul>
+              <div className="relative">
+                <button
+                  className="w-full md:w-auto p-2 flex justify-center items-center bg-gray-100 hover:bg-gray-300 dark:hover:bg-gray-700 rounded"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDropdownToggle(report.id);
+                  }}
+                  disabled={isUpdating}
+                >
+                  <p className="text-black dark:text-white mr-2">Mark as</p>
+                  <IconDotsVertical className="w-6 h-6 text-gray-600 dark:text-gray-300" />
+                </button>
+    
+                {dropdownVisible === report.id && (
+                  <div className="absolute right-0 top-full md:top-8 dark:text-white bg-white dark:bg-gray-800 shadow-lg rounded-md w-full md:w-40 z-10 mt-2 md:mt-0">
+                    <ul className="py-2">
+                      {report.status === "unresolved" && (
+                        <>
+                          <li
+                            className="px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
+                            onClick={() =>
+                              handleStatusChange(report.id, "inProgress")
+                            }
+                          >
+                            In Progress
+                          </li>
+                          <li
+                            className="px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
+                            onClick={() => handleDecline(report.id)}
+                          >
+                            Declined
+                          </li>
+                          <li
+                            className="px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
+                            onClick={() =>
+                              handleStatusChange(report.id, "resolved")
+                            }
+                          >
+                            Resolved
+                          </li>
+                        </>
+                      )}
+                      {report.status === "inProgress" && (
+                        <li
+                          className="px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
+                          onClick={() => handleStatusChange(report.id, "resolved")}
+                        >
+                          Resolved
+                        </li>
+                      )}
+                    </ul>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -339,7 +356,7 @@ const Technical = () => {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search by Consumer Name "
-            className="px-4 py-2 border text-sm w-80 border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none"
+            className="px-4 py-2 border text-sm w-80 border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none dark:bg-gray-800 dark:text-white"
           />
         </div>
 
