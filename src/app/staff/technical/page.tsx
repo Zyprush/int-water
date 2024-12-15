@@ -10,7 +10,7 @@ import "slick-carousel/slick/slick-theme.css";
 import { useLogs } from "@/hooks/useLogs";
 import { currentTime } from "@/helper/time";
 import { useNotification } from "@/hooks/useNotification";
-import useUserData from "@/hooks/useUserData";
+import StaffNav from "@/components/StaffNav";
 
 interface Report {
   id: string;
