@@ -2,10 +2,23 @@
 
 import NavLayout from "@/components/NavLayout";
 import React, { useEffect, useState } from "react";
-import { IconDownload, IconEye, IconPlus, IconTrash } from "@tabler/icons-react";
+import {
+  IconDownload,
+  IconEye,
+  IconPlus,
+  IconTrash,
+} from "@tabler/icons-react";
 import ReactPaginate from "react-paginate";
 
-import { collection, deleteDoc, doc, getDocs, query, updateDoc, where } from "firebase/firestore";
+import {
+  collection,
+  deleteDoc,
+  doc,
+  getDocs,
+  query,
+  updateDoc,
+  where,
+} from "firebase/firestore";
 import { auth, db, storage } from "../../../../firebase";
 import Loading from "@/components/Loading";
 import AlertDialog from "@/components/DeleteDialog";
@@ -35,10 +48,9 @@ const UserList = () => {
 
   const [isScanAlertOpen, setIsScanAlertOpen] = useState(false);
   const [userToScan, setUserToScan] = useState<Users | null>(null);
-  
-  const {addLog} = useLogs();
-  const {userData} = useUserData();
 
+  const { addLog } = useLogs();
+  const { userData } = useUserData();
 
   const fetchUsers = async () => {
     try {
@@ -47,12 +59,12 @@ const UserList = () => {
         throw new Error("No user is currently logged in");
       }
 
-      const usersCollection = collection(db, 'users');
+      const usersCollection = collection(db, "users");
       const q = query(usersCollection, where("id", "!=", currentUser.uid));
       const usersSnapshot = await getDocs(q);
-      const usersList = usersSnapshot.docs.map(doc => ({
+      const usersList = usersSnapshot.docs.map((doc) => ({
         id: doc.id,
-        ...doc.data()
+        ...doc.data(),
       })) as Users[];
       setUsers(usersList);
       setLoading(false);
@@ -67,12 +79,15 @@ const UserList = () => {
   }, []);
 
   const itemsPerPage = 8;
-  const filteredData = users.filter(item =>
+  const filteredData = users.filter((item) =>
     item.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const pageCount = Math.ceil(filteredData.length / itemsPerPage);
-  const displayedData = filteredData.slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage);
+  const displayedData = filteredData.slice(
+    currentPage * itemsPerPage,
+    (currentPage + 1) * itemsPerPage
+  );
 
   const handlePageChange = (selectedItem: { selected: number }) => {
     setCurrentPage(selectedItem.selected);
@@ -84,47 +99,53 @@ const UserList = () => {
   };
   const convertToCSV = (data: Users[]) => {
     const headers = [
-      "Name", 
+      "Name",
       "Address",
-      "Cellphone No.", 
+      "Cellphone No.",
       "Position",
       "Role",
       "Email",
     ];
-    const rows = data.map(consumer => [
-      consumer.name,
-      consumer.address,
-      consumer.cellphoneNo,
-      consumer.position,
-      consumer.role,
-      consumer.email
-    ].map(value => {
-      // Handle special characters and commas in CSV
-      if (value === null || value === undefined) return '';
-      const stringValue = String(value);
-      if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
-        return `"${stringValue.replace(/"/g, '""')}"`;
-      }
-      return stringValue;
-    }));
+    const rows = data.map((consumer) =>
+      [
+        consumer.name,
+        consumer.address,
+        consumer.cellphoneNo,
+        consumer.position,
+        consumer.role,
+        consumer.email,
+      ].map((value) => {
+        // Handle special characters and commas in CSV
+        if (value === null || value === undefined) return "";
+        const stringValue = String(value);
+        if (
+          stringValue.includes(",") ||
+          stringValue.includes('"') ||
+          stringValue.includes("\n")
+        ) {
+          return `"${stringValue.replace(/"/g, '""')}"`;
+        }
+        return stringValue;
+      })
+    );
 
     const csvContent = [
-      headers.join(','),
-      ...rows.map(row => row.join(','))
-    ].join('\n');
+      headers.join(","),
+      ...rows.map((row) => row.join(",")),
+    ].join("\n");
 
     return csvContent;
   };
 
   const confirmExportCSV = () => {
     const csvData = convertToCSV(users);
-    const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
+    const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");
     if (link.download !== undefined) {
       const url = URL.createObjectURL(blob);
       link.setAttribute("href", url);
       link.setAttribute("download", "users_export.csv");
-      link.style.visibility = 'hidden';
+      link.style.visibility = "hidden";
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -152,22 +173,25 @@ const UserList = () => {
           await deleteObject(picRef);
         } catch (error) {
           // If the image is not found, log the error and continue with deletion
-          console.warn("Profile picture not found or could not be deleted:", error);
+          console.warn(
+            "Profile picture not found or could not be deleted:",
+            error
+          );
         }
       }
-  
+
       // Delete user document from Firestore
-      await deleteDoc(doc(db, 'users', user.id));
-  
+      await deleteDoc(doc(db, "users", user.id));
+
       //add log
       await addLog({
         date: currentTime,
         name: `${userData?.name} deleted ${user.name} to the staff/admin list.`,
       });
-  
+
       // Update local state
-      setUsers(users.filter(u => u.id !== user.id));
-  
+      setUsers(users.filter((u) => u.id !== user.id));
+
       console.log(`User ${user.id} has been deleted successfully.`);
     } catch (error) {
       console.error("Error deleting user:", error);
@@ -209,17 +233,23 @@ const UserList = () => {
   const confirmScan = async () => {
     if (userToScan) {
       try {
-        const userRef = doc(db, 'users', userToScan.id);
+        const userRef = doc(db, "users", userToScan.id);
         const newScannerStatus = !userToScan.scanner; // Toggle the scanner status
         await updateDoc(userRef, {
-          scanner: newScannerStatus
+          scanner: newScannerStatus,
         });
-        console.log(`Scanner status for ${userToScan.name} has been set to ${newScannerStatus}.`);
+        console.log(
+          `Scanner status for ${userToScan.name} has been set to ${newScannerStatus}.`
+        );
 
         // Update the local state
-        setUsers(users.map(user =>
-          user.id === userToScan.id ? { ...user, scanner: newScannerStatus } : user
-        ));
+        setUsers(
+          users.map((user) =>
+            user.id === userToScan.id
+              ? { ...user, scanner: newScannerStatus }
+              : user
+          )
+        );
 
         setIsScanAlertOpen(false);
         setUserToScan(null);
@@ -229,7 +259,6 @@ const UserList = () => {
     }
   };
 
-
   if (loading) {
     return <Loading />;
   }
@@ -237,19 +266,21 @@ const UserList = () => {
   return (
     <NavLayout>
       <div className="p-4 space-y-6 dark:bg-none">
-        <div className="flex justify-between items-center mb-4">
-          <h1 className="text-2xl font-bold dark:text-white">Account Management</h1>
-          <div className="space-x-2">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 space-y-4 md:space-y-0">
+          <h1 className="text-xl md:text-2xl font-bold dark:text-white w-full text-center md:text-left">
+            Account Management
+          </h1>
+          <div className="flex flex-col md:flex-row w-full md:w-auto space-y-2 md:space-y-0 md:space-x-2">
             <button
               onClick={handleExportCSV}
-              className="bg-blue-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-600 dark:bg-gray-700 dark:text-blue-500 dark:hover:bg-gray-600"
+              className="w-full md:w-auto bg-blue-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-600 dark:bg-gray-700 dark:text-blue-500 dark:hover:bg-gray-600 flex justify-center items-center"
             >
               Export
               <IconDownload className="inline-block ml-2" />
             </button>
             <button
               onClick={handleAddNew}
-              className="bg-green-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-green-600 dark:bg-gray-700 dark:text-green-500 dark:hover:bg-gray-600"
+              className="w-full md:w-auto bg-green-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-green-600 dark:bg-gray-700 dark:text-green-500 dark:hover:bg-gray-600 flex justify-center items-center"
             >
               Add New
               <IconPlus className="inline-block ml-2" />
@@ -266,21 +297,36 @@ const UserList = () => {
               className="w-1/3 p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring focus:border-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:focus:border-blue-500 dark:focus:ring-blue-500 dark:text-white"
             />
           </div>
+          <div className="overflow-x-auto">
+
           <table className="min-w-full bg-white rounded-lg border-t mt-2 dark:bg-gray-700">
             <thead className="bg-gray-100 dark:bg-gray-600">
               <tr>
-                <th className="px-4 py-2 text-left dark:text-white">Date Updated</th>
-                <th className="px-4 py-2 text-left dark:text-white">Profile Picture</th>
+                <th className="px-4 py-2 text-left dark:text-white">
+                  Date Updated
+                </th>
+                <th className="px-4 py-2 text-left dark:text-white">
+                  Profile Picture
+                </th>
                 <th className="px-4 py-2 text-left dark:text-white">Name</th>
-                <th className="px-4 py-2 text-left dark:text-white">Cellphone</th>
-                <th className="px-4 py-2 text-left dark:text-white">Position</th>
+                <th className="px-4 py-2 text-left dark:text-white">
+                  Cellphone
+                </th>
+                <th className="px-4 py-2 text-left dark:text-white">
+                  Position
+                </th>
                 <th className="px-4 py-2 text-left dark:text-white">Actions</th>
               </tr>
             </thead>
             <tbody>
               {displayedData.map((item) => (
-                <tr key={item.id} className="border-t border-b dark:bg-gray-800 dark:border-gray-600">
-                  <td className="px-4 py-2 dark:text-white">{item.updatedAt}</td>
+                <tr
+                  key={item.id}
+                  className="border-t border-b dark:bg-gray-800 dark:border-gray-600"
+                >
+                  <td className="px-4 py-2 dark:text-white">
+                    {item.updatedAt}
+                  </td>
                   <td className="px-4 py-2 flex space-x-2 dark:text-white">
                     {/**
                      * 
@@ -297,16 +343,20 @@ const UserList = () => {
                     />
                   </td>
                   <td className="px-4 py-2 dark:text-white">{item.name}</td>
-                  <td className="px-4 py-2 dark:text-white">{item.cellphoneNo}</td>
+                  <td className="px-4 py-2 dark:text-white">
+                    {item.cellphoneNo}
+                  </td>
                   <td className="px-4 py-2 dark:text-white">{item.position}</td>
                   <td className="px-4 py-2 dark:text-white">
                     <div className="flex space-x-2">
-                      <button className="text-green-500 hover:text-green-700 dark:text-white dark:hover:text-green-700"
+                      <button
+                        className="text-green-500 hover:text-green-700 dark:text-white dark:hover:text-green-700"
                         onClick={() => handleEdit(item)}
                       >
                         <IconEye size={18} />
                       </button>
-                      <button className="text-red-500 hover:text-red-700 dark:text-white dark:hover:text-red-700"
+                      <button
+                        className="text-red-500 hover:text-red-700 dark:text-white dark:hover:text-red-700"
                         onClick={() => openDeleteAlert(item)}
                       >
                         <IconTrash size={18} />
@@ -317,6 +367,7 @@ const UserList = () => {
               ))}
             </tbody>
           </table>
+          </div>
           <div className="mt-8 flex justify-end dark:bg-gray-800">
             <ReactPaginate
               previousLabel={"Previous"}
@@ -366,7 +417,9 @@ const UserList = () => {
         onClose={() => setIsScanAlertOpen(false)}
         onConfirm={confirmScan}
         title="Toggle Scanner Status"
-        message={`Are you sure you want to ${userToScan?.scanner ? 'remove' : 'assign'} scanner for ${userToScan?.name}?`}
+        message={`Are you sure you want to ${
+          userToScan?.scanner ? "remove" : "assign"
+        } scanner for ${userToScan?.name}?`}
       />
       <ToastProvider />
     </NavLayout>
