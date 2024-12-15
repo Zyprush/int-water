@@ -1,7 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { collection, getDocs, doc, updateDoc } from "firebase/firestore";
-import NavLayout from "@/components/NavLayout";
 import { IconDotsVertical } from "@tabler/icons-react";
 import { db } from "../../../../firebase";
 import Slider from "react-slick";
@@ -11,6 +10,7 @@ import { useLogs } from "@/hooks/useLogs";
 import { currentTime } from "@/helper/time";
 import { useNotification } from "@/hooks/useNotification";
 import StaffNav from "@/components/StaffNav";
+import useUserData from "@/hooks/useUserData";
 
 interface Report {
   id: string;
@@ -342,7 +342,7 @@ const Technical = () => {
   };
 
   return (
-    <NavLayout>
+    <StaffNav>
       <div className="p-4 pt-0">
         <div className="mb-4">
           <input
@@ -399,7 +399,7 @@ const Technical = () => {
 
         {renderIssues()}
       </div>
-    </NavLayout>
+    </StaffNav>
   );
 };
 
