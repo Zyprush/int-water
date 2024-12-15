@@ -1,4 +1,4 @@
-"use client";
+"use client"; 
 import React, { useState, useEffect } from "react";
 import { collection, getDocs, doc, updateDoc } from "firebase/firestore";
 import NavLayout from "@/components/NavLayoutMaintenance";
