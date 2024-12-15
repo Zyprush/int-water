@@ -220,11 +220,11 @@ const Technical = () => {
       >
         <div className="flex gap-8 items-start">
           {report.imageUrls && report.imageUrls.length > 0 && (
-            <div className="w-48 mb-4">
+            <div className="w-full md:w-48 mb-4 md:mb-0">
               {report.imageUrls.length > 1 ? (
                 <Slider {...sliderSettings}>
                   {report.imageUrls.map((url, imageIndex) => (
-                    <div key={imageIndex} className="">
+                    <div key={imageIndex} className="px-1">
                       <a href={url} target="_blank" rel="noopener noreferrer">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
@@ -252,87 +252,93 @@ const Technical = () => {
               )}
             </div>
           )}
-
-          <div className="flex-1">
-            <h2 className="font-bold text-primary dark:text-white mb-2">
-              {report.submittedBy}{" "}
-              <span className="bg-primary text-white rounded p-1 px-2 text-xs">
+    
+          <div className="flex-1 w-full">
+            <div className="flex justify-between items-start mb-2">
+              <h2 className="font-bold text-primary dark:text-white flex-grow">
+                {report.submittedBy}
+              </h2>
+              <span className="bg-primary text-white rounded p-1 px-2 text-xs ml-2">
                 {report.status}
               </span>
-            </h2>
-            <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
-              Issues: {report.issues.join(", ") || "No Issues"}
-            </p>
-            {report.otherIssue && (
-              <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
-                Other Issue: {report.otherIssue}
+            </div>
+    
+            <div className="space-y-1">
+              <p className="text-gray-600 dark:text-gray-400 text-sm">
+                Issues: {report.issues.join(", ") || "No Issues"}
               </p>
-            )}
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              Reported on: {report.date} at {report.time}
-            </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              Location: {report.location}
-            </p>
-            {report.status === "declined" && report.declineMessage && (
-              <p className="text-xs text-red-500 dark:text-red-400 mt-1">
-                Declined: {report.declineMessage}
-              </p>
-            )}
+              {report.otherIssue && (
+                <p className="text-gray-600 dark:text-gray-400 text-sm">
+                  Other Issue: {report.otherIssue}
+                </p>
+              )}
+              <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
+                <p>Reported on: {report.date} at {report.time}</p>
+                <p>Location: {report.location}</p>
+              </div>
+              {report.status === "declined" && report.declineMessage && (
+                <p className="text-xs text-red-500 dark:text-red-400">
+                  Declined: {report.declineMessage}
+                </p>
+              )}
+            </div>
           </div>
-
-          <div className="dropdown-container relative ml-auto">
+    
+          <div className="w-full md:w-auto md:ml-auto mt-2 md:mt-0">
             {report.status !== "resolved" && report.status !== "declined" && (
-              <button
-                className="p-1 flex  flex-row hover:bg-gray-100 dark:hover:bg-gray-700 rounded-none"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleDropdownToggle(report.id);
-                }}
-                disabled={isUpdating}
-              >
-                <p className="text-black dark:text-white">Mark as</p><IconDotsVertical className="w-6 h-6 text-gray-600 dark:text-gray-300" />
-              </button>
-            )}
-
-            {dropdownVisible === report.id && (
-              <div className="absolute right-0 top-8 dark:text-white bg-white dark:bg-gray-800 shadow-lg rounded-md w-40 z-10">
-                <ul className="py-2">
-                  {report.status === "unresolved" && (
-                    <>
-                      <li
-                        className="px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
-                        onClick={() =>
-                          handleStatusChange(report.id, "inProgress")
-                        }
-                      >
-                        In Progress
-                      </li>
-                      <li
-                        className="px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
-                        onClick={() => handleDecline(report.id)}
-                      >
-                        Declined
-                      </li>
-                      <li
-                        className="px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
-                        onClick={() =>
-                          handleStatusChange(report.id, "resolved")
-                        }
-                      >
-                        Resolved
-                      </li>
-                    </>
-                  )}
-                  {report.status === "inProgress" && (
-                    <li
-                      className="px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
-                      onClick={() => handleStatusChange(report.id, "resolved")}
-                    >
-                      Resolved
-                    </li>
-                  )}
-                </ul>
+              <div className="relative">
+                <button
+                  className="w-full md:w-auto p-2 flex justify-center items-center bg-gray-100 hover:bg-gray-300 dark:hover:bg-gray-700 rounded"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDropdownToggle(report.id);
+                  }}
+                  disabled={isUpdating}
+                >
+                  <p className="text-black dark:text-white mr-2">Mark as</p>
+                  <IconDotsVertical className="w-6 h-6 text-gray-600 dark:text-gray-300" />
+                </button>
+    
+                {dropdownVisible === report.id && (
+                  <div className="absolute right-0 top-full md:top-8 dark:text-white bg-white dark:bg-gray-800 shadow-lg rounded-md w-full md:w-40 z-10 mt-2 md:mt-0">
+                    <ul className="py-2">
+                      {report.status === "unresolved" && (
+                        <>
+                          <li
+                            className="px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
+                            onClick={() =>
+                              handleStatusChange(report.id, "inProgress")
+                            }
+                          >
+                            In Progress
+                          </li>
+                          <li
+                            className="px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
+                            onClick={() => handleDecline(report.id)}
+                          >
+                            Declined
+                          </li>
+                          <li
+                            className="px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
+                            onClick={() =>
+                              handleStatusChange(report.id, "resolved")
+                            }
+                          >
+                            Resolved
+                          </li>
+                        </>
+                      )}
+                      {report.status === "inProgress" && (
+                        <li
+                          className="px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
+                          onClick={() => handleStatusChange(report.id, "resolved")}
+                        >
+                          Resolved
+                        </li>
+                      )}
+                    </ul>
+                  </div>
+                )}
               </div>
             )}
           </div>

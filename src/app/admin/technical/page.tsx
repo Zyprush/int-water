@@ -218,9 +218,9 @@ const Technical = () => {
         key={report.id}
         className="relative p-4 bg-white dark:bg-gray-800 shadow rounded-lg mb-4"
       >
-        <div className="flex gap-8 items-start">
+        <div className="flex flex-col md:flex-row gap-8 items-start">
           {report.imageUrls && report.imageUrls.length > 0 && (
-            <div className="w-48 mb-4">
+            <div className="w-full md:w-48 mb-4 md:mb-0">
               {report.imageUrls.length > 1 ? (
                 <Slider {...sliderSettings}>
                   {report.imageUrls.map((url, imageIndex) => (

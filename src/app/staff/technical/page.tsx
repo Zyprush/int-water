@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { collection, getDocs, doc, updateDoc } from "firebase/firestore";
+import NavLayout from "@/components/NavLayout";
 import { IconDotsVertical } from "@tabler/icons-react";
 import { db } from "../../../../firebase";
 import Slider from "react-slick";
@@ -9,7 +10,7 @@ import "slick-carousel/slick/slick-theme.css";
 import { useLogs } from "@/hooks/useLogs";
 import { currentTime } from "@/helper/time";
 import { useNotification } from "@/hooks/useNotification";
-import StaffNav from "@/components/StaffNav";
+import useUserData from "@/hooks/useUserData";
 
 interface Report {
   id: string;
@@ -37,8 +38,9 @@ const Technical = () => {
   const [isUpdating, setIsUpdating] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const { addLog } = useLogs();
+  const { userData } = useUserData();
   const { addNotification } = useNotification();
-
+  console.log("userData", userData);
   const sliderSettings = {
     infinite: true,
     speed: 500,
@@ -103,15 +105,22 @@ const Technical = () => {
         if (report) {
           await addLog({
             date: currentTime,
-            name: `Updated ${report.submittedBy}'s report status to ${newStatus
+            name: `${userData?.name} updated ${
+              report.submittedBy
+            }'s report status to ${newStatus
               .replace(/([A-Z])/g, " $1")
               .toLowerCase()}`,
           });
           await addNotification({
             date: currentTime,
-            name: `Report ID: ${report.id}, Dated: ${report.date} updated to ${newStatus
-              .replace(/([A-Z])/g, " $1")
-              .toLowerCase()}`,
+            name:
+              newStatus === "inProgress"
+                ? `Update: We’re currently working to resolve your reported issue. Our technical team is actively addressing it, and we’ll notify you once the issue is resolved. Thank you for your continued patience.`
+                : newStatus === "resolved"
+                ? `Good news! Your reported issue has been resolved. Thank you for allowing us the opportunity to assist. If you experience any further issues, please don’t hesitate to report them.`
+                : newStatus === "declined"
+                ? `We regret to inform you that we could not address your reported issue as submitted. Please review the issue details and re-submit if necessary. Contact our support team if you need assistance.`
+                : `Thank you for reporting your issue on ${report.date}. Our team is reviewing it, and we'll update you on the progress soon. Thank you for your patience.`,
             read: false,
             consumerId: report.consumerID,
           });
@@ -162,11 +171,11 @@ const Technical = () => {
       if (report) {
         await addLog({
           date: currentTime,
-          name: `Declined ${report.submittedBy}'s report: ${declineMessage}`,
+          name: `You updated ${report.submittedBy}'s report to declined: ${declineMessage}`,
         });
         await addNotification({
           date: currentTime,
-          name: `Report ID: ${report.id}, dated: ${report.date}, updated to declined`,
+          name: `Report Issue dated: ${report.date}, updated to declined. We regret to inform you that we could not address your reported issue as submitted. Please review the issue details and re-submit if necessary. Contact our support team if you need assistance.`,
           read: false,
           consumerId: report.consumerID,
         });
@@ -209,18 +218,14 @@ const Technical = () => {
         key={report.id}
         className="relative p-4 bg-white dark:bg-gray-800 shadow rounded-lg mb-4"
       >
-        <div className="flex gap-8 items-start">
+        <div className="flex flex-col md:flex-row gap-8 items-start">
           {report.imageUrls && report.imageUrls.length > 0 && (
-            <div className="w-48 mb-4">
+            <div className="w-full md:w-48 mb-4 md:mb-0">
               {report.imageUrls.length > 1 ? (
                 <Slider {...sliderSettings}>
                   {report.imageUrls.map((url, imageIndex) => (
                     <div key={imageIndex} className="">
-                      <a
-                        href={url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
+                      <a href={url} target="_blank" rel="noopener noreferrer">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={url}
@@ -279,16 +284,14 @@ const Technical = () => {
           <div className="dropdown-container relative ml-auto">
             {report.status !== "resolved" && report.status !== "declined" && (
               <button
-                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
+                className="p-1 flex  flex-row hover:bg-gray-100 dark:hover:bg-gray-700 rounded-none"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleDropdownToggle(report.id);
                 }}
                 disabled={isUpdating}
-                hidden
-                //add hidden
               >
-                <IconDotsVertical className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+                <p className="text-black dark:text-white">Mark as</p><IconDotsVertical className="w-6 h-6 text-gray-600 dark:text-gray-300" />
               </button>
             )}
 
@@ -303,13 +306,21 @@ const Technical = () => {
                           handleStatusChange(report.id, "inProgress")
                         }
                       >
-                        Mark as In Progress
+                        In Progress
                       </li>
                       <li
                         className="px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
                         onClick={() => handleDecline(report.id)}
                       >
                         Declined
+                      </li>
+                      <li
+                        className="px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
+                        onClick={() =>
+                          handleStatusChange(report.id, "resolved")
+                        }
+                      >
+                        Resolved
                       </li>
                     </>
                   )}
@@ -318,7 +329,7 @@ const Technical = () => {
                       className="px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
                       onClick={() => handleStatusChange(report.id, "resolved")}
                     >
-                      Mark as Resolved
+                      Resolved
                     </li>
                   )}
                 </ul>
@@ -331,7 +342,7 @@ const Technical = () => {
   };
 
   return (
-    <StaffNav>
+    <NavLayout>
       <div className="p-4 pt-0">
         <div className="mb-4">
           <input
@@ -339,7 +350,7 @@ const Technical = () => {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search by Consumer Name "
-            className="px-4 py-2 border text-sm w-80 border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none"
+            className="px-4 py-2 border text-sm w-80 border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none dark:bg-gray-800 dark:text-white"
           />
         </div>
 
@@ -388,7 +399,7 @@ const Technical = () => {
 
         {renderIssues()}
       </div>
-    </StaffNav>
+    </NavLayout>
   );
 };
 
