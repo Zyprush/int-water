@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import { sendPasswordResetEmail, fetchSignInMethodsForEmail } from "firebase/auth";
+import { sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "../../../firebase";
 import Link from "next/link";
 import { toast } from "react-toastify";
@@ -24,13 +24,13 @@ const ForgotPassword = () => {
     setLoading(true);
     try {
       // Check if email is registered
-      const signInMethods = await fetchSignInMethodsForEmail(auth, email);
+      // const signInMethods = await fetchSignInMethodsForEmail(auth, email);
       
-      if (signInMethods.length === 0) {
-        toast.error("No account found with this email address.");
-        setLoading(false);
-        return;
-      }
+      // if (signInMethods.length === 0) {
+      //   toast.error("No account found with this email address.");
+      //   setLoading(false);
+      //   return;
+      // }
 
       // Send password reset email
       await sendPasswordResetEmail(auth, email);
