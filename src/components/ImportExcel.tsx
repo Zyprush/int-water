@@ -114,6 +114,10 @@ const ImportConsumersModal: React.FC<ImportConsumersModalProps> = ({ isOpen, onC
             // Store the current user to restore session later
             const currentUser = auth.currentUser;
 
+            // Arrays to store successful and failed imports
+            const successfulImports: string[] = [];
+            const failedImports: string[] = [];
+
             // Skip header row
             for (let i = 1; i < rawData.length; i++) {
                 const row = rawData[i];
@@ -149,22 +153,13 @@ const ImportConsumersModal: React.FC<ImportConsumersModalProps> = ({ isOpen, onC
                 };
 
                 try {
-                    // Create user account using email and water meter serial as password
                     const uid = await createUserAccount(consumer.email, consumer.waterMeterSerialNo);
-
-                    // Add the UID to the consumer data
                     consumer.uid = uid;
-
-                    // Add consumer to Firestore
                     await addDoc(collection(db, 'consumers'), consumer);
-
-                    console.log(`Successfully imported consumer: ${consumer.applicantName}`);
-                    toast.success(`Successfully imported consumer: ${consumer.applicantName}`);
+                    successfulImports.push(consumer.applicantName);
                 } catch (err) {
                     const error = err as ImportError;
-                    console.error(`Error processing row ${i + 1}:`, error.message);
-                    // Continue with next row even if one fails
-                    toast.error(`Error processing row ${i + 1}: ${error.message}`);
+                    failedImports.push(`${consumer.applicantName} (${error.message})`);
                 }
             }
 
@@ -173,8 +168,19 @@ const ImportConsumersModal: React.FC<ImportConsumersModalProps> = ({ isOpen, onC
                 await auth.updateCurrentUser(currentUser);
             }
 
-            console.log('Import completed successfully!');
-            toast.success('Import completed successfully!');
+            // Show summary messages
+            if (successfulImports.length > 0) {
+                const successMessage = formatNameList(successfulImports) + ' successfully imported';
+                console.log(successMessage);
+                toast.success(successMessage);
+            }
+
+            if (failedImports.length > 0) {
+                const errorMessage = 'Failed to import: ' + formatNameList(failedImports);
+                console.error(errorMessage);
+                toast.error(errorMessage);
+            }
+
         } catch (err) {
             const error = err as ImportError;
             console.error('Error importing data:', error.message);
@@ -195,6 +201,13 @@ const ImportConsumersModal: React.FC<ImportConsumersModalProps> = ({ isOpen, onC
             return isNaN(parsed) ? 0 : parsed;
         }
         return 0;
+    };
+
+    const formatNameList = (names: string[]): string => {
+        if (names.length === 0) return '';
+        if (names.length === 1) return names[0];
+        if (names.length === 2) return `${names[0]} and ${names[1]}`;
+        return `${names.slice(0, -1).join(', ')}, and ${names[names.length - 1]}`;
     };
 
     if (!isOpen) return null;

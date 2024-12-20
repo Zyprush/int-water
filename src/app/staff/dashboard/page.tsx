@@ -355,7 +355,7 @@ const Dashboard: React.FC = () => {
           <div className="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6 flex flex-col justify-between">
             <div className="flex items-center space-x-4">
               <IconCash className="text-yellow-500" size={32} />
-              <h2 className="text-xl font-bold dark:text-white">Total Revenue</h2>
+              <h2 className="text-xl font-bold dark:text-white">Total Amount Paid</h2>
             </div>
             <p className="text-4xl font-semibold text-gray-800 dark:text-gray-200">
               ₱{totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
