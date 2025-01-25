@@ -388,7 +388,7 @@ const Dashboard: React.FC = () => {
         {/* Right: Graphs stacked on top of each other */}
         <div className="flex flex-col space-y-6">
           <div className="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6">
-            <h3 className="text-lg font-bold mb-4 text-black dark:text-white">Total Revenue Per Month</h3>
+            <h3 className="text-lg font-bold mb-4 text-black dark:text-white">Total Amount Paid Per Month</h3>
             <Bar
               data={dataRevenue}
               options={chartOptions}
