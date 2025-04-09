@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { collection, getDocs, doc, updateDoc } from "firebase/firestore";
-import { IconDotsVertical } from "@tabler/icons-react";
+// import { IconDotsVertical } from "@tabler/icons-react";
 import { db } from "../../../../firebase";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
@@ -291,7 +291,7 @@ const Technical = () => {
                 }}
                 disabled={isUpdating}
               >
-                <p className="text-black dark:text-white">Mark as</p><IconDotsVertical className="w-6 h-6 text-gray-600 dark:text-gray-300" />
+                {/* <p className="text-black dark:text-white" hidden>Mark as</p><IconDotsVertical className="w-6 h-6 text-gray-600 dark:text-gray-300" hidden /> */}
               </button>
             )}
 
