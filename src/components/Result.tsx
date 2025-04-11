@@ -233,20 +233,20 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
     const filteredConsumers = useMemo(() => {
         if (!searchTerm.trim()) return consumers;
         const searchTermLower = searchTerm.toLowerCase().trim();
-        
+
         // First filter by search term
         const filtered = consumers.filter(consumer => {
             const nameLower = consumer.applicantName.toLowerCase();
             const serialLower = consumer.waterMeterSerialNo.toLowerCase();
-            
+
             // Check if search matches name or serial number
-            return nameLower.includes(searchTermLower) || 
-                   serialLower.includes(searchTermLower) ||
-                   nameLower.split(' ').some(word => word.startsWith(searchTermLower));
+            return nameLower.includes(searchTermLower) ||
+                serialLower.includes(searchTermLower) ||
+                nameLower.split(' ').some(word => word.startsWith(searchTermLower));
         });
-        
+
         // Then deduplicate by serial number
-        return filtered.filter((consumer, index, self) => 
+        return filtered.filter((consumer, index, self) =>
             index === self.findIndex(c => c.waterMeterSerialNo === consumer.waterMeterSerialNo)
         );
     }, [consumers, searchTerm]);
@@ -497,14 +497,22 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
 
             <div className="mb-4 mt-10">
                 <div className="mt-1 overflow-x-auto">
-                    <div className="mb-4">
+                    <div className="mb-4 relative">
                         <input
                             type="text"
-                            placeholder="Search by serial, or name"
+                            placeholder="Search by serial, name, or barangay..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="w-full p-2 border rounded-lg shadow-md bg-white dark:bg-gray-700 dark:text-gray-100"
                         />
+                        {searchTerm && (
+                            <button
+                                onClick={() => setSearchTerm('')}
+                                className="absolute right-2 top-1/2 transform -translate-y-1/2"
+                            >
+                                <X size={18} className="text-gray-500 dark:text-gray-400" />
+                            </button>
+                        )}
                     </div>
                     <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-600">
                         <thead className="bg-gray-50 dark:bg-gray-700">
