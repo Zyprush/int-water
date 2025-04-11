@@ -231,10 +231,14 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
     };
 
     const filteredConsumers = useMemo(() => {
-        return consumers.filter(consumer =>
-            // consumer.waterMeterSerialNo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            consumer.applicantName.toLowerCase().includes(searchTerm.toLowerCase())
-        );
+        if (!searchTerm.trim()) return consumers;
+
+        const searchTermLower = searchTerm.toLowerCase().trim();
+
+        return consumers.filter(consumer => {
+            const name = consumer.applicantName.toLowerCase();
+            return name.includes(searchTermLower);
+        });
     }, [consumers, searchTerm]);
 
     const handlePreviewBill = () => {
@@ -538,20 +542,20 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
                 />
             </div>
 
-            <div className="flex flex-col gap-4 mt-6 mb-4">
+            <div className="flex flex-row gap-4 mt-6 mb-4">
                 <button
                     type="button"
                     onClick={handleUpload}
-                    className="w-full bg-green-500 hover:bg-green-600 text-white px-4 py-2.5 rounded font-medium"
+                    className="flex-1 bg-green-500 hover:bg-green-600 text-white px-4 py-2.5 rounded font-medium"
                 >
                     UPLOAD
                 </button>
                 <button
                     type="button"
                     onClick={handlePreviewBill}
-                    className="w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-2.5 rounded font-medium"
+                    className="flex-1 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2.5 rounded font-medium"
                 >
-                    Preview and Print Receipt
+                    GENERATE RECEIPT
                 </button>
             </div>
 
