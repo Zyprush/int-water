@@ -232,13 +232,23 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
 
     const filteredConsumers = useMemo(() => {
         if (!searchTerm.trim()) return consumers;
-
         const searchTermLower = searchTerm.toLowerCase().trim();
-
-        return consumers.filter(consumer => {
-            const name = consumer.applicantName.toLowerCase();
-            return name.includes(searchTermLower);
+        
+        // First filter by search term
+        const filtered = consumers.filter(consumer => {
+            const nameLower = consumer.applicantName.toLowerCase();
+            const serialLower = consumer.waterMeterSerialNo.toLowerCase();
+            
+            // Check if search matches name or serial number
+            return nameLower.includes(searchTermLower) || 
+                   serialLower.includes(searchTermLower) ||
+                   nameLower.split(' ').some(word => word.startsWith(searchTermLower));
         });
+        
+        // Then deduplicate by serial number
+        return filtered.filter((consumer, index, self) => 
+            index === self.findIndex(c => c.waterMeterSerialNo === consumer.waterMeterSerialNo)
+        );
     }, [consumers, searchTerm]);
 
     const handlePreviewBill = () => {
@@ -490,7 +500,7 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
                     <div className="mb-4">
                         <input
                             type="text"
-                            placeholder="Search by serial, name, or barangay..."
+                            placeholder="Search by serial, or name"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="w-full p-2 border rounded-lg shadow-md bg-white dark:bg-gray-700 dark:text-gray-100"
