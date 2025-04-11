@@ -49,9 +49,8 @@ const BillPreview: React.FC<BillPreviewProps> = ({ billing, consumer, onConfirm,
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white dark:bg-gray-800 w-full max-w-sm rounded-lg shadow-lg overflow-y-auto max-h-screen">
-
-                <div className="p-4 space-y-4">
+            <div className="bg-white dark:bg-gray-800 w-full max-w-sm rounded-lg shadow-lg max-h-[90vh] flex flex-col m-4">
+                <div className="overflow-y-auto flex-grow p-4 space-y-4">
                     <div className="text-center space-y-2">
                         <h1 className="text-xl font-bold">Water Billing Receipt</h1>
                         <p className="text-sm">Waterworks System</p>
@@ -124,7 +123,7 @@ const BillPreview: React.FC<BillPreviewProps> = ({ billing, consumer, onConfirm,
                     </div>
                 </div>
 
-                <div className="sticky bottom-0 bg-white dark:bg-gray-800 p-4 border-t flex justify-between gap-4">
+                <div className="bg-white dark:bg-gray-800 p-4 border-t flex justify-between gap-4">
                     <button
                         onClick={onCancel}
                         className="flex-1 flex items-center justify-center gap-2 bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded"
@@ -233,9 +232,8 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
 
     const filteredConsumers = useMemo(() => {
         return consumers.filter(consumer =>
-            consumer.waterMeterSerialNo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            consumer.applicantName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            consumer.barangay.toLowerCase().includes(searchTerm.toLowerCase())
+            // consumer.waterMeterSerialNo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            consumer.applicantName.toLowerCase().includes(searchTerm.toLowerCase()) 
         );
     }, [consumers, searchTerm]);
 
