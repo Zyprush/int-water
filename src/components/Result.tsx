@@ -173,10 +173,10 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
 
     const calculateDueDate = (readingDate: Date): Date => {
         const dueDate = new Date(readingDate);
-        
+
         // Add one month while keeping the same day of the month
         dueDate.setMonth(dueDate.getMonth() + 1);
-        
+
         return dueDate;
     };
 
@@ -233,7 +233,7 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
     const filteredConsumers = useMemo(() => {
         return consumers.filter(consumer =>
             // consumer.waterMeterSerialNo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            consumer.applicantName.toLowerCase().includes(searchTerm.toLowerCase()) 
+            consumer.applicantName.toLowerCase().includes(searchTerm.toLowerCase())
         );
     }, [consumers, searchTerm]);
 
@@ -314,13 +314,13 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
     const { addNotification } = useNotification();
     const handleUpload = async () => {
         if (!selectedConsumer) return;
-    
+
         // Prevent upload if no water consumption is entered
         if (!waterConsumption) {
             alert('Please enter water consumption reading');
             return;
         }
-    
+
         try {
             await runTransaction(db, async (transaction) => {
                 const currentDate = new Date();
@@ -328,26 +328,26 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
                 const currentMonth = currentDate.getMonth() + 1;
                 const monthKey = `${currentYear}-${String(currentMonth).padStart(2, '0')}`;
                 const readingDate = currentDate.toISOString().split('T')[0];
-                
+
                 const dueDate = calculateDueDate(currentDate);
-    
+
                 const newReading = parseInt(waterConsumption.replace(/^0+/, ''));
-    
+
                 // Check for existing billing for this consumer in the current month
                 const billingsRef = collection(db, 'billings');
                 const billingQuery = query(
-                    billingsRef, 
+                    billingsRef,
                     where('consumerSerialNo', '==', selectedConsumer.waterMeterSerialNo),
                     where('month', '==', monthKey)
                 );
-    
+
                 const existingBillingsSnapshot = await getDocs(billingQuery);
-    
+
                 // If billing already exists for this month, throw an error
                 if (!existingBillingsSnapshot.empty) {
                     throw new Error('Billing for this consumer this month already exists');
                 }
-    
+
                 // Prepare billing data
                 const billingData: Billing = {
                     month: monthKey,
@@ -362,17 +362,17 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
                     previousReading: lastBilling ? lastBilling.currentReading : selectedConsumer.initialReading,
                     currentReading: newReading
                 };
-    
+
                 // Add the new billing document
                 const newBillingRef = doc(billingsRef);
                 transaction.set(newBillingRef, billingData);
-    
+
                 // Update consumer's initial reading
                 const consumerRef = doc(db, 'consumers', selectedConsumer.docId);
                 transaction.update(consumerRef, {
                     initialReading: newReading
                 });
-    
+
                 // Add notification
                 const notificationRef = doc(collection(db, 'notifications'));
                 transaction.set(notificationRef, {
@@ -381,7 +381,7 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
                     read: false,
                     name: `Your water consumption reading for this month is ${newReading} cubic meters. You may now visit our office to settle your bill. Thank you!`,
                 });
-    
+
                 // Add log
                 const logRef = doc(collection(db, 'logs'));
                 transaction.set(logRef, {
@@ -389,18 +389,18 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
                     name: `${userData?.name} uploaded a meter reading for ${selectedConsumer.applicantName}.`,
                 });
             });
-    
+
             // If transaction succeeds
             alert('Billing data uploaded successfully!');
             await fetchConsumers();
-            
+
             // Reset states
             setSelectedConsumer(null);
             setWaterConsumption('');
             setCurrentBill(0);
             setLastBilling(null);
             closeCamera();
-    
+
         } catch (error) {
             console.error("Error processing billing: ", error);
             alert(error instanceof Error ? error.message : 'Failed to process billing');
@@ -538,22 +538,22 @@ const WaterConsumptionResult: React.FC<WaterConsumptionResultProps> = ({ recogni
                 />
             </div>
 
-            <div className="flex justify-between flex-col-1">
+            <div className="flex flex-col gap-4 mt-6 mb-4">
                 <button
                     type="button"
                     onClick={handleUpload}
-                    className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded w-full"
+                    className="w-full bg-green-500 hover:bg-green-600 text-white px-4 py-2.5 rounded font-medium"
                 >
                     UPLOAD
                 </button>
+                <button
+                    type="button"
+                    onClick={handlePreviewBill}
+                    className="w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-2.5 rounded font-medium"
+                >
+                    Preview and Print Receipt
+                </button>
             </div>
-            <button
-                type="button"
-                onClick={handlePreviewBill}
-                className="w-full mt-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
-            >
-                Preview and Print Receipt
-            </button>
 
             {showPreview && previewBilling && selectedConsumer && (
                 <BillPreview
